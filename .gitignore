@@ -4,6 +4,9 @@
 # Runtime logs
 logs/
 
+# Claude Code internal
+.claude/
+
 # macOS
 .DS_Store
 

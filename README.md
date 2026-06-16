@@ -441,7 +441,7 @@ A timestamped log file is created at the start of each run in `logs/onesearch_YY
 
 ---
 
-### `one_search/normalize.py`
+### `pipeline/normalize.py`
 
 Text and number normalization used throughout the pipeline.
 
@@ -453,7 +453,7 @@ Text and number normalization used throughout the pipeline.
 
 ---
 
-### `one_search/ingest.py`
+### `pipeline/ingest.py`
 
 Normalizes raw rows from each source into standard internal field names.
 
@@ -466,7 +466,7 @@ Normalizes raw rows from each source into standard internal field names.
 
 ---
 
-### `one_search/ingest_ga4.py`
+### `pipeline/ingest_ga4.py`
 
 Parses GA4 page-level exports → `{url_path: key_events}` lookup dict.
 
@@ -481,7 +481,7 @@ Paths are normalized by stripping trailing slashes so `/all-products/triple-zero
 
 ---
 
-### `one_search/merge.py`
+### `pipeline/merge.py`
 
 Full outer join of GSC and SQR on normalized keyword.
 
@@ -493,7 +493,7 @@ The click threshold is `> 1`, not `> 0`, to eliminate single-click noise while p
 
 ---
 
-### `one_search/format_rows.py`
+### `pipeline/format_rows.py`
 
 Shapes unified rows into the Masterlist column structure for the base write.
 
@@ -503,7 +503,7 @@ Shapes unified rows into the Masterlist column structure for the base write.
 
 ---
 
-### `one_search/trigram.py`
+### `pipeline/trigram.py`
 
 Character n-gram index and Jaccard similarity — the core of fuzzy matching.
 
@@ -515,7 +515,7 @@ Character n-gram index and Jaccard similarity — the core of fuzzy matching.
 
 ---
 
-### `one_search/match_se.py`
+### `pipeline/match_se.py`
 
 Matches SE Ranking keywords to Masterlist rows.
 
@@ -527,7 +527,7 @@ One SE Ranking keyword → one best match per unified row. If multiple SE keywor
 
 ---
 
-### `one_search/match_ks.py`
+### `pipeline/match_ks.py`
 
 Matches Keyword Study keywords to Masterlist rows.
 
@@ -545,7 +545,7 @@ High-confidence rows output: `LANG`, `TOPICS`, `CATEGORY`, `SUB-CATEGORY`, `Volu
 
 ---
 
-### `one_search/enrich.py`
+### `pipeline/enrich.py`
 
 Post-pipeline enrichment that runs after the Masterlist is written. Currently one active step:
 

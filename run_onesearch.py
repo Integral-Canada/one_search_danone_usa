@@ -20,15 +20,15 @@ import urllib.request
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from one_search.ingest import norm_gsc, norm_sqr, norm_se, norm_ks
-from one_search.ingest_ga4 import ga4_from_raw
-from one_search.merge import merge_gsc_sqr
-from one_search.format_rows import format_base_rows
-from one_search.normalize import normalize
-from one_search.trigram import build_index
-from one_search.match_se import match_se_keywords
-from one_search.match_ks import match_ks_keywords
-from one_search.enrich import enrich_volumes, enrich_monthly_volumes
+from pipeline.ingest import norm_gsc, norm_sqr, norm_se, norm_ks
+from pipeline.ingest_ga4 import ga4_from_raw
+from pipeline.merge import merge_gsc_sqr
+from pipeline.format_rows import format_base_rows
+from pipeline.normalize import normalize
+from pipeline.trigram import build_index
+from pipeline.match_se import match_se_keywords
+from pipeline.match_ks import match_ks_keywords
+from pipeline.enrich import enrich_volumes, enrich_monthly_volumes
 
 # ── Config ─────────────────────────────────────────────────────────────────────
 ENV_FILE = "/Users/carlaklaasen/claude_code/.env"

@@ -8,10 +8,10 @@ import urllib.request
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from one_search.ingest import norm_gsc, norm_sqr, norm_se
-from one_search.merge import merge_gsc_sqr
-from one_search.trigram import build_index
-from one_search.match_se import match_se_keywords
+from pipeline.ingest import norm_gsc, norm_sqr, norm_se
+from pipeline.merge import merge_gsc_sqr
+from pipeline.trigram import build_index
+from pipeline.match_se import match_se_keywords
 
 ENV_FILE = "/Users/carlaklaasen/claude_code/.env"
 REF_ID   = "1o526Qv4UzP_Qfe-cjrfvcA7jRUi6zUtd9Ecp2WPMIhQ"
@@ -121,8 +121,8 @@ def main():
     else:
         print("  → NO SE MATCHES — checking similarity scores manually")
         # Manual check: try first SE keyword against index
-        from one_search.trigram import trigrams_arr, jaccard
-        from one_search.normalize import normalize
+        from pipeline.trigram import trigrams_arr, jaccard
+        from pipeline.normalize import normalize
         test_kw = se_norm[0]['norm_se_keyword']
         q_arr = trigrams_arr(test_kw)
         q_set = set(q_arr)

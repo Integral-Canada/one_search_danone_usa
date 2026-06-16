@@ -10,11 +10,11 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from one_search.ingest import norm_gsc, norm_sqr, norm_se
-from one_search.merge import merge_gsc_sqr
-from one_search.format_rows import format_base_rows
-from one_search.trigram import build_index
-from one_search.match_se import match_se_keywords
+from pipeline.ingest import norm_gsc, norm_sqr, norm_se
+from pipeline.merge import merge_gsc_sqr
+from pipeline.format_rows import format_base_rows
+from pipeline.trigram import build_index
+from pipeline.match_se import match_se_keywords
 
 SAMPLE_SIZE = 20
 

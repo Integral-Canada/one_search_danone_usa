@@ -17,7 +17,7 @@ import urllib.parse
 import urllib.request
 
 sys.path.insert(0, os.path.dirname(__file__))
-from one_search.enrich import enrich_taxonomy
+from pipeline.enrich import enrich_taxonomy
 
 ENV_FILE = "/Users/carlaklaasen/claude_code/.env"
 
