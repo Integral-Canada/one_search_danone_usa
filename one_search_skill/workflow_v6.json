@@ -1,0 +1,1720 @@
+{
+  "name": "One Search - Merge Documents",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger-01",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1312,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1o526Qv4UzP_Qfe-cjrfvcA7jRUi6zUtd9Ecp2WPMIhQ",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 850184782,
+          "mode": "list",
+          "cachedResultName": "One Search ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1o526Qv4UzP_Qfe-cjrfvcA7jRUi6zUtd9Ecp2WPMIhQ/edit#gid=850184782"
+        },
+        "options": {}
+      },
+      "id": "ref-sheet",
+      "name": "Read: Source Config",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1136,
+        240
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "c4NHY7MkmOJ9YYBO",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $items().find(item => item.json[\"Export\"] === \"Keyword study\").json[\"Doc ID\"] }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $items().find(item => item.json[\"Export\"] === \"Keyword study\").json[\"Sheet Tab\"] }}",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "read-ks",
+      "name": "Read: Keyword Study",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -384,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "c4NHY7MkmOJ9YYBO",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $items().find(item => item.json[\"Export\"] === \"GSC Export\").json[\"Doc ID\"] }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $items().find(item => item.json[\"Export\"] === \"GSC Export\").json[\"Sheet Tab\"] }}",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "read-gsc",
+      "name": "Read: GSC Queries",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -384,
+        160
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "c4NHY7MkmOJ9YYBO",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $items().find(item => item.json[\"Export\"] === \"Account Level SQR Report\").json[\"Doc ID\"] }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $items().find(item => item.json[\"Export\"] === \"Account Level SQR Report\").json[\"Sheet Tab\"] }}",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "read-sqr",
+      "name": "Read: SQR Report",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -384,
+        320
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "c4NHY7MkmOJ9YYBO",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $items().find(item => item.json[\"Export\"] === \"SE Ranking\").json[\"Doc ID\"] }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $items().find(item => item.json[\"Export\"] === \"SE Ranking\").json[\"Sheet Tab\"] }}",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "read-se",
+      "name": "Read: SE Ranking",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -384,
+        480
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "c4NHY7MkmOJ9YYBO",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const normalize = s =>\n  String(s||'').toLowerCase()\n    .replace(/[ ​]/g,' ')\n    .replace(/[^a-z0-9 ]/g,'')\n    .replace(/\\s+/g,' ').trim();\n\nconst cleanNum = v => {\n  // Commas are thousands separators in North American Google Ads exports (e.g. \"1,234\" = 1234)\n  const s = String(v||'0').replace(/,/g,'').trim();\n  return parseFloat(s.replace(/[^0-9.\\-]/g,''))||0;\n};\n\n// Normalize Keyword Study rows.\n// Passes through: keyword fields, taxonomy cols, monthly volume cols (Oct 2025–Mar 2026).\nreturn $input.all()\n  .filter(i => String(i.json['Keyword']||'').trim())\n  .map(i => {\n    const j = i.json;\n    return { json: {\n      norm_keyword:    normalize(j['Keyword']||''),\n      keyword:         String(j['Keyword']||'').trim(),\n      lang:            j['LANG']         ||'EN',\n      topic:           j['TOPIC']        ||'',\n      category:        j['CATEGORY']     ||'',\n      sub_category:    j['SUB-CATEGORY'] ||'',\n      'Yogurt types':  j['Yogurt types'] ||'',\n      'Taste':         j['Taste']        ||'',\n      'Packaging':     j['Packaging']    ||'',\n      'Ingredient':    j['Ingredient']   ||'',\n      'Brands':        j['Brands']       ||'',\n      'Retailer':      j['Retailer']     ||'',\n      'Demography':    j['Demography']   ||'',\n      'Benefits':      j['Benefits']     ||'',\n      'Testimonials':  j['Testimonials'] ||'',\n      'Bio':           j['Bio']          ||'',\n      'Moments':       j['Moments']      ||'',\n      'Recipes':       j['Recipes']      ||'',\n      'Searches: Oct 2025': j['Searches: Oct 2025']||'',\n      'Searches: Nov 2025': j['Searches: Nov 2025']||'',\n      'Searches: Dec 2025': j['Searches: Dec 2025']||'',\n      'Searches: Jan 2026': j['Searches: Jan 2026']||'',\n      'Searches: Feb 2026': j['Searches: Feb 2026']||'',\n      'Searches: Mar 2026': j['Searches: Mar 2026']||'',\n    }};\n  });"
+      },
+      "id": "norm-ks",
+      "name": "Norm: Keyword Study",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const normalize = s =>\n  String(s||'').toLowerCase()\n    .replace(/[ ​]/g,' ')\n    .replace(/[^a-z0-9 ]/g,'')\n    .replace(/\\s+/g,' ').trim();\n\nconst cleanNum = v => {\n  // Commas are thousands separators in North American Google Ads exports (e.g. \"1,234\" = 1234)\n  const s = String(v||'0').replace(/,/g,'').trim();\n  return parseFloat(s.replace(/[^0-9.\\-]/g,''))||0;\n};\n\n// Normalize GSC rows. Maps date-range col names to standard field names.\n// No click filtering here — filtering happens in Merge: Only One Click and Higher.\nconst parsePct = v => parseFloat(String(v||'0').replace('%','').trim())/100||0;\n\nreturn $input.all()\n  .filter(i => String(i.json['Top queries']||'').trim())\n  .map(i => {\n    const j = i.json;\n    return { json: {\n      norm_query:    normalize(j['Top queries']||''),\n      query:         String(j['Top queries']||''),\n      gsc_clicks_p1: cleanNum(j['1/1/26 - 3/31/26 Clicks']),\n      gsc_clicks_p2: cleanNum(j['10/1/25 - 12/31/25 Clicks']),\n      gsc_impr_p1:   cleanNum(j['1/1/26 - 3/31/26 Impressions']),\n      gsc_impr_p2:   cleanNum(j['10/1/25 - 12/31/25 Impressions']),\n      gsc_ctr_p1:    parsePct(j['1/1/26 - 3/31/26 CTR']),\n      gsc_ctr_p2:    parsePct(j['10/1/25 - 12/31/25 CTR']),\n      gsc_pos_p1:    cleanNum(j['1/1/26 - 3/31/26 Position']),\n      gsc_pos_p2:    cleanNum(j['10/1/25 - 12/31/25 Position']),\n    }};\n  });"
+      },
+      "id": "norm-gsc",
+      "name": "Norm: GSC Queries",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const normalize = s =>\n  String(s||'').toLowerCase()\n    .replace(/[ ​]/g,' ')\n    .replace(/[^a-z0-9 ]/g,'')\n    .replace(/\\s+/g,' ').trim();\n\nconst cleanNum = v => {\n  // Commas are thousands separators in North American Google Ads exports (e.g. \"1,234\" = 1234)\n  const s = String(v||'0').replace(/,/g,'').trim();\n  return parseFloat(s.replace(/[^0-9.\\-]/g,''))||0;\n};\n\n// Normalize SQR rows. Maps column names to standard field names.\n// No click filtering here — filtering happens in Merge: Only One Click and Higher.\nreturn $input.all()\n  .filter(i => String(i.json['Search term']||'').trim())\n  .map(i => {\n    const j = i.json;\n    return { json: {\n      norm_term:      normalize(j['Search term']||''),\n      search_term:    String(j['Search term']||''),\n      search_keyword: String(j['Search keyword']||''),\n      sqr_clicks_p1:  cleanNum(j['Clicks']),\n      sqr_clicks_p2:  cleanNum(j['Clicks (Compare to)']),\n      sqr_cost_p1:    cleanNum(j['Cost']),\n      sqr_cost_p2:    cleanNum(j['Cost (Compare to)']),\n      sqr_impr_p1:    cleanNum(j['Impr.']),\n      sqr_impr_p2:    cleanNum(j['Impr. (Compare to)']),\n    }};\n  });"
+      },
+      "id": "norm-sqr",
+      "name": "Norm: SQR Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        320
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const normalize = s =>\n  String(s||'').toLowerCase()\n    .replace(/[ ​]/g,' ')\n    .replace(/[^a-z0-9 ]/g,'')\n    .replace(/\\s+/g,' ').trim();\n\nconst cleanNum = v => {\n  const s = String(v||'0').replace(/,/g,'').trim();\n  return parseFloat(s.replace(/[^0-9.\\-]/g,''))||0;\n};\n\n// Find BOM-affected Keyword column name ONCE (not per row)\nconst sampleRow = $input.first()?.json || {};\nconst kwKey = Object.keys(sampleRow).find(k => k.replace(/\\ufeff/g,'') === 'Keyword') || 'Keyword';\n\nreturn $input.all()\n  .filter(i => {                              // filter BEFORE map — discard most rows cheaply\n    const pos = cleanNum(i.json['Position']);\n    return pos > 0 && pos <= 50;\n  })\n  .map(i => {\n    const j = i.json;\n    const kw = j[kwKey] || '';\n    return { json: {\n      norm_se_keyword:  normalize(kw),\n      se_keyword:       kw,\n      se_position:      cleanNum(j['Position']),\n      se_search_vol:    cleanNum(j['Search vol.']),\n      se_cpc:           parseFloat(String(j['CPC']||'0').replace(/[^0-9.]/g,''))||0,\n      se_search_intent: j['Search intent']||'',\n    }};\n  })\n  .filter(r => r.json.norm_se_keyword);\n"
+      },
+      "id": "norm-se",
+      "name": "Norm: SE Ranking",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch",
+        "output": "empty"
+      },
+      "id": "sync-gscsqr",
+      "name": "Sync: GSC + SQR",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        80,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Reads normalized GSC and SQR by node name.\n// 1. Filters: keep rows with clicks > 1 in Q1 OR Q4\n// 2. Deduplicates each source by normalized keyword\n// 3. Full outer join GSC ∪ SQR — one row per unique search term\n//    GSC-only rows: SQR cols = 0  |  SQR-only rows: GSC cols = 0\n\nconst gscRaw = $('Norm: GSC Queries').all().map(i => i.json);\nconst sqrRaw = $('Norm: SQR Report').all().map(i => i.json);\n\nconst gscFiltered = gscRaw.filter(r => r.gsc_clicks_p1 > 1 || r.gsc_clicks_p2 > 1);\nconst sqrFiltered = sqrRaw.filter(r => r.sqr_clicks_p1 > 1 || r.sqr_clicks_p2 > 1);\n\n// Dedup GSC\nconst gscMap = {};\nfor (const r of gscFiltered) {\n  const k = r.norm_query;\n  if (!gscMap[k]) { gscMap[k] = {...r}; }\n  else {\n    const m = gscMap[k];\n    const pi1 = m.gsc_impr_p1, pi2 = m.gsc_impr_p2;\n    m.gsc_clicks_p1 += r.gsc_clicks_p1; m.gsc_clicks_p2 += r.gsc_clicks_p2;\n    m.gsc_impr_p1   += r.gsc_impr_p1;   m.gsc_impr_p2   += r.gsc_impr_p2;\n    if (m.gsc_impr_p1 > 0) m.gsc_pos_p1 = (m.gsc_pos_p1*pi1 + r.gsc_pos_p1*r.gsc_impr_p1) / m.gsc_impr_p1;\n    if (m.gsc_impr_p2 > 0) m.gsc_pos_p2 = (m.gsc_pos_p2*pi2 + r.gsc_pos_p2*r.gsc_impr_p2) / m.gsc_impr_p2;\n  }\n}\nfor (const k in gscMap) {\n  const m = gscMap[k];\n  m.gsc_ctr_p1 = m.gsc_impr_p1 > 0 ? m.gsc_clicks_p1 / m.gsc_impr_p1 : 0;\n  m.gsc_ctr_p2 = m.gsc_impr_p2 > 0 ? m.gsc_clicks_p2 / m.gsc_impr_p2 : 0;\n}\n\n// Dedup SQR\nconst sqrMap = {};\nfor (const r of sqrFiltered) {\n  const k = r.norm_term;\n  if (!sqrMap[k]) { sqrMap[k] = {...r, _kws: new Set([r.search_keyword])}; }\n  else {\n    const m = sqrMap[k];\n    m.sqr_clicks_p1 += r.sqr_clicks_p1; m.sqr_clicks_p2 += r.sqr_clicks_p2;\n    m.sqr_cost_p1   += r.sqr_cost_p1;   m.sqr_cost_p2   += r.sqr_cost_p2;\n    m.sqr_impr_p1   += r.sqr_impr_p1;   m.sqr_impr_p2   += r.sqr_impr_p2;\n    m._kws.add(r.search_keyword);\n  }\n}\nfor (const k in sqrMap) {\n  sqrMap[k].search_keyword = Array.from(sqrMap[k]._kws).join(' | ');\n  delete sqrMap[k]._kws;\n}\n\n// Full outer join\nconst ZSQR = {sqr_clicks_p1:0, sqr_clicks_p2:0, sqr_cost_p1:0, sqr_cost_p2:0,\n              sqr_impr_p1:0, sqr_impr_p2:0, search_keyword:'', search_term:''};\nconst ZGSC  = {gsc_clicks_p1:0, gsc_clicks_p2:0, gsc_impr_p1:0, gsc_impr_p2:0,\n               gsc_ctr_p1:0, gsc_ctr_p2:0, gsc_pos_p1:0, gsc_pos_p2:0, query:''};\n\nconst sqrRem = {...sqrMap};\nconst unified = {};\nfor (const k in gscMap) {\n  unified[k] = {unified_key: k, ...ZSQR, ...gscMap[k]};\n  if (sqrRem[k]) { Object.assign(unified[k], sqrRem[k]); delete sqrRem[k]; }\n}\nfor (const k in sqrRem) {\n  unified[k] = {unified_key: k, norm_query: k, ...ZGSC, ...sqrRem[k]};\n}\n\nreturn Object.values(unified).map(r => ({json: r}));"
+      },
+      "id": "merge-clicks",
+      "name": "Merge: Only One Click and Higher",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Maps unified GSC+SQR fields to Masterlist column headers for base write.\n// Writes only base perf cols — KS/SE enrichment cols filled in later update passes.\n// Never emits Coverage cols J/K (sheet formulas) or AI/AK (ARRAYFORMULA, set separately).\nconst f    = v => (v===undefined||v===null) ? '' : v;\nconst fPct = v => v==='' ? '' : Math.round(v*10000)/100+'%';\nconst fNum = v => v==='' ? '' : Math.round(v*100)/100;\n\nreturn $input.all().map(item => {\n  const r = item.json;\n  const gC1=r.gsc_clicks_p1||0, gC2=r.gsc_clicks_p2||0;\n  const sC1=r.sqr_clicks_p1||0, sC2=r.sqr_clicks_p2||0;\n  const gI1=r.gsc_impr_p1  ||0, gI2=r.gsc_impr_p2  ||0;\n  const sI1=r.sqr_impr_p1  ||0, sI2=r.sqr_impr_p2  ||0;\n  const sCo1=r.sqr_cost_p1 ||0, sCo2=r.sqr_cost_p2 ||0;\n\n  const osC1=gC1+sC1, osI1=gI1+sI1;\n  const osC2=gC2+sC2, osI2=gI2+sI2;\n\n  const ctrSeoP1 = gI1>0 ? fPct(gC1/gI1) : '';\n  const ctrSeoP2 = gI2>0 ? fPct(gC2/gI2) : '';\n  const ctrSemP1 = sI1>0 ? fPct(sC1/sI1) : '';\n  const ctrSemP2 = sI2>0 ? fPct(sC2/sI2) : '';\n  const cpcAvgP1 = sC1>0 ? fNum(sCo1/sC1) : '';\n\n  return { json: {\n    'Keyword':                       r.query || r.search_term || r.unified_key,\n    'Clics OneSearch Q1 2026':       f(osC1),\n    'Impressions OneSearch Q1 2026': f(osI1),\n    'Clics OneSearch Q4 2025':       f(osC2),\n    'Impressions OneSearch Q4 2025': f(osI2),\n    'Clics SEO Q1 2026':             f(gC1),\n    'Clics SEM Q1 2026':             f(sC1),\n    'Clics SEO Q4 2025':             f(gC2),\n    'Clics SEM Q4 2025':             f(sC2),\n    'Impr. SEO Q1 2026':             f(gI1),\n    'Impr. SEM Q1 2026':             f(sI1),\n    'Impr. SEO Q4 2025':             f(gI2),\n    'Impr. SEM Q4 2025':             f(sI2),\n    'CTR SEO Q1 2026':               ctrSeoP1,\n    'CTR SEM Q1 2026':               ctrSemP1,\n    'CTR SEO Q4 2025':               ctrSeoP2,\n    'CTR SEM Q4 2025':               ctrSemP2,\n    'CPC avg. SEM Q1 2026':          cpcAvgP1,\n    'Spent SEM Q1 2026':             f(sCo1),\n    'Spent SEM Q4 2025':             f(sCo2),\n  }};\n});"
+      },
+      "id": "format-base",
+      "name": "Format: Base Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1W73Lzli30z4GnO_WtLjs0hWOdPcEZw1jptXKG8exKoU",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1730573329,
+          "mode": "list",
+          "cachedResultName": "Listing",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1W73Lzli30z4GnO_WtLjs0hWOdPcEZw1jptXKG8exKoU/edit#gid=1730573329"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "LANG",
+              "displayName": "LANG",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Keyword",
+              "displayName": "Keyword",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "TOPICS",
+              "displayName": "TOPICS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CATEGORY",
+              "displayName": "CATEGORY",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "SUB-CATEGORY",
+              "displayName": "SUB-CATEGORY",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Position SE Ranking",
+              "displayName": "Position SE Ranking",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Average Search Volume",
+              "displayName": "Average Search Volume",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Volume Q1 2026",
+              "displayName": "Volume Q1 2026",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Volume Q4 2025",
+              "displayName": "Volume Q4 2025",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Coverage One Search Q1 2026",
+              "displayName": "Coverage One Search Q1 2026",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Coverage One Search Q4 2025",
+              "displayName": "Coverage One Search Q4 2025",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Clics OneSearch Q1 2026",
+              "displayName": "Clics OneSearch Q1 2026",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Impressions OneSearch Q1 2026",
+              "displayName": "Impressions OneSearch Q1 2026",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Clics OneSearch Q4 2025",
+              "displayName": "Clics OneSearch Q4 2025",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Impressions OneSearch Q4 2025",
+              "displayName": "Impressions OneSearch Q4 2025",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Clics SEO Q1 2026",
+              "displayName": "Clics SEO Q1 2026",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Clics SEM Q1 2026",
+              "displayName": "Clics SEM Q1 2026",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Clics SEO Q4 2025",
+              "displayName": "Clics SEO Q4 2025",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Clics SEM Q4 2025",
+              "displayName": "Clics SEM Q4 2025",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Impr. SEO Q1 2026",
+              "displayName": "Impr. SEO Q1 2026",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Impr. SEM Q1 2026",
+              "displayName": "Impr. SEM Q1 2026",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Impr. SEO Q4 2025",
+              "displayName": "Impr. SEO Q4 2025",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Impr. SEM Q4 2025",
+              "displayName": "Impr. SEM Q4 2025",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CTR SEO Q1 2026",
+              "displayName": "CTR SEO Q1 2026",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CTR SEM Q1 2026",
+              "displayName": "CTR SEM Q1 2026",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CTR SEO Q4 2025",
+              "displayName": "CTR SEO Q4 2025",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CTR SEM Q4 2025",
+              "displayName": "CTR SEM Q4 2025",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Conversions SEO Q1 2026",
+              "displayName": "Conversions SEO Q1 2026",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Conversions SEM Q1 2026",
+              "displayName": "Conversions SEM Q1 2026",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Conversions SEO Q4 2024",
+              "displayName": "Conversions SEO Q4 2024",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Conversions SEM Q4 2024",
+              "displayName": "Conversions SEM Q4 2024",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CPC SEO Q1 2026",
+              "displayName": "CPC SEO Q1 2026",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CPC avg. SEM Q1 2026",
+              "displayName": "CPC avg. SEM Q1 2026",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Spent SEM Q1 2026",
+              "displayName": "Spent SEM Q1 2026",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Cost SEO Q1 2026",
+              "displayName": "Cost SEO Q1 2026",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Spent SEM Q4 2025",
+              "displayName": "Spent SEM Q4 2025",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Cost SEO Q4 2025",
+              "displayName": "Cost SEO Q4 2025",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Purchase intent",
+              "displayName": "Purchase intent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Questions",
+              "displayName": "Questions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Yogurt types",
+              "displayName": "Yogurt types",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Taste",
+              "displayName": "Taste",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Packaging",
+              "displayName": "Packaging",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Ingredient",
+              "displayName": "Ingredient",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Brands",
+              "displayName": "Brands",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Retailer",
+              "displayName": "Retailer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Demography",
+              "displayName": "Demography",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Benefits",
+              "displayName": "Benefits",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Testimonials",
+              "displayName": "Testimonials",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Bio",
+              "displayName": "Bio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Moments",
+              "displayName": "Moments",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Recipes",
+              "displayName": "Recipes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Searches: Oct 2024",
+              "displayName": "Searches: Oct 2024",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Searches: Nov 2024",
+              "displayName": "Searches: Nov 2024",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Searches: Dec 2024",
+              "displayName": "Searches: Dec 2024",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Searches: Jan 2025",
+              "displayName": "Searches: Jan 2025",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Searches: Feb 2025",
+              "displayName": "Searches: Feb 2025",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Searches: Mar 2025",
+              "displayName": "Searches: Mar 2025",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        }
+      },
+      "id": "write-base",
+      "name": "Write: Masterlist — Base",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        768,
+        240
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "c4NHY7MkmOJ9YYBO",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch",
+        "output": "empty"
+      },
+      "id": "sync-se",
+      "name": "Sync: SE Enrichment",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1024,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build trigram (n=3) index on Masterlist col B (~1,240 unified rows).\n// Includes uDisplay (display keyword per unified row) so batch match nodes\n// don't need to reload the full unified dataset.\n// Outputs ONE serialized item — {uKeys, uDisplay, uTg, idx} — plain arrays, JSON-safe.\n\nconst normalize = s =>\n  String(s||'').toLowerCase()\n    .replace(/[ ​]/g,' ')\n    .replace(/[^a-z0-9 ]/g,'')\n    .replace(/\\s+/g,' ').trim();\n\nfunction trigramsArr(str) {\n  const s=' '+str+' '; const seen=new Set(), out=[];\n  for(let i=0;i<=s.length-3;i++){\n    const t=s.slice(i,i+3);\n    if(!seen.has(t)){seen.add(t);out.push(t);}\n  }\n  return out;\n}\n\nconst unified  = $('Merge: Only One Click and Higher').all().map(i => i.json);\nconst uKeys    = unified.map(r => r.unified_key||r.norm_query||'');\nconst uDisplay = unified.map(r => r.query||r.search_term||r.unified_key||'');\nconst uTg      = uKeys.map(k => trigramsArr(normalize(k)));\n\nconst idx = {};\nuTg.forEach((tg,i) => { for(const t of tg){ if(!idx[t]) idx[t]=[]; idx[t].push(i); } });\n\nreturn [{json: {uKeys, uDisplay, uTg, idx}}];"
+      },
+      "id": "build-idx",
+      "name": "Build: Trigram Index",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Runs after Build: Trigram Index to ensure correct execution order.\n// Reads all (position-filtered) SE Ranking rows and outputs them as items\n// so Split: SE Batches can chunk them into batches of 500.\nreturn $('Norm: SE Ranking').all();"
+      },
+      "id": "dist-se",
+      "name": "Distribute: SE Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1552,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 500,
+        "options": {}
+      },
+      "id": "split-se",
+      "name": "Split: SE Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1808,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Reads pre-built index from Build: Trigram Index by node name — no rebuild per batch.\n// Processes ONLY the current batch of SE rows from $input (≤500 rows at a time).\n// Lever 2: no AI/AK computation here — handled by ARRAYFORMULA written to sheet.\n// Outputs update rows for: F (Position) · G (Vol) · AF (CPC SEO) · AL (Purchase intent).\n\nfunction trigramsArr(str) {\n  const s=' '+str+' '; const seen=new Set(), out=[];\n  for(let i=0;i<=s.length-3;i++){\n    const t=s.slice(i,i+3);\n    if(!seen.has(t)){seen.add(t);out.push(t);}\n  }\n  return out;\n}\nfunction jaccard(uArr, qSet) {\n  let n=0; for(const t of uArr) if(qSet.has(t)) n++;\n  return n/(uArr.length + qSet.size - n);\n}\n\nconst {uKeys, uDisplay, uTg, idx} = $('Build: Trigram Index').first().json;\nconst seRows = $input.all().map(i => i.json);  // current batch only\n\nconst bestSE = {};\nfor(const r of seRows) {\n  const qArr = trigramsArr(r.norm_se_keyword);\n  const qSet = new Set(qArr);\n  const cands = new Set();\n  for(const t of qArr) if(idx[t]) for(const i of idx[t]) cands.add(i);\n  let bi=-1, bs=0;\n  for(const i of cands) {\n    const s = jaccard(uTg[i], qSet);\n    if(s>bs){bs=s;bi=i;}\n  }\n  if(bi>=0 && bs>=0.50) {\n    const k=uKeys[bi];\n    if(!bestSE[k]||bs>bestSE[k]._sim)\n      bestSE[k]={_sim:bs, _display:uDisplay[bi],\n                 se_position:r.se_position, se_search_vol:r.se_search_vol,\n                 se_cpc:r.se_cpc, se_search_intent:r.se_search_intent};\n  }\n}\n\nconst f = v => (v===undefined||v===null||v===0)?'':v;\n\nreturn Object.entries(bestSE).map(([key, se]) => ({json: {\n  'Keyword':               se._display || key,\n  'Position SE Ranking':   f(se.se_position),\n  'Average Search Volume': f(se.se_search_vol),\n  'CPC SEO Q1 2026':       f(se.se_cpc),\n  'Purchase intent':       se.se_search_intent||'',\n}}));"
+      },
+      "id": "match-se-batch",
+      "name": "Match: SE Batch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2064,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1W73Lzli30z4GnO_WtLjs0hWOdPcEZw1jptXKG8exKoU",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1730573329,
+          "mode": "list",
+          "cachedResultName": "Listing",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1W73Lzli30z4GnO_WtLjs0hWOdPcEZw1jptXKG8exKoU/edit#gid=1730573329"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "Keyword"
+          ],
+          "schema": []
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        }
+      },
+      "id": "update-se-batch",
+      "name": "Update: Masterlist — SE Batch",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2320,
+        448
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "c4NHY7MkmOJ9YYBO",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch",
+        "output": "empty"
+      },
+      "id": "sync-ks",
+      "name": "Sync: KS Enrichment",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2320,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Match: KS Keywords ────────────────────────────────────────────────────────\n//\n// PURPOSE: Match each unified search term (col B, ~1,240 rows) to its best\n// Keyword Study keyword using trigram (n=3) similarity.\n//\n// INPUTS (read by node name — no $input used):\n//   - Build: Trigram Index  → pre-built index on unified col B (small set)\n//   - Norm: Keyword Study   → 14,273 KS keywords with taxonomy + volume cols\n//   - Merge: Only One Click and Higher → unified rows (for the output pivot)\n//\n// OUTPUTS (2 output branches):\n//   Output 0 → sim ≥ 0.65 → Update: Masterlist — KS cols   (auto-written)\n//   Output 1 → sim < 0.65 → Write: KW Review Sheet          (human review)\n//\n// MATCHING DIRECTION:\n//   Index is built on the ~1,240 unified queries (small).\n//   We iterate the 14,273 KS keywords through that small index.\n//   For each KS keyword: find which unified rows share trigrams → compute Jaccard.\n//   Then pivot: for each unified row, keep the KS keyword with highest similarity.\n//\n// PERFORMANCE FIX:\n//   Common words (\"yogurt\", \"greek\") appear in hundreds of unified rows.\n//   Without a limit, one KS keyword could generate 800+ Jaccard computations.\n//   Fix: rank candidates by shared trigram count, check only top 50.\n//   Jaccard and shared-trigram-count are highly correlated — best match is\n//   almost always in the top 50 by count, so accuracy is not affected.\n\nconst normalize = s =>\n  String(s||'').toLowerCase()\n    .replace(/[ ​]/g,' ')\n    .replace(/[^a-z0-9 ]/g,'')\n    .replace(/\\s+/g,' ').trim();\n\n// Generate unique n=3 character trigrams for a string (padded with spaces).\n// e.g. \"yogurt\" → [\" yo\", \"yog\", \"ogu\", \"gur\", \"urt\", \"rt \"]\nfunction trigramsArr(str) {\n  const s = ' ' + str + ' ';\n  const seen = new Set(), out = [];\n  for (let i = 0; i <= s.length - 3; i++) {\n    const t = s.slice(i, i + 3);\n    if (!seen.has(t)) { seen.add(t); out.push(t); }\n  }\n  return out;\n}\n\n// Jaccard similarity between two trigram sets.\n// uArr = unified row's trigrams (array), qSet = KS keyword's trigrams (Set).\n// Intersection / Union = shared / (total_u + total_q - shared).\nfunction jaccard(uArr, qSet) {\n  let n = 0;\n  for (const t of uArr) if (qSet.has(t)) n++;\n  return n / (uArr.length + qSet.size - n);\n}\n\n// ── Load data ─────────────────────────────────────────────────────────────────\n\n// Pre-built index from Build: Trigram Index (one serialized item):\n//   uKeys    = normalized key per unified row (used as map key)\n//   uDisplay = raw display keyword per unified row (written to sheet)\n//   uTg      = trigram arrays per unified row (for Jaccard)\n//   idx      = inverted index: trigram → [unified row indices]\nconst { uKeys, uDisplay, uTg, idx } = $('Build: Trigram Index').first().json;\n\nconst ksRows  = $('Norm: Keyword Study').all().map(i => i.json);   // 14,273 KS keywords\nconst unified = $('Merge: Only One Click and Higher').all().map(i => i.json); // ~1,240 unified rows\n\n// ── Step 1: Iterate KS through index → build bestKS pivot map ────────────────\n//\n// bestKS[unifiedKey] = { ks: <KS row>, sim: <best Jaccard score> }\n// For each unified row we keep only the single KS keyword with the highest sim.\n\nconst bestKS = {};\n\nfor (const ks of ksRows) {\n  const qArr = trigramsArr(ks.norm_keyword); // trigrams for this KS keyword\n  const qSet = new Set(qArr);\n\n  // Count how many trigrams each unified row shares with this KS keyword.\n  // candScore[unifiedIndex] = number of shared trigrams.\n  const candScore = {};\n  for (const t of qArr) {\n    if (idx[t]) {\n      for (const i of idx[t]) candScore[i] = (candScore[i] || 0) + 1;\n    }\n  }\n\n  // Rank by shared trigram count, keep top 50 — bounds worst-case Jaccard calls.\n  // Candidates with 0 shared trigrams can never have Jaccard > 0, so skipping\n  // them is exact (not an approximation). The top-50 cap is the only trade-off.\n  const topCands = Object.entries(candScore)\n    .sort((a, b) => b[1] - a[1])\n    .slice(0, 50)\n    .map(([i]) => Number(i));\n\n  // Find the unified row with the highest Jaccard similarity to this KS keyword.\n  let bi = -1, bs = 0;\n  for (const i of topCands) {\n    const s = jaccard(uTg[i], qSet);\n    if (s > bs) { bs = s; bi = i; }\n  }\n\n  // Update pivot: keep only the best KS match per unified row.\n  if (bi >= 0) {\n    const k = uKeys[bi];\n    if (!bestKS[k] || bs > bestKS[k].sim) bestKS[k] = { ks, sim: bs };\n  }\n}\n\n// ── Step 2: Build output arrays by iterating unified rows ─────────────────────\n//\n// For each unified row, look up its best KS match from the pivot map.\n// Split into two output branches based on similarity threshold.\n\nconst highConf = []; // sim ≥ 0.65 → auto-update Masterlist\nconst review   = []; // sim < 0.65 → KW Review tab for human check\n\n// f() helper: write blank for undefined/null, write 0 for zero (not blank).\nconst f = v => (v === undefined || v === null) ? '' : v;\n\nfor (const r of unified) {\n  const key   = r.unified_key || r.norm_query || '';\n  const kw    = r.query || r.search_term || key; // display keyword for col B\n  const match = bestKS[key];\n  const sim   = match ? Math.round(match.sim * 1000) / 1000 : 0;\n\n  if (match && match.sim >= 0.65) {\n    // ── High confidence: write KS taxonomy + volume cols to Masterlist ──────\n    const ks = match.ks;\n\n    // Volume P1 = sum of Jan + Feb + Mar 2026 monthly searches from KS\n    const volP1 = (parseFloat(ks['Searches: Jan 2026']) || 0)\n                + (parseFloat(ks['Searches: Feb 2026']) || 0)\n                + (parseFloat(ks['Searches: Mar 2026']) || 0);\n\n    // Volume P2 = sum of Oct + Nov + Dec 2025 monthly searches from KS\n    const volP2 = (parseFloat(ks['Searches: Oct 2025']) || 0)\n                + (parseFloat(ks['Searches: Nov 2025']) || 0)\n                + (parseFloat(ks['Searches: Dec 2025']) || 0);\n\n    highConf.push({ json: {\n      // Identity cols (A–E)\n      'Keyword':        kw,\n      'LANG':           ks.lang         || 'EN',\n      'TOPICS':         ks.topic        || '',\n      'CATEGORY':       ks.category     || '',\n      'SUB-CATEGORY':   ks.sub_category || '',\n\n      // Search volume by period (H–I)\n      'Volume Q1 2026': f(volP1),\n      'Volume Q4 2025': f(volP2),\n\n      // Taxonomy cols (AM–AX)\n      'Yogurt types':   ks['Yogurt types']  || '',\n      'Taste':          ks['Taste']         || '',\n      'Packaging':      ks['Packaging']     || '',\n      'Ingredient':     ks['Ingredient']    || '',\n      'Brands':         ks['Brands']        || '',\n      'Retailer':       ks['Retailer']      || '',\n      'Demography':     ks['Demography']    || '',\n      'Benefits':       ks['Benefits']      || '',\n      'Testimonials':   ks['Testimonials']  || '',\n      'Bio':            ks['Bio']           || '',\n      'Moments':        ks['Moments']       || '',\n      'Recipes':        ks['Recipes']       || '',\n\n      // Monthly search volumes (AZ–BE)\n      'Searches: Oct 2025': f(ks['Searches: Oct 2025']),\n      'Searches: Nov 2025': f(ks['Searches: Nov 2025']),\n      'Searches: Dec 2025': f(ks['Searches: Dec 2025']),\n      'Searches: Jan 2026': f(ks['Searches: Jan 2026']),\n      'Searches: Feb 2026': f(ks['Searches: Feb 2026']),\n      'Searches: Mar 2026': f(ks['Searches: Mar 2026']),\n    }});\n\n  } else {\n    // ── Low confidence: send to KW Review tab for human approval ────────────\n    // Human fills 'approved' = YES and optionally 'manual_ks_match'.\n    // Process: Approved Keywords reads this tab after the webhook resume.\n    review.push({ json: {\n      'source':             match && match.sim >= 0.50 ? 'borderline' : 'unmatched',\n      'keyword':            kw,\n      'suggested_ks_match': match ? match.ks.keyword : '',\n      'similarity':         sim,\n      'match_confidence':   match && match.sim >= 0.50 ? 'borderline' : 'unmatched',\n      'approved':           '',       // human fills YES here\n      'manual_ks_match':    '',       // human fills override KS keyword here\n      'notes':              '',\n      // Include raw performance data so reviewer has context\n      'gsc_clicks_p1': r.gsc_clicks_p1 || 0, 'gsc_clicks_p2': r.gsc_clicks_p2 || 0,\n      'gsc_impr_p1':   r.gsc_impr_p1   || 0, 'gsc_impr_p2':   r.gsc_impr_p2   || 0,\n      'sqr_clicks_p1': r.sqr_clicks_p1 || 0, 'sqr_clicks_p2': r.sqr_clicks_p2 || 0,\n      'sqr_cost_p1':   r.sqr_cost_p1   || 0, 'sqr_cost_p2':   r.sqr_cost_p2   || 0,\n      'sqr_impr_p1':   r.sqr_impr_p1   || 0, 'sqr_impr_p2':   r.sqr_impr_p2   || 0,\n    }});\n  }\n}\n\n// Output 0 = high confidence rows → Update: Masterlist — KS cols\n// Output 1 = review rows → Write: KW Review Sheet\nreturn [highConf, review];\n"
+      },
+      "id": "match-ks",
+      "name": "Match: KS Keywords",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2592,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1W73Lzli30z4GnO_WtLjs0hWOdPcEZw1jptXKG8exKoU",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1730573329,
+          "mode": "list",
+          "cachedResultName": "Listing",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1W73Lzli30z4GnO_WtLjs0hWOdPcEZw1jptXKG8exKoU/edit#gid=1730573329"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "Keyword"
+          ],
+          "schema": []
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        }
+      },
+      "id": "update-ks",
+      "name": "Update: Masterlist — KS cols",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2848,
+        -64
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "c4NHY7MkmOJ9YYBO",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1W73Lzli30z4GnO_WtLjs0hWOdPcEZw1jptXKG8exKoU",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1964784525,
+          "mode": "list",
+          "cachedResultName": "KW Review",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1W73Lzli30z4GnO_WtLjs0hWOdPcEZw1jptXKG8exKoU/edit#gid=1964784525"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        }
+      },
+      "id": "write-kwr",
+      "name": "Write: KW Review Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2848,
+        208
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "c4NHY7MkmOJ9YYBO",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "options": {}
+      },
+      "id": "wait-approval",
+      "name": "Wait: User Approval",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3104,
+        208
+      ],
+      "webhookId": "28385c89-a127-4ca1-8f06-1c67816a20a1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1W73Lzli30z4GnO_WtLjs0hWOdPcEZw1jptXKG8exKoU",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1964784525,
+          "mode": "list",
+          "cachedResultName": "KW Review",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1W73Lzli30z4GnO_WtLjs0hWOdPcEZw1jptXKG8exKoU/edit#gid=1964784525"
+        },
+        "options": {}
+      },
+      "id": "read-kwr-resume",
+      "name": "Read: KW Review (Resume)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        3360,
+        272
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "c4NHY7MkmOJ9YYBO",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1rTdi4cLDiFUdQHH8hj4V1GIQb8iKToKXRgFHlQcVHEI",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1573806855,
+          "mode": "list",
+          "cachedResultName": "Keyword study US",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1rTdi4cLDiFUdQHH8hj4V1GIQb8iKToKXRgFHlQcVHEI/edit#gid=1573806855"
+        },
+        "options": {}
+      },
+      "id": "read-ks-resume",
+      "name": "Read: KS (Resume)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        3360,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "c4NHY7MkmOJ9YYBO",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch",
+        "output": "empty"
+      },
+      "id": "sync-resume",
+      "name": "Sync: Resume Sources",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3632,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// After webhook resume. SE cols already written to Masterlist — no SE re-read needed.\n// Reads KS and KW Review by node name. Outputs update rows for KS cols only.\n\nconst normalize = s =>\n  String(s||'').toLowerCase()\n    .replace(/[ ​]/g,' ')\n    .replace(/[^a-z0-9 ]/g,'')\n    .replace(/\\s+/g,' ').trim();\n\nfunction trigramsArr(str){\n  const s=' '+str+' '; const seen=new Set(), out=[];\n  for(let i=0;i<=s.length-3;i++){\n    const t=s.slice(i,i+3);\n    if(!seen.has(t)){seen.add(t);out.push(t);}\n  }\n  return out;\n}\nfunction jaccard(uArr, qSet){\n  let n=0; for(const t of uArr) if(qSet.has(t)) n++;\n  return n/(uArr.length + qSet.size - n);\n}\n\nconst ksRaw     = $('Read: KS (Resume)').all().map(i => i.json);\nconst reviewRows= $('Read: KW Review (Resume)').all().map(i => i.json);\n\nconst approved=reviewRows.filter(r=>String(r['approved']||'').toUpperCase().trim()==='YES');\nif(!approved.length) return [{json:{status:'no approved keywords'}}];\n\nconst ksAll=ksRaw.filter(j=>String(j['Keyword']||'').trim()).map(j=>({\n  keyword:     String(j['Keyword']||'').trim(),\n  norm_keyword:normalize(j['Keyword']||''),\n  lang:        j['LANG']||'EN', topic: j['TOPIC']||'',\n  category:    j['CATEGORY']||'', sub_category: j['SUB-CATEGORY']||'',\n  'Yogurt types':j['Yogurt types']||'','Taste':j['Taste']||'',\n  'Packaging':j['Packaging']||'','Ingredient':j['Ingredient']||'',\n  'Brands':j['Brands']||'','Retailer':j['Retailer']||'',\n  'Demography':j['Demography']||'','Benefits':j['Benefits']||'',\n  'Testimonials':j['Testimonials']||'','Bio':j['Bio']||'',\n  'Moments':j['Moments']||'','Recipes':j['Recipes']||'',\n  'Searches: Oct 2025':j['Searches: Oct 2025']||'',\n  'Searches: Nov 2025':j['Searches: Nov 2025']||'',\n  'Searches: Dec 2025':j['Searches: Dec 2025']||'',\n  'Searches: Jan 2026':j['Searches: Jan 2026']||'',\n  'Searches: Feb 2026':j['Searches: Feb 2026']||'',\n  'Searches: Mar 2026':j['Searches: Mar 2026']||'',\n}));\n\nconst ksNameMap={};\nfor(const r of ksAll) ksNameMap[r.keyword.toLowerCase()]=r;\n\nconst ksTg=ksAll.map(r=>trigramsArr(r.norm_keyword));\nconst idx={};\nksTg.forEach((tg,i)=>{ for(const t of tg){ if(!idx[t]) idx[t]=[]; idx[t].push(i); } });\nfunction bestMatch(normStr){\n  const qArr=trigramsArr(normStr); const qSet=new Set(qArr); const cands=new Set();\n  for(const t of qArr) if(idx[t]) for(const i of idx[t]) cands.add(i);\n  let bi=-1,bs=0;\n  for(const i of cands){ const s=jaccard(ksTg[i],qSet); if(s>bs){bs=s;bi=i;} }\n  return bi>=0?ksAll[bi]:null;\n}\n\nconst f=v=>(v===undefined||v===null||v===0)?'':v;\n\nreturn approved.map(r=>{\n  const manKey=String(r['manual_ks_match']||'').trim().toLowerCase();\n  const sugKey=String(r['suggested_ks_match']||'').trim().toLowerCase();\n  const ks=ksNameMap[manKey]||ksNameMap[sugKey]||bestMatch(normalize(r['keyword']||''));\n  if(!ks) return null;\n\n  const volP1=(parseFloat(ks['Searches: Jan 2026'])||0)\n             +(parseFloat(ks['Searches: Feb 2026'])||0)\n             +(parseFloat(ks['Searches: Mar 2026'])||0);\n  const volP2=(parseFloat(ks['Searches: Oct 2025'])||0)\n             +(parseFloat(ks['Searches: Nov 2025'])||0)\n             +(parseFloat(ks['Searches: Dec 2025'])||0);\n\n  return {json:{\n    'Keyword':       r['keyword']||'',\n    'LANG':          ks.lang||'EN',\n    'TOPICS':        ks.topic||'', 'CATEGORY': ks.category||'', 'SUB-CATEGORY': ks.sub_category||'',\n    'Volume Q1 2026':f(volP1), 'Volume Q4 2025':f(volP2),\n    'Yogurt types':ks['Yogurt types']||'','Taste':ks['Taste']||'',\n    'Packaging':ks['Packaging']||'','Ingredient':ks['Ingredient']||'',\n    'Brands':ks['Brands']||'','Retailer':ks['Retailer']||'',\n    'Demography':ks['Demography']||'','Benefits':ks['Benefits']||'',\n    'Testimonials':ks['Testimonials']||'','Bio':ks['Bio']||'',\n    'Moments':ks['Moments']||'','Recipes':ks['Recipes']||'',\n    'Searches: Oct 2025':f(ks['Searches: Oct 2025']),\n    'Searches: Nov 2025':f(ks['Searches: Nov 2025']),\n    'Searches: Dec 2025':f(ks['Searches: Dec 2025']),\n    'Searches: Jan 2026':f(ks['Searches: Jan 2026']),\n    'Searches: Feb 2026':f(ks['Searches: Feb 2026']),\n    'Searches: Mar 2026':f(ks['Searches: Mar 2026']),\n  }};\n}).filter(Boolean);"
+      },
+      "id": "process-approved",
+      "name": "Process: Approved Keywords",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3888,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1W73Lzli30z4GnO_WtLjs0hWOdPcEZw1jptXKG8exKoU",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1730573329,
+          "mode": "list",
+          "cachedResultName": "Listing",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1W73Lzli30z4GnO_WtLjs0hWOdPcEZw1jptXKG8exKoU/edit#gid=1730573329"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "Keyword"
+          ],
+          "schema": []
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        }
+      },
+      "id": "update-ks-approved",
+      "name": "Update: Masterlist — KS cols (Approved)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        4144,
+        128
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "c4NHY7MkmOJ9YYBO",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### Stub: GA4 Loop\nNOT CONNECTED\n\nWill reuse Build: Trigram Index output by node name.\nTarget cols: AB (Conversions SEO Q1) · AD (Conversions SEO Q4)\nConnect when GA4 organic conversion export is available.",
+        "width": 340,
+        "color": 5
+      },
+      "id": "note-ga4-stub",
+      "name": "Note_note-ga4-stub",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2592,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Stub: Conversions SEM\nNOT CONNECTED\n\nSeparate Google Ads conversion export needed.\nFilter to: mikmak_checkout + mikmak_click_offline_store\nTarget: cols AC (Conv SEM Q1) · AE (Conv SEM Q4)",
+        "height": 140,
+        "width": 340,
+        "color": 5
+      },
+      "id": "note-conv-sem",
+      "name": "Note_note-conv-sem",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2592,
+        -400
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### OneSearch — Oikos USA (v5)\n\n**Batch + ARRAYFORMULA architecture (Apr 2026):**\n1. Trigger → Source Config → 4 reads → 4 norms\n   SE filtered: position 1–50 only (Lever 1)\n2. Norm GSC + SQR → Merge → Format → Write Base\n3. Sync SE → Build: Trigram Index (once)\n4. Distribute: SE Rows → Split: SE Batches (500/batch)\n   [loop] Match: SE Batch → Update SE Batch (per batch)\n   [done] Write: Cost SEO Formulas (ARRAYFORMULA AI+AK)\n5. Sync KS → Match: KS Keywords (reuses index)\n   ≥0.65 → Update KS cols · else → KW Review\n6. KW Review → Wait → Resume → Process → Update\n\n⚠️ Clear rows 2+ in Listing before re-running",
+        "height": 520,
+        "width": 380,
+        "color": 6
+      },
+      "id": "note-main",
+      "name": "Note_note-main",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1312,
+        -368
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Lever 1 — SE Position Filter\nNorm: SE Ranking keeps only rows where\nse_position > 0 AND se_position ≤ 50.\nEliminates ~80–90% of SE rows before matching,\nfixing the runner crash in Match: SE Keywords.",
+        "width": 320,
+        "color": 7
+      },
+      "id": "note-lever1",
+      "name": "Note_note-lever1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        624
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Build: Trigram Index\nBuilds n=3 index on ~1,240 Masterlist col B rows.\nIncludes uDisplay (keyword display text) — batch nodes\ndon't need to reload unified data.\nOutputs ONE item: {uKeys, uDisplay, uTg, idx}.",
+        "width": 320,
+        "color": 4
+      },
+      "id": "note-build-idx",
+      "name": "Note_note-build-idx",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### SE Batch Loop\nSplit: SE Batches chunks filtered SE rows (≤500 each).\nEach batch: Match: SE Batch reads index by node name\n(no rebuild) and processes only $input (500 rows max).\nUpdate: Masterlist — SE Batch writes per batch.\nLast batch's match wins if multiple batches match\nthe same Masterlist row (rare after position filter).",
+        "height": 200,
+        "width": 360,
+        "color": 4
+      },
+      "id": "note-batch",
+      "name": "Note_note-batch",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1808,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Write: Cost SEO Formulas (Lever 2)\nFires from Split: SE Batches done output —\nafter ALL batches complete.\nWrites ARRAYFORMULA to Masterlist sheet:\n  AI2 = ARRAYFORMULA(IF(ISBLANK(AF2:AF),\"\",AF2:AF*P2:P))\n  AK2 = ARRAYFORMULA(IF(ISBLANK(AF2:AF),\"\",AF2:AF*R2:R))\nAI = Cost SEO Q1 2026 · AK = Cost SEO Q4 2025",
+        "height": 220,
+        "width": 380,
+        "color": 4
+      },
+      "id": "note-formulas",
+      "name": "Note_note-formulas",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2064,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Match: KS Keywords\nReads index via $('Build: Trigram Index').first().json.\nNo rebuild — index built once and reused.\nIterates 14,273 KS keywords.\n≥ 0.65 → Update KS cols (auto)\n0.50–0.65 · <0.50 → KW Review (human)\nFills: A C D E H I AM–AX AZ–BE",
+        "height": 200,
+        "width": 320,
+        "color": 4
+      },
+      "id": "note-match-ks",
+      "name": "Note_note-match-ks",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2592,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Human-in-the-loop\n1. Borderline + unmatched → KW Review tab\n2. Workflow pauses — find Resume URL in execution log\n3. Open KW Review · type YES in 'approved'\n   Optionally fill 'manual_ks_match'\n4. POST to webhook or click Resume in n8n UI\n5. Approved rows computed + Masterlist updated",
+        "height": 220,
+        "width": 340,
+        "color": 3
+      },
+      "id": "note-approval",
+      "name": "Note_note-approval",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3104,
+        400
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read: Source Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read: Source Config": {
+      "main": [
+        [
+          {
+            "node": "Read: SE Ranking",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read: SQR Report",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read: GSC Queries",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read: Keyword Study",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read: Keyword Study": {
+      "main": [
+        [
+          {
+            "node": "Norm: Keyword Study",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read: GSC Queries": {
+      "main": [
+        [
+          {
+            "node": "Norm: GSC Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read: SQR Report": {
+      "main": [
+        [
+          {
+            "node": "Norm: SQR Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read: SE Ranking": {
+      "main": [
+        [
+          {
+            "node": "Norm: SE Ranking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Norm: Keyword Study": {
+      "main": [
+        [
+          {
+            "node": "Sync: KS Enrichment",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Norm: GSC Queries": {
+      "main": [
+        [
+          {
+            "node": "Sync: GSC + SQR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Norm: SQR Report": {
+      "main": [
+        [
+          {
+            "node": "Sync: GSC + SQR",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Norm: SE Ranking": {
+      "main": [
+        [
+          {
+            "node": "Sync: SE Enrichment",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Sync: GSC + SQR": {
+      "main": [
+        [
+          {
+            "node": "Merge: Only One Click and Higher",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge: Only One Click and Higher": {
+      "main": [
+        [
+          {
+            "node": "Format: Base Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format: Base Rows": {
+      "main": [
+        [
+          {
+            "node": "Write: Masterlist — Base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write: Masterlist — Base": {
+      "main": [
+        [
+          {
+            "node": "Sync: SE Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync: SE Enrichment": {
+      "main": [
+        [
+          {
+            "node": "Build: Trigram Index",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build: Trigram Index": {
+      "main": [
+        [
+          {
+            "node": "Distribute: SE Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Distribute: SE Rows": {
+      "main": [
+        [
+          {
+            "node": "Split: SE Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split: SE Batches": {
+      "main": [
+        [
+          {
+            "node": "Match: SE Batch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sync: KS Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Match: SE Batch": {
+      "main": [
+        [
+          {
+            "node": "Update: Masterlist — SE Batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync: KS Enrichment": {
+      "main": [
+        [
+          {
+            "node": "Match: KS Keywords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Match: KS Keywords": {
+      "main": [
+        [
+          {
+            "node": "Update: Masterlist — KS cols",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Write: KW Review Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write: KW Review Sheet": {
+      "main": [
+        [
+          {
+            "node": "Wait: User Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait: User Approval": {
+      "main": [
+        [
+          {
+            "node": "Read: KW Review (Resume)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read: KS (Resume)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read: KW Review (Resume)": {
+      "main": [
+        [
+          {
+            "node": "Sync: Resume Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read: KS (Resume)": {
+      "main": [
+        [
+          {
+            "node": "Sync: Resume Sources",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Sync: Resume Sources": {
+      "main": [
+        [
+          {
+            "node": "Process: Approved Keywords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process: Approved Keywords": {
+      "main": [
+        [
+          {
+            "node": "Update: Masterlist — KS cols (Approved)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "7c5f2757-1ced-4f1c-94e4-98e7cbe0521a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3a85ad2e8746b3521b851f888104afaf03cdcca9cc3ceb9044c4625dd428a9f6"
+  },
+  "id": "rzDfdz6sT6cYtgbl",
+  "tags": []
+}

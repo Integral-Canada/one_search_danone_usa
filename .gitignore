@@ -1,0 +1,18 @@
+# Secrets
+.env
+
+# Runtime logs
+logs/
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/

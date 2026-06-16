@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OneSearch Pipeline — Oikos USA</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 13px; color: #222; background: #fff; padding: 40px 48px; max-width: 960px; margin: 0 auto; }
+
+  /* Header */
+  .header { border-bottom: 3px solid #c0392b; padding-bottom: 16px; margin-bottom: 28px; }
+  .header .brand { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: #c0392b; margin-bottom: 6px; }
+  .header h1 { font-size: 26px; font-weight: 800; color: #111; line-height: 1.2; }
+  .header .sub { font-size: 13px; color: #666; margin-top: 6px; }
+
+  /* Section titles */
+  h2 { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #c0392b; margin: 32px 0 12px; border-bottom: 1px solid #f0f0f0; padding-bottom: 6px; }
+  h3 { font-size: 13px; font-weight: 700; color: #333; margin: 20px 0 8px; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; }
+  thead tr { background: #c0392b; color: #fff; }
+  thead th { padding: 9px 12px; text-align: left; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+  tbody tr:nth-child(even) { background: #fafafa; }
+  tbody td { padding: 8px 12px; border-bottom: 1px solid #eee; vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { font-weight: 600; color: #333; white-space: nowrap; }
+
+  /* Config table */
+  .config-table tbody td:first-child { color: #888; font-weight: 400; white-space: nowrap; }
+  .config-table tbody td:last-child { font-weight: 600; font-family: monospace; font-size: 11px; }
+
+  /* Flow diagram */
+  .flow { background: #f8f8f8; border: 1px solid #e8e8e8; border-radius: 8px; padding: 20px 24px; margin: 16px 0; font-family: monospace; font-size: 12px; line-height: 2; color: #333; }
+  .flow .arrow { color: #c0392b; font-weight: 700; }
+
+  /* Step blocks */
+  .step { display: flex; gap: 16px; margin-bottom: 16px; align-items: flex-start; }
+  .step-num { background: #c0392b; color: #fff; font-weight: 800; font-size: 13px; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .step-body h4 { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .step-body p { color: #555; line-height: 1.5; font-size: 12px; }
+  .step-body .meta { font-size: 11px; color: #888; margin-top: 4px; }
+
+  /* Benefit cards */
+  .benefits { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .benefit { background: #f8f8f8; border-left: 3px solid #c0392b; border-radius: 4px; padding: 12px 14px; }
+  .benefit .icon { font-size: 16px; margin-bottom: 4px; }
+  .benefit h4 { font-size: 12px; font-weight: 700; color: #222; margin-bottom: 3px; }
+  .benefit p { font-size: 11px; color: #666; line-height: 1.5; }
+
+  /* Stats row */
+  .stats { display: flex; gap: 12px; margin: 16px 0; }
+  .stat { flex: 1; background: #c0392b; color: #fff; border-radius: 6px; padding: 14px 16px; text-align: center; }
+  .stat .val { font-size: 24px; font-weight: 800; }
+  .stat .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; margin-top: 2px; opacity: .85; }
+
+  /* Code */
+  code { background: #f0f0f0; border-radius: 3px; padding: 1px 5px; font-family: monospace; font-size: 11px; color: #c0392b; }
+  pre { background: #f0f0f0; border-radius: 6px; padding: 14px 16px; font-family: monospace; font-size: 11px; line-height: 1.8; overflow-x: auto; margin: 10px 0; }
+
+  /* Pills */
+  .pill { display: inline-block; background: #fef0ef; color: #c0392b; border: 1px solid #f5c0bb; border-radius: 12px; font-size: 10px; font-weight: 700; padding: 2px 9px; margin: 2px; }
+  .pill.green { background: #f0fef4; color: #2e7d32; border-color: #b8e0be; }
+  .pill.grey { background: #f5f5f5; color: #666; border-color: #ddd; }
+
+  /* Footer */
+  .footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid #eee; font-size: 11px; color: #aaa; display: flex; justify-content: space-between; }
+
+  /* Page break hints */
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<!-- ─── HEADER ─── -->
+<div class="header">
+  <div class="brand">Digitad · Internal Resource</div>
+  <h1>OneSearch Pipeline — Oikos USA</h1>
+  <div class="sub">Automated SEO &amp; SEM Intelligence Pipeline &nbsp;·&nbsp; May 2026</div>
+</div>
+
+<!-- ─── WHAT IS ONESEARCH ─── -->
+<h2>What is OneSearch?</h2>
+<p style="color:#555;line-height:1.7;margin-bottom:16px;">
+  OneSearch is a keyword intelligence framework that unifies a brand's full search presence — SEO and SEM — into a single masterlist, then renders it as an interactive HTML dashboard. It answers one central question: <strong>for every keyword that matters, how much of the available search demand are we actually capturing?</strong>
+</p>
+
+<!-- ─── STATS ─── -->
+<div class="stats">
+  <div class="stat"><div class="val">3,663</div><div class="lbl">Keywords in masterlist</div></div>
+  <div class="stat"><div class="val">57</div><div class="lbl">Columns per keyword</div></div>
+  <div class="stat"><div class="val">~8 min</div><div class="lbl">To populate masterlist</div></div>
+  <div class="stat"><div class="val">45 sec</div><div class="lbl">To build HTML dashboard</div></div>
+</div>
+
+<!-- ─── PROJECT CONFIG ─── -->
+<h2>Project Config — Oikos USA</h2>
+<table class="config-table">
+  <tbody>
+    <tr><td>Client</td><td>Oikos USA</td></tr>
+    <tr><td>Period 1 (current)</td><td>Q1 2026 — Jan 1 – Mar 31, 2026</td></tr>
+    <tr><td>Period 2 (comparison)</td><td>Q4 2025 — Oct 1 – Dec 31, 2025</td></tr>
+    <tr><td>Masterlist Sheet ID</td><td>1W73Lzli30z4GnO_WtLjs0hWOdPcEZw1jptXKG8exKoU</td></tr>
+    <tr><td>Masterlist Tab</td><td>Listing</td></tr>
+    <tr><td>Keyword Study Sheet ID</td><td>1rTdi4cLDiFUdQHH8hj4V1GIQb8iKToKXRgFHlQcVHEI</td></tr>
+    <tr><td>Keyword Study Tab</td><td>Keyword study US</td></tr>
+    <tr><td>Reference Sheet ID</td><td>1o526Qv4UzP_Qfe-cjrfvcA7jRUi6zUtd9Ecp2WPMIhQ</td></tr>
+  </tbody>
+</table>
+
+<!-- ─── SOURCE DATA ─── -->
+<h2>Source Data</h2>
+<table>
+  <thead><tr><th>Platform</th><th>What it contains</th><th>Local file</th></tr></thead>
+  <tbody>
+    <tr><td>Google Search Console</td><td>SEO clicks, impressions, CTR, position — per query, P1 vs P2</td><td><code>gsc_export_queries_oikos.csv</code></td></tr>
+    <tr><td>Google Search Console</td><td>Same metrics per landing page</td><td><code>gsc_export_pages_oikos.csv</code></td></tr>
+    <tr><td>Google Ads SQR</td><td>SEM search terms, clicks, cost, impressions — P1 vs P2</td><td><code>account_level_sqr_report_oikos.csv</code></td></tr>
+    <tr><td>Google Ads</td><td>Keyword Quality Score, landing page experience, ad relevance</td><td><code>quality_report_oikos.csv</code></td></tr>
+    <tr><td>SE Ranking</td><td>Organic position, search volume, CPC, search intent</td><td><code>se_ranking_april_oikos.csv</code></td></tr>
+    <tr><td>Keyword Study (Sheets)</td><td>Topics, Category, Sub-Category, 13 taxonomy tags, monthly volumes Oct 2025 – Mar 2026</td><td>Google Sheets (read via API)</td></tr>
+    <tr><td>GA4 (MikMak)</td><td>MM Checkout conversion events by landing page</td><td><code>ga4_oikos_conversions_mikmak_checkout.csv</code></td></tr>
+    <tr><td>GA4 (MikMak)</td><td>MM Offline Store conversion events by landing page</td><td><code>ga4_oikos_conversions_mikmak_click_offline_store.csv</code></td></tr>
+  </tbody>
+</table>
+
+<!-- ─── PIPELINE ─── -->
+<h2>Pipeline — Step by Step</h2>
+
+<div class="step">
+  <div class="step-num">1</div>
+  <div class="step-body">
+    <h4>Normalize all sources</h4>
+    <p>Each source is read and cleaned independently: number formats standardized (French vs English), column names unified, rows without keywords dropped. GSC and SQR both handle comparison-mode exports with two periods side by side.</p>
+    <div class="meta"><code>ingest.norm_gsc()</code> &nbsp;·&nbsp; <code>norm_sqr()</code> &nbsp;·&nbsp; <code>norm_se()</code> &nbsp;·&nbsp; <code>norm_ks()</code></div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">2</div>
+  <div class="step-body">
+    <h4>Merge GSC + SQR → unified keyword spine</h4>
+    <p>Full outer join on keyword text. Keywords with ≤ 1 click in both periods are dropped (noise filter). Result: ~3,663 unique keywords, each with SEO and/or SEM data. This is the spine everything else attaches to.</p>
+    <div class="meta"><code>merge.merge_gsc_sqr()</code> &nbsp;·&nbsp; <code>format_rows.format_base_rows()</code></div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">3</div>
+  <div class="step-body">
+    <h4>Build trigram (n-gram) index</h4>
+    <p>Every keyword in the spine is broken into overlapping 3-character fragments (trigrams). A Jaccard similarity index is built on these fragments — built once, reused for all subsequent matching steps. This allows fuzzy matching: "greek yogurt" matches "yogurt greek", "greek yoghurt", "high protein greek yogurt".</p>
+    <div class="meta"><code>trigram.build_index()</code> &nbsp;·&nbsp; threshold: ≥ 0.50 for SE Ranking, ≥ 0.65 for Keyword Study auto-write</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">4</div>
+  <div class="step-body">
+    <h4>Match SE Ranking data</h4>
+    <p>1,240 SE Ranking keywords are matched against the spine. Each match attaches organic position, search volume, CPC and search intent to the keyword row.</p>
+    <div class="meta"><code>match_se.match_se_keywords()</code> &nbsp;·&nbsp; 709 matches for Oikos USA</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">5</div>
+  <div class="step-body">
+    <h4>Match Keyword Study taxonomy</h4>
+    <p>14,273 Keyword Study entries are matched against the same trigram index. Similarity ≥ 0.65: auto-written to masterlist (Topics, Category, Sub-Category, 13 tag columns, 6 monthly volume columns). Similarity 0.50–0.65: sent to a KW Review tab for human approval.</p>
+    <div class="meta"><code>match_ks.match_ks_keywords()</code> &nbsp;·&nbsp; 956 auto-matched · borderline flagged for review</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">6</div>
+  <div class="step-body">
+    <h4>Join GA4 conversions</h4>
+    <p>MikMak conversion events (Checkout + Offline Store) are matched to keywords via their SE Ranking landing page URL. When multiple keywords share a URL, conversions are split pro-rata by each keyword's Q1 SEO click share.</p>
+    <div class="meta">Writes: <code>Conversions SEO Q1 2026</code> (MM Checkout) · <code>Conversions SEM Q1 2026</code> (MM Offline Store)</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">7</div>
+  <div class="step-body">
+    <h4>Write masterlist + post-enrichment</h4>
+    <p>All 3,663 rows × 57 columns are written to Google Sheets in batched API calls. ARRAYFORMULA cells (coverage ratios, estimated SEO cost) are written separately. After the main write, the SE Ranking API fills any remaining blank search volume cells.</p>
+    <div class="meta">Run: <code>python3 run_onesearch.py</code> &nbsp;·&nbsp; ~8 minutes total &nbsp;·&nbsp; zero LLM tokens</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">8</div>
+  <div class="step-body">
+    <h4>Build HTML dashboard</h4>
+    <p>A separate script reads the completed masterlist, injects all data into a reference HTML template, applies brand-specific config (colors, regex, territory topics), generates the Territory Deep Dive and Recommendations panels, and writes a single self-contained HTML file.</p>
+    <div class="meta">Run: <code>python3 build_html_oikos.py</code> &nbsp;·&nbsp; ~45 seconds &nbsp;·&nbsp; zero LLM tokens</div>
+  </div>
+</div>
+
+<!-- ─── MASTERLIST COLUMNS ─── -->
+<h2 class="page-break">Masterlist Column Map (57 columns)</h2>
+
+<h3>Identity &amp; Classification (A–E)</h3>
+<table>
+  <thead><tr><th>Col</th><th>Field</th><th>Source</th></tr></thead>
+  <tbody>
+    <tr><td>A</td><td>Keyword</td><td>GSC / SQR merge</td></tr>
+    <tr><td>B</td><td>TOPICS</td><td>Keyword Study match or Claude taxonomy enrichment</td></tr>
+    <tr><td>C</td><td>CATEGORY</td><td>Keyword Study match or Claude taxonomy enrichment</td></tr>
+    <tr><td>D</td><td>SUB-CATEGORY</td><td>Keyword Study match or Claude taxonomy enrichment</td></tr>
+    <tr><td>E</td><td>LANG</td><td>Keyword Study, fallback to client language</td></tr>
+  </tbody>
+</table>
+
+<h3>SE Ranking &amp; Volume (F–I)</h3>
+<table>
+  <thead><tr><th>Col</th><th>Field</th><th>Source</th></tr></thead>
+  <tbody>
+    <tr><td>F</td><td>Position SE Ranking</td><td>SE Ranking export → Position (fallback: GSC average position)</td></tr>
+    <tr><td>G</td><td>Average Search Volume</td><td>KS match → (Vol Q1 + Vol Q4) / 6, or SE Ranking API</td></tr>
+    <tr><td>H</td><td>Volume Q1 2026</td><td>Keyword Study monthly columns (Jan + Feb + Mar 2026)</td></tr>
+    <tr><td>I</td><td>Volume Q4 2025</td><td>Keyword Study monthly columns (Oct + Nov + Dec 2025)</td></tr>
+  </tbody>
+</table>
+
+<h3>Coverage (J–K) — ARRAYFORMULA</h3>
+<table>
+  <thead><tr><th>Col</th><th>Field</th><th>Formula</th></tr></thead>
+  <tbody>
+    <tr><td>J</td><td>Coverage OneSearch Q1 2026</td><td>Clics OneSearch Q1 / Average Search Volume</td></tr>
+    <tr><td>K</td><td>Coverage OneSearch Q4 2025</td><td>Clics OneSearch Q4 / Average Search Volume</td></tr>
+  </tbody>
+</table>
+
+<h3>OneSearch Totals, Clicks, Impressions, CTR, Conversions, Cost (L–AK)</h3>
+<p style="color:#555;font-size:12px;line-height:1.6;margin-bottom:10px;">
+  All SEO metrics sourced from GSC export. All SEM metrics sourced from Google Ads SQR report. Conversions sourced from GA4 MikMak exports distributed pro-rata. Cost SEO estimated as CPC × GSC clicks (ARRAYFORMULA). Each metric exists for both Q1 2026 and Q4 2025 to enable period-over-period comparison.
+</p>
+
+<h3>Taxonomy Tags (AL–AX) — from SE Ranking &amp; Keyword Study</h3>
+<table>
+  <thead><tr><th>Col</th><th>Tag</th><th>Col</th><th>Tag</th></tr></thead>
+  <tbody>
+    <tr><td>AL</td><td>Purchase intent (SE Ranking)</td><td>AT</td><td>Benefits</td></tr>
+    <tr><td>AM</td><td>Yogurt types</td><td>AU</td><td>Testimonials</td></tr>
+    <tr><td>AN</td><td>Taste</td><td>AV</td><td>Bio</td></tr>
+    <tr><td>AO</td><td>Packaging</td><td>AW</td><td>Moments</td></tr>
+    <tr><td>AP</td><td>Ingredient</td><td>AX</td><td>Recipes</td></tr>
+    <tr><td>AQ</td><td>Brands</td><td>AZ–BE</td><td>Monthly search volumes Oct 2025 – Mar 2026</td></tr>
+    <tr><td>AR</td><td>Retailer</td><td></td><td></td></tr>
+    <tr><td>AS</td><td>Demography</td><td></td><td></td></tr>
+  </tbody>
+</table>
+
+<!-- ─── HTML DASHBOARD ─── -->
+<h2>HTML Dashboard — What It Contains</h2>
+<table>
+  <thead><tr><th>Tab</th><th>What it shows</th></tr></thead>
+  <tbody>
+    <tr><td>Overview KPI</td><td>Total demand, clicks, coverage, conversions, cost — SEO vs SEM vs OneSearch combined, Q1 vs Q4</td></tr>
+    <tr><td>Coverage by Topics</td><td>Gauge per territory showing coverage % vs target (3% generic, 10% brand)</td></tr>
+    <tr><td>Breakdown</td><td>Donut charts by Topic, Category, Sub-Category — clicks, impressions, conversions</td></tr>
+    <tr><td>SQR Detail by Keyword</td><td>Full paid search term table — demand, search volume, SEO vs SEM clicks, coverage, conversions, cost per keyword. Insight cards: Wasted Budget, Regressions, Rising Stars</td></tr>
+    <tr><td>Territory Deep Dive</td><td>Per-topic performance table (Q4 vs Q1), top keywords by OS clicks, Q1 SEO and SEM action cards with editable analyst notes</td></tr>
+    <tr><td>Recommendations</td><td>Sub-category level SEO/SEM priority matrix with editable analyst notes per row, exportable as JSON</td></tr>
+  </tbody>
+</table>
+
+<!-- ─── BENEFITS ─── -->
+<h2>Benefits of This Approach</h2>
+<div class="benefits">
+  <div class="benefit">
+    <div class="icon">🖥️</div>
+    <h4>Runs locally — no infrastructure</h4>
+    <p>Both scripts run in a terminal on a standard laptop. No server, no cloud function, no subscriptions. One <code>.env</code> file with credentials is all the setup needed.</p>
+  </div>
+  <div class="benefit">
+    <div class="icon">💰</div>
+    <h4>Near-zero cost per run</h4>
+    <p>Core pipeline makes zero LLM API calls. Only Google Sheets API (free) and SE Ranking API (minimal). A full end-to-end run costs under $0.10 in API fees.</p>
+  </div>
+  <div class="benefit">
+    <div class="icon">🔁</div>
+    <h4>Deterministic — same data, same output</h4>
+    <p>No prompt-to-prompt variation. The same masterlist always produces the same HTML. Every rebuild is identical. If something looks wrong, the cause is always in the data or the script.</p>
+  </div>
+  <div class="benefit">
+    <div class="icon">⚡</div>
+    <h4>Fast</h4>
+    <p>8 minutes to populate a 3,600-row masterlist from scratch. 45 seconds to build the interactive HTML dashboard. A full refresh after new data takes under 10 minutes total.</p>
+  </div>
+  <div class="benefit">
+    <div class="icon">📋</div>
+    <h4>Replicable across clients</h4>
+    <p>New client = duplicate the build script, update 12 lines of config (Sheet IDs, brand colors, period labels). The brand-detection regex loads automatically from a reference sheet.</p>
+  </div>
+  <div class="benefit">
+    <div class="icon">🎯</div>
+    <h4>Analyst time goes to insight</h4>
+    <p>Data assembly is fully automated. The dashboard opens ready for annotation — editable commentary boxes, JSON export/import, action card placeholders all built in.</p>
+  </div>
+</div>
+
+<!-- ─── RUN COMMANDS ─── -->
+<h2 style="margin-top:32px;">How to Run</h2>
+<pre>
+# Step 1 — Populate the masterlist (~8 min)
+cd /Users/carlaklaasen/claude_code/one_search
+python3 run_onesearch.py
+
+# Step 1b — Taxonomy enrichment for unmatched keywords (optional, ~15 min)
+python3 run_taxonomy_enrichment.py --brand oikos-usa
+
+# Step 2 — Build the HTML dashboard (~45 sec)
+python3 build_html_oikos.py
+
+# Open the dashboard
+open one_search_html/oikos_usa_onesearch_dashboard.html
+</pre>
+
+<!-- ─── FOOTER ─── -->
+<div class="footer">
+  <span>Digitad · OneSearch Pipeline · Oikos USA · May 2026</span>
+  <span>Internal resource — not for client distribution</span>
+</div>
+
+</body>
+</html>

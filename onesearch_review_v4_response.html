@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.6;
+    color: #1a1a1a;
+    background: #fff;
+  }
+  .page {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 60px 50px 80px;
+  }
+  h1 {
+    font-size: 22pt;
+    font-weight: 700;
+    color: #1a5fa8;
+    text-align: center;
+    margin-bottom: 8px;
+    letter-spacing: -0.3px;
+  }
+  .subtitle {
+    text-align: center;
+    font-style: italic;
+    color: #555;
+    font-size: 9.5pt;
+    margin-bottom: 6px;
+  }
+  .datestamp {
+    text-align: center;
+    font-style: italic;
+    color: #555;
+    font-size: 9.5pt;
+    margin-bottom: 36px;
+  }
+  hr {
+    border: none;
+    border-top: 1px solid #d0d8e4;
+    margin: 28px 0;
+  }
+  h2 {
+    font-size: 13pt;
+    font-weight: 700;
+    color: #1a5fa8;
+    margin-bottom: 18px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #d0d8e4;
+  }
+  .issue {
+    margin-bottom: 22px;
+  }
+  .issue h3 {
+    font-size: 10.5pt;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 5px;
+  }
+  .issue p {
+    font-size: 10pt;
+    color: #2a2a2a;
+    line-height: 1.65;
+  }
+  .status-fixed   { color: #1a7a3c; font-weight: 600; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+  .status-partial { color: #b06000; font-weight: 600; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+  .status-open    { color: #a0000a; font-weight: 600; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+  .footer {
+    margin-top: 48px;
+    border-top: 1px solid #d0d8e4;
+    padding-top: 10px;
+    text-align: center;
+    font-size: 8.5pt;
+    color: #888;
+  }
+  code {
+    font-family: 'Courier New', monospace;
+    font-size: 9pt;
+    background: #f3f5f7;
+    padding: 1px 4px;
+    border-radius: 2px;
+  }
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { padding: 0; max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>OneSearch Pipeline — Review v4</h1>
+  <p class="subtitle">Enriched with learnings from Nespresso B2C (March 2026) and Danone Canada (Activia, Oikos,<br>International Delight, Silk)</p>
+  <p class="datestamp">Status update — May 2026</p>
+
+  <hr>
+
+  <h2>Limitations &amp; Points of Attention — Status Update</h2>
+
+  <div class="issue">
+    <div class="status-partial">Partially addressed</div>
+    <h3>1. The GA4 join via SE Ranking URL is the weakest link</h3>
+    <p>The pro-rata distribution logic has been implemented: when multiple keywords share the same SE Ranking landing page URL, conversions are now split proportionally by each keyword's Q1 SEO click share rather than assigned in full to every keyword on that URL. This eliminates the double-counting issue identified in the review. The structural dependency on SE Ranking as a conversion bridge remains — keywords without an SE Ranking URL match still receive no conversion data. The correct long-term fix (direct GSC × GA4 attribution via query-level click share) requires adding <code>webmasters.readonly</code> to the OAuth token scope. This is the next step for this issue.</p>
+  </div>
+
+  <div class="issue">
+    <div class="status-open">Outstanding</div>
+    <h3>2. Blank Q4 SEM columns are a recurring operational risk</h3>
+    <p>Not addressed in this sprint. The pipeline continues to rely on a single comparison-mode SQR export to populate both periods simultaneously. The recommended approach — two independent period exports merged in the pipeline — is documented but not yet implemented. This remains an operational risk for any quarter where the comparison period is misconfigured at export time.</p>
+  </div>
+
+  <div class="issue">
+    <div class="status-partial">Partially addressed</div>
+    <h3>3. SE Ranking threshold at 0.50 is low, with no review safety net</h3>
+    <p>The matching threshold has been raised from 0.50 to 0.60, reducing false positives from short or generic keywords. SE Ranking's CPC and intent label columns remain in the masterlist output; scoping SE Ranking's contribution strictly to the position column (column F) as recommended is not yet implemented. The two-source position fallback (SE Ranking first, GSC average position as fallback) is in place and covered under point 7.</p>
+  </div>
+
+  <div class="issue">
+    <div class="status-open">Outstanding</div>
+    <h3>4. No scenario or recommendation layer</h3>
+    <p>Not addressed. The pipeline continues to stop at the data layer. The scenario classification and recommendation logic documented in SKILLSEOSEM.md is mature and consistent across deployments. Extracting it into a reusable module remains the highest-value gap between the pipeline as deployed and its client-facing output.</p>
+  </div>
+
+  <div class="issue">
+    <div class="status-fixed">Implemented</div>
+    <h3>5. No multi-language handling</h3>
+    <p>The hardcoded <code>LANG = EN</code> default has been removed from both the normalization step and the keyword study match output. Language is now a per-client configuration parameter. For any keyword that does not receive a language value from the keyword study match, the client's configured language is applied as a fallback at the merge step. The pipeline is structurally ready for bilingual deployments.</p>
+  </div>
+
+  <div class="issue">
+    <div class="status-open">Outstanding</div>
+    <h3>6. No Quality Score (QS) integration</h3>
+    <p>Not yet addressed. The quality report is read as a source input but not written to the masterlist. QS by keyword and QS by landing page are not surfaced as columns. This remains a gap for any client where SEO/SEM overlap drives investment decisions.</p>
+  </div>
+
+  <div class="issue">
+    <div class="status-fixed">Implemented</div>
+    <h3>7. SE Ranking position gaps — two-source fallback logic</h3>
+    <p>Implemented. When column F has no SE Ranking position, the pipeline checks GSC average position for that keyword and writes it rounded to the nearest integer. In the Oikos USA test run, 45 of 52 populated position values came from the GSC fallback — confirming the fallback is doing meaningful work across the full keyword spine, not only for edge cases.</p>
+  </div>
+
+  <div class="issue">
+    <div class="status-fixed">Implemented</div>
+    <h3>8. Multi-brand architecture not supported</h3>
+    <p>The hardcoded single-brand constants have been replaced with a <code>CLIENTS</code> dictionary. Each brand is a named configuration entry holding its own sheet IDs, tab names, and language setting. The pipeline accepts a <code>--brand</code> argument and a <code>--brand all</code> flag to run all configured brands in sequence. Adding a new brand requires only a new entry in <code>CLIENTS</code> — no changes to pipeline logic.</p>
+  </div>
+
+  <div class="issue">
+    <div class="status-open">Outstanding</div>
+    <h3>9. The decision layer already exists — in SKILLSEOSEM.md</h3>
+    <p>Not addressed in this sprint. The SKILLSEOSEM.md recommendation engine has not been codified into the pipeline. This is a codification task rather than a data task and is the logical next step once the data layer is fully stable.</p>
+  </div>
+
+  <div class="issue">
+    <div class="status-fixed">Implemented</div>
+    <h3>10. Volume plan vs volume actif — critical distinction absent from the pipeline</h3>
+    <p>The distinction is now documented and surfaced in the pipeline summary log. At the end of each run, the log reports both <code>volC</code> (total planned keyword volume — all rows with an average search volume from the keyword study) and <code>osVolC</code> (volume restricted to keywords that generated at least one SEO click in either period). The Coverage formula in columns J/K correctly uses per-keyword click-to-volume ratio, which aligns with the osVolC basis for trend analysis.</p>
+  </div>
+
+  <div class="issue">
+    <div class="status-fixed">Implemented</div>
+    <h3>11. SQR filtering — Performance Max must be excluded</h3>
+    <p>Implemented. <code>norm_sqr()</code> now drops rows where <code>Campaign Type</code> contains "performance max" and drops aggregate summary rows beginning with "Total:". In the current Oikos USA export, no Performance Max rows are present — campaign types are Generic, Brand, and Conquesting — so the filter has no effect on current data. It is in place for any future export that includes PMax.</p>
+  </div>
+
+  <div class="issue">
+    <div class="status-open">Outstanding</div>
+    <h3>12. GA4 event structure varies by client</h3>
+    <p>Not yet addressed. The GA4 ingestion layer continues to assume the Oikos USA event structure (mikmak_checkout, mikmak_click_offline_store). The conversion signal is not configurable from the source config sheet. This requires a configurable event-name or metric-column field in the source config before onboarding any client with a different GA4 export format.</p>
+  </div>
+
+  <div class="issue">
+    <div class="status-open">Outstanding</div>
+    <h3>13. hreflang cannibalization — undetected blind spot</h3>
+    <p>Not addressed. The pipeline does not collect a ranked URL per country from SE Ranking and therefore cannot detect hreflang cannibalization signals. Resolving this requires either a per-country URL export from SE Ranking or a dedicated hreflang audit layer external to the current pipeline.</p>
+  </div>
+
+  <div class="issue">
+    <div class="status-fixed">Implemented</div>
+    <h3>14. Connection-intent keywords pollute SEM performance metrics</h3>
+    <p>Implemented. A configurable exclusion list is applied after normalization and before the GSC × SQR merge. Terms such as login, website, my account, mon compte, se connecter, and espace client are excluded from both sources. The list operates on normalized forms and is exact-match only, so it can be extended without risk of unintended partial matches.</p>
+  </div>
+
+  <div class="footer">
+    OneSearch Pipeline — Review v4 Response — Digitad 2026
+  </div>
+
+</div>
+</body>
+</html>
