@@ -2124,7 +2124,7 @@ QS_CLASSIFIED = [
   function buildInsightCards() {
     var topics = {};
     QS_CLASSIFIED.forEach(function(r) {
-      var t = r[I.CAT] || 'NON CLASSÉ';
+      var t = r[I.CAT] || 'UNCLASSIFIED';
       if(!topics[t]) topics[t] = {rows:[], name:t};
       topics[t].rows.push(r);
     });
@@ -2649,7 +2649,7 @@ QS_CLASSIFIED = [
   function buildInsightCards() {
     var topics = {};
     QS_CLASSIFIED.forEach(function(r) {
-      var t = r[I.CAT] || 'NON CLASSÉ';
+      var t = r[I.CAT] || 'UNCLASSIFIED';
       if(!topics[t]) topics[t] = {rows:[], name:t};
       topics[t].rows.push(r);
     });
@@ -13944,6 +13944,59 @@ function renderRecommendations(){
     'reco-json-retailer-protein-shake-shop':  'remove',
     'reco-json-retailer-purchase-location':   'remove',
     'reco-json-yogurt-oikos-oro':             'remove',
+    // ── Added from June 16 commentary ─────────────────────────────────────
+    'reco-json-nutrition-glp-1':                      'remove',
+    'reco-json-nutrition-glp-1-diet':                 'remove',
+    'reco-json-nutrition-diet':                       'remove',
+    'reco-json-nutrition-weight-loss':                'remove',
+    'reco-json-brand-misspelling':                    'remove',
+    'reco-json-brand-competitor-brand':               'remove',
+    'reco-json-competitor-protein-shake':             'remove',
+    'reco-json-competitor-protein-drink':             'remove',
+    'reco-json-competitor-competitor-protein-drink':  'remove',
+    'reco-json-ingredient-protein-supplement':        'remove',
+    'reco-json-drink-protein-mix':                    'remove',
+    'reco-json-drink-protein-shake-mix':              'remove',
+    'reco-json-drink-nutrition-shake':                'remove',
+    'reco-json-drink-protein-supplement':             'remove',
+    'reco-json-supplement-protein-supplement':        'remove',
+    'reco-json-yogurt-availability':                  'remove',
+    'reco-json-protein-shakes-vanilla-protein-shake': 'remove',
+    'reco-json-drink-protein-shot':                   'remove',
+    'reco-json-drink-vanilla-protein-shake':    'priority',
+    'reco-json-drink-high-protein-drink':       'priority',
+    'reco-json-drink-high-protein-shake':       'priority',
+    'reco-json-drink-protein-smoothie':         'priority',
+    'reco-json-drink-smoothie':                 'priority',
+    'reco-json-recipe-protein-smoothie':        'priority',
+    'reco-json-yogurt-high-protein-yogurt':     'priority',
+    'reco-json-yogurt-high-protein-shake':      'priority',
+    'reco-json-yogurt-protein-greek-yogurt':    'priority',
+    'reco-json-yogurt-greek-yogurt':            'priority',
+    'reco-json-yogurt-drinkable-yogurt':        'priority',
+    'reco-json-yogurt-flavored-yogurt':         'priority',
+    'reco-json-yogurt-protein-yogurt':          'priority',
+    'reco-json-yogurt-sugar-free-yogurt':       'priority',
+    'reco-json-yogurt-oikos-remix':             'priority',
+    'reco-json-yogurt-yogurt':                  'priority',
+    'reco-json-yogurt-protein-drink':           'priority',
+    'reco-json-yogurt-protein-yogurt-drink':    'priority',
+    'reco-json-nutrition-protein-shake':        'priority',
+    'reco-json-nutrition-protein-shake-nutrition': 'priority',
+    'reco-json-nutrition':                      'priority',
+    'reco-json-brand-oikos-protein-shake':      'priority',
+    'reco-json-drink-protein-shake':            'active',
+    'reco-json-drink-drinkable-yogurt':         'active',
+    'reco-json-yogurt-drinkable':               'active',
+    'reco-json-yogurt-flavored-greek-yogurt':   'active',
+    'reco-json-drink-ready-made-protein-shake': 'active',
+    'reco-json-nutrition-protein-drinks':       'long-term',
+    'reco-json-nutrition-glp-1-friendly':       'long-term',
+    'reco-json-nutrition-meal-planning':        'long-term',
+    'reco-json-recipe-protein-shake':           'long-term',
+    'reco-json-recipe-protein-shake-recipe':    'long-term',
+    'reco-json-recipe-protein-snack-recipe':    'long-term',
+    'reco-json-snack-protein-snack':            'long-term',
   };
   const RECO_MERGE_GROUPS = {
     'muscle-exercise': {
@@ -14674,14 +14727,16 @@ init();
      Uses an in-memory object so export works regardless of tab visibility
      (innerText returns '' for display:none elements in Chrome). */
   var _defaults = {
-    "exec-summary": "Q4 2025 SEO: 65,541 clicks (exact). Q1 2026: 68K clicks.\n\nContext: Q1 2026 is the first full quarter following the site migration from oikosyogurt.com to oikos.com (Oct 2025). The migration caused significant technical issues including a large number of 404 errors. Pre-migration Q2 2025 (Apr\u2013Jun) organic traffic was ~150K clicks vs 68K in Q1 2026 \u2014 SEO performance has not yet recovered to pre-migration levels.\n\nAverage coverage (6.1%) measures the share of total search demand (5.5M monthly searches from the Keyword Study) actually captured through OneSearch clicks. SEM data was not available for Q4 2025. The +325% OS click increase is largely explained by the launch of paid campaigns in Q1 2026, not organic growth.",
-    "us-q1-seo": "Production plan was created. Thorough technical audit completed and 404 errors from the oikosyogurt.com \u2192 oikos.com migration were addressed. No content was published and no other technical recommendations were implemented during Q1.",
-    "us-q1-sem": "Not applicable \u2014 Oikos USA does not have an active SEM contract with digitad. Remove or disregard this block.",
-    "us-q2-seo": "Focus on optimizing category and product pages to improve visibility for non-branded product searches (protein shakes, high protein yogurt). Prioritize non-branded traffic growth.",
-    "us-q2-sem": "Explore SEO and SEM synergies with Danone portfolio. Keep visibility strategy aligned with Danone NA priorities.",
-    "q1-seo-product": "Lacks visibility for smoothie and shake product keywords \u2014 no dedicated landing pages currently exist.",
-    "q2-seo-product": "Add category pages for protein shakes and high protein yogurt to capture non-branded product search volume.",
-    "reco-json-drink-protein-drink": "High priority keyword. Part of current production plan. Coverage OS is high due to SEM \u2014 organic coverage is near 0. Needs dedicated SEO content page."
+    "exec-summary": "Q4 2025 SEO: 65,541 organic clicks. Q1 2026: 68,002 SEO clicks (+4% QoQ). Average coverage (6.1%) = OneSearch clicks \u00f7 total monthly search demand (5.5M searches in the Keyword Study) \u2014 the share of available search volume actually captured through clicks.\n\nContext: Q1 2026 is the first full quarter following the site migration from oikosyogurt.com to oikos.com (Q4 2025). The migration triggered significant technical issues including a large number of 404 errors. Pre-migration Q2 2025 (Apr\u2013Jun) organic traffic was ~150K clicks; Q1 2026 was 68K \u2014 SEO performance has not yet recovered to pre-migration levels.\n\nNote: Paid search data was not available for Q4 2025. The +325% OS click jump between Q4 and Q1 is largely driven by the launch of paid campaigns in Q1 2026, not organic growth.",
+    "detail-rec-competitor": "Coverage gap at 1.7%. Competitor territory will primarily be an SEM strategy \u2014 verify which competitor terms are worth bidding on before investing in content. Target set needs validation. Not an SEO priority.",
+    "detail-rec-product": "SHORT-TERM HIGH PRIORITY (Q2 2026). Current non-branded visibility is very low. Most affected ranges: Oikos Pro, protein shakes, protein drinks (Fusion). Triple Zero is performing well for \u2018high protein yogurt\u2019 and related searches; other categories lack visibility in both the evaluate and buy portions of the funnel.\n\nQ2 plan: optimize product pages across the site; create or optimize category pages to capture non-branded evaluate-stage intent. This is the #1 priority.",
+    "detail-rec-recipe": "MEDIUM TERM (Q3\u2013Q4 2026). Not a Q2 priority \u2014 Q2 focus is on product and category pages. Recipe and discovery content is a Q3\u2013Q4 initiative.",
+    "detail-rec-health": "GLP-1 and meal plan content is not a current priority. Move out of high-priority section \u2014 flag as potential long-term strategy. Content plans focus on muscle/protein building, not GLP-1 dieting and weight loss.",
+    "detail-rec-source-of-protein": "SHORT TERM for yogurt-as-protein-source queries (e.g. \u2018yogurt as a source of protein\u2019) \u2014 high Q2 priority for product/category page optimization. LONG TERM for broader informational protein-in-diet content (not a Q2 priority).",
+    "detail-rec-generic": "HIGH PRIORITY Q2. Add keyword examples in this section to clarify scope. Q3\u2013Q4 plan: create a high-protein snack section of the website. Example targets: protein snack, high protein snack.",
+    "detail-rec-consumer-habits": "MEDIUM\u2013LONG TERM. Not a Q2 priority \u2014 Q2 focus is on product and category pages. Consumer habits and discovery content are Q3\u2013Q4 initiatives.",
+    "top-recs-prioritization": "Recommended priority order: (1) PRODUCT \u2014 highest priority, low non-branded visibility, Q2 optimizations planned; (2) SOURCE OF PROTEIN (yogurt queries \u2014 short term); (3) HEALTH (long term only \u2014 GLP-1 not a current priority); (4) GENERIC (Q2\u2013Q4, high-protein snack content); (5) CONSUMER HABITS (long term); (6) RECIPE (Q3\u2013Q4). Add keyword examples in each section to clarify what each territory covers.",
+    "reco-json-drink-protein-drink": "High priority. Part of current production plan. Coverage OS is high due to SEM \u2014 organic coverage near 0. Needs dedicated SEO content page."
   };
   var _store = Object.assign({}, _defaults);
   var LS_KEY = 'os_commentary_oikos_usa';
