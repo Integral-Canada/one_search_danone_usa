@@ -14732,13 +14732,6 @@ function renderRecommendations(){
         +'<td class="num">'+fmtC(caOS)+evoHtml(caOS,caOS_p)+'</td>'
         +'<td class="num">'+(covOS>0?(covOS*100).toFixed(1)+'%':'—')+evoHtml(covOS,covOS_p)+'</td>'
         +'<td style="max-width:380px;">'+_fmtReco(reco)+kwEx+(RECO_PLAN_NOTES[_recoFid]||'')
-        +'<div contenteditable="true"'
-        +' data-field-id="'+_recoFid+'"'
-        +' data-placeholder="Add analyst notes (JSON or plain text)…"'
-        +' style="min-height:36px;font-size:10px;line-height:1.5;color:#444;border:1px dashed #ccc;border-radius:4px;padding:5px 7px;background:#f8f9fb;outline:none;margin-top:6px;font-family:monospace;white-space:pre-wrap;"'
-        +' onfocus="this.style.borderColor=\'#1a7aad\';this.style.background=\'#fff\';"'
-        +' onblur="this.style.borderColor=\'#ccc\';this.style.background=\'#f8f9fb\';"'
-        +'></div>'
         +'</td>'
         +'</tr>';
     }
