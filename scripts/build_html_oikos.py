@@ -249,7 +249,7 @@ DATA_MAP = [
     (27, 'Conversions SEO Q4 2025'),
     (28, 'Conversions SEM Q4 2025'),
     (29, 'CPC SEO Q1 2026'),
-    (30, 'CPC moy. SEM Q1 2026'),
+    (30, 'CPC avg. SEM Q1 2026'),
     # 31 = SEM Spend Q1  (computed from multiple name variants below)
     (32, 'Cost SEO Q1 2026'),
     # 33 = SEM Spend Q4  (computed from multiple name variants below)
@@ -259,8 +259,8 @@ DATA_MAP = [
 ]
 STRING_INDICES = {0, 1, 2, 3, 36}
 
-SPEND_P1 = ['Dépense SEM Q1 2026', 'Spend SEM Q1 2026', 'Cost SEM Q1 2026']
-SPEND_P4 = ['Dépense SEM Q4 2025', 'Spend SEM Q4 2025', 'Cost SEM Q4 2025']
+SPEND_P1 = ['Spent SEM Q1 2026', 'Dépense SEM Q1 2026', 'Spend SEM Q1 2026', 'Cost SEM Q1 2026']
+SPEND_P4 = ['Spent SEM Q4 2025', 'Dépense SEM Q4 2025', 'Spend SEM Q4 2025', 'Cost SEM Q4 2025']
 
 TAXONOMY_TAGS = [
     'Questions', 'Yogurt types', 'Taste', 'Packaging', 'Ingredient',
@@ -514,13 +514,13 @@ def build_sqr_data(rows):
         kw      = _s(r.get('Keyword', ''))
         camp    = _s(r.get('TOPICS', ''))      # use TOPICS as campaign proxy
         impr_q1 = _n(r.get('Impr. SEM Q1 2026', 0))
-        cout_q1 = _n(r.get('Cost SEM Q1 2026') or r.get('Coût SEM Q1 2026', 0))
+        cout_q1 = _n(r.get('Spent SEM Q1 2026') or r.get('Cost SEM Q1 2026') or r.get('Coût SEM Q1 2026', 0))
         conv_q1 = _n(r.get('Conversions SEM Q1 2026', 0))
         ctr_q1  = _n(r.get('CTR SEM Q1 2026', 0))
-        cpc_q1  = _n(r.get('CPC moy. SEM Q1 2026', 0))
+        cpc_q1  = _n(r.get('CPC avg. SEM Q1 2026') or r.get('CPC moy. SEM Q1 2026', 0))
         cpa_q1  = cout_q1 / conv_q1 if conv_q1 > 0 else 0
         impr_q4 = _n(r.get('Impr. SEM Q4 2025', 0))
-        cout_q4 = _n(r.get('Cost SEM Q4 2025') or r.get('Coût SEM Q4 2025', 0))
+        cout_q4 = _n(r.get('Spent SEM Q4 2025') or r.get('Cost SEM Q4 2025') or r.get('Coût SEM Q4 2025', 0))
         conv_q4 = _n(r.get('Conversions SEM Q4 2025', 0))
         ctr_q4  = _n(r.get('CTR SEM Q4 2025', 0))
         cpa_q4  = cout_q4 / conv_q4 if conv_q4 > 0 else 0
