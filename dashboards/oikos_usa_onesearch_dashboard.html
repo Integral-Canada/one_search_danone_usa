@@ -318,6 +318,15 @@ var OS_COV_TARGET_GENERIC = 3;
 var OS_TERRITORY_TOPICS   = ["CONSUMER HABITS", "PRODUCT", "RECIPE", "SOURCE OF PROTEIN"];
 </script>
 <style>
+/* Commentary toolbar — bottom-right so it never overlaps the dashboard header */
+#commentary-toolbar{position:fixed;bottom:20px;right:20px;z-index:99999;background:rgba(255,255,255,.97);border:1px solid #ddd;border-radius:8px;padding:6px 12px;display:flex;align-items:center;gap:8px;box-shadow:0 2px 12px rgba(0,0,0,.15);font-family:-apple-system,sans-serif;font-size:11px;}
+#commentary-toolbar button,#commentary-toolbar label{cursor:pointer;padding:4px 10px;border-radius:5px;font-size:11px;font-weight:600;border:none;background:#004f79;color:#fff;display:inline-flex;align-items:center;gap:3px;}
+#commentary-toolbar .imp-btn{background:#f0f6fb;color:#004f79;border:1px solid #b0c4d8;}
+#commentary-toolbar input[type=file]{display:none;}
+#commentary-toolbar .badge{font-size:10px;color:#888;}
+#commentary-toolbar .tb-label{font-size:10px;font-weight:600;color:#004f79;letter-spacing:.04em;}
+[contenteditable][data-placeholder]{transition:border-color .15s,background .15s;}
+[contenteditable][data-is-placeholder]{color:#aaa !important;font-style:italic;}
 /* CSS floating tooltips — title attr unreliable in Chrome */
 .has-tip{position:relative;}
 .has-tip::after{content:attr(data-tooltip);display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;font-size:10px;line-height:1.4;padding:5px 8px;border-radius:5px;white-space:normal;max-width:220px;text-align:left;z-index:100000;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.25);}
@@ -331,6 +340,13 @@ var OS_TERRITORY_TOPICS   = ["CONSUMER HABITS", "PRODUCT", "RECIPE", "SOURCE OF 
 </style>
 </head>
 <body>
+<div id="commentary-toolbar">
+  <span class="tb-label">NOTES</span>
+  <span class="badge" id="edit-count"></span>
+  <button onclick="exportCommentary()">&#8595; Export</button>
+  <label class="imp-btn">&#8593; Import<input type="file" accept=".json" onchange="importCommentary(event)"></label>
+  <button onclick="clearCommentary()" style="background:#c62828;" title="Clear all saved notes from this browser">&#10005; Clear All</button>
+</div>
 
 <div class="tab-nav">
   <button class="tab-btn active" onclick="switchTab('glossaire',this)">Introduction &amp; Glossary</button>
@@ -798,6 +814,7 @@ The status drives the urgency of action and how the territory is colour-coded in
       <ul style="list-style:disc;padding-left:16px;margin:0;font-size:11px;line-height:1.5;color:#444;"><li style="margin-bottom:4px;line-height:1.45;">Optimize category and product pages to rebuild organic visibility in the PRODUCT territory</li><li style="margin-bottom:4px;line-height:1.45;">Focus on non-branded product search &mdash; create missing category pages for protein shakes and high-protein yogurt</li><li style="margin-bottom:4px;line-height:1.45;">Close coverage gaps (&lt;3%) in: COMPETITOR, GENERIC, HEALTH</li><li style="margin-bottom:4px;line-height:1.45;">Complete taxonomy enrichment to classify untagged keywords</li></ul>
     </div>
     <div>
+      <div style="font-size:9px;font-weight:700;color:#1a7aad;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">&#9999; Analyst Commentary — click to edit</div>
       <div style="font-size:11px;line-height:1.5;color:#444;margin-bottom:8px;">Q4 2025 SEO: 65,541 organic clicks. Q1 2026: 68,002 SEO clicks (+4% QoQ). Average coverage (6.1%) = OneSearch clicks ÷ total monthly search demand (5.5M searches in the Keyword Study) — the share of available search volume actually captured through clicks.<br><br>Context: Q1 2026 is the first full quarter following the site migration from oikosyogurt.com to oikos.com (Q4 2025). The migration triggered significant technical issues including a large number of 404 errors. Pre-migration Q2 2025 (Apr–Jun) organic traffic was ~150K clicks; Q1 2026 was 68K — SEO performance has not yet recovered to pre-migration levels.<br><br>Note: Paid search data was not available for Q4 2025. The +325% OS click jump between Q4 and Q1 is largely driven by the launch of paid campaigns in Q1 2026, not organic growth.</div>
       
     </div>
@@ -6059,6 +6076,9 @@ function renderSqrInsights(){
 
   c+='</div>';
   document.getElementById('sqr-insights').innerHTML=c;
+  document.querySelectorAll('#sqr-insights [contenteditable][data-field-id]').forEach(function(el){
+    if(window._commentaryInitField) window._commentaryInitField(el);
+  });
 }
 
 function initSQR(){if(window._sqrInit)return;window._sqrInit=true;var osT={},cats={},camps={};SQR_OIKOS.forEach(function(r){if(r[23])osT[r[23]]=1;if(r[24])cats[r[24]]=1;if(r[1])camps[r[1]]=1;});var s1=document.getElementById('sqr-f-ostopic');if(s1)Object.keys(osT).sort().forEach(function(t){var o=document.createElement('option');o.value=t;o.textContent=t;s1.appendChild(o);});var s2=document.getElementById('sqr-f-cat');if(s2)Object.keys(cats).sort().forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;s2.appendChild(o);});var s3=document.getElementById('sqr-f-camp');if(s3)Object.keys(camps).sort().forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c.replace(/CAN_EDP_ACTIVIA_/g,'');s3.appendChild(o);});document.getElementById('sqr-subtitle').textContent='Q1 2026 vs Q4 2025 \u2022 '+SQR_OIKOS.length.toLocaleString('en-CA')+' search terms';sqrFilter();renderSqrInsights();}
@@ -14020,6 +14040,7 @@ function renderRecommendations(){
     'reco-json-retailer-protein-shake-shop':  'remove',
     'reco-json-retailer-purchase-location':   'remove',
     'reco-json-yogurt-oikos-oro':             'remove',
+    // ── Added from June 16 commentary ─────────────────────────────────────
     'reco-json-nutrition-glp-1':                      'remove',
     'reco-json-nutrition-glp-1-diet':                 'remove',
     'reco-json-nutrition-diet':                       'remove',
@@ -14825,6 +14846,9 @@ function renderRecommendations(){
   }
 
   tbody.innerHTML = html2;
+  document.querySelectorAll('#recoBody [contenteditable][data-field-id]').forEach(function(el){
+    if(window._commentaryInitField) window._commentaryInitField(el);
+  });
 }
 
 // Tooltip on hover — deferred to avoid crash if DOM not ready
@@ -14959,6 +14983,121 @@ init();
 </script>
 
 <script>
+(function(){
+  /* Commentary store — keyed by data-field-id.
+     Uses an in-memory object so export works regardless of tab visibility
+     (innerText returns '' for display:none elements in Chrome). */
+var _defaults = {};
+  var _store = Object.assign({}, _defaults);
+  var LS_KEY = 'os_commentary_oikos_usa';
+
+  /* Restore from localStorage on load \u2014 localStorage values override defaults */
+  try { var _ls = localStorage.getItem(LS_KEY); if(_ls) Object.assign(_store, JSON.parse(_ls)); } catch(e){}
+
+  function _saveLS(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(_store)); }catch(e){} }
+
+  function countFilled(){
+    var total = document.querySelectorAll('[contenteditable][data-field-id]').length;
+    var n = Object.keys(_store).length;
+    var b = document.getElementById('edit-count');
+    if(b) b.textContent = n + '/' + total + ' notes';
+  }
+
+  function initField(el){
+    var fid = el.getAttribute('data-field-id');
+    var ph  = el.getAttribute('data-placeholder') || '';
+    /* If we have saved content for this field, restore it */
+    if(_store[fid]){
+      el.textContent = _store[fid];
+      el.removeAttribute('data-is-placeholder');
+    } else {
+      el.setAttribute('data-is-placeholder','1');
+      el.textContent = ph;
+    }
+    /* Clear placeholder on first focus */
+    el.addEventListener('focus', function(){
+      if(el.getAttribute('data-is-placeholder') === '1'){
+        el.textContent = '';
+        el.removeAttribute('data-is-placeholder');
+      }
+    });
+    /* Restore placeholder if left empty */
+    el.addEventListener('blur', function(){
+      if(!el.textContent.trim()){
+        el.textContent = ph;
+        el.setAttribute('data-is-placeholder','1');
+        delete _store[fid];
+        _saveLS(); countFilled();
+      }
+    });
+    /* Save to store on every keystroke */
+    el.addEventListener('input', function(){
+      el.removeAttribute('data-is-placeholder');
+      var t = el.textContent.trim();
+      if(t) _store[fid] = t; else delete _store[fid];
+      _saveLS(); countFilled();
+    });
+  }
+
+  function initAll(){
+    document.querySelectorAll('[contenteditable][data-field-id]').forEach(initField);
+    countFilled();
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAll);
+  else setTimeout(initAll, 150);
+
+  window._commentaryInitField = initField;
+
+  window.exportCommentary = function(){
+    var data = {_meta:{brand:"Oikos USA",period:"Q1 2026 vs Q4 2025",exported:new Date().toISOString()}};
+    Object.assign(data, _store);
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+    a.download = 'oikos_usa_commentary_'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  };
+
+  window.importCommentary = function(ev){
+    var file = ev.target.files[0]; if(!file) return;
+    var r = new FileReader();
+    r.onload = function(e){
+      try{
+        var d = JSON.parse(e.target.result); var n = 0;
+        Object.keys(d).forEach(function(k){
+          if(k.startsWith('_')) return;
+          _store[k] = d[k];
+          var el = document.querySelector('[data-field-id="'+k+'"]');
+          if(el){
+            el.textContent = d[k];
+            el.removeAttribute('data-is-placeholder');
+            el.style.borderStyle = 'solid';
+            el.style.borderColor = '#1a7aad';
+            n++;
+          }
+        });
+        _saveLS(); countFilled();
+        alert('Imported '+n+' fields.');
+      } catch(err){ alert('Error: '+err.message); }
+    };
+    r.readAsText(file); ev.target.value = '';
+  };
+
+  window.clearCommentary = function(){
+    if(!confirm('Clear all saved notes? This cannot be undone.')) return;
+    Object.keys(_store).forEach(function(k){ delete _store[k]; });
+    try { localStorage.removeItem(LS_KEY); } catch(e){}
+    document.querySelectorAll('[contenteditable][data-field-id]').forEach(function(el){
+      var ph = el.getAttribute('data-placeholder') || '';
+      el.textContent = ph;
+      el.setAttribute('data-is-placeholder','1');
+      el.style.borderStyle = 'dashed';
+      el.style.borderColor = '#ccc';
+    });
+    countFilled();
+  };
+})();
+
 var _recoActiveMode = 'active';
 function filterRecoTable(btn) {
   _recoActiveMode = btn.getAttribute('data-mode');
