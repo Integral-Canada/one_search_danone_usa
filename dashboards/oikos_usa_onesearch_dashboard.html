@@ -14169,6 +14169,39 @@ function renderRecommendations(){
     'reco-json-recipe-protein-shake-recipe':    'long-term',
     'reco-json-recipe-protein-snack-recipe':    'long-term',
     'reco-json-snack-protein-snack':            'long-term',
+    // ── Priority overrides not yet specified ──────────────────────────────
+    'reco-json-yogurt-oikos-pro':               'priority',
+    'reco-json-yogurt-oikos-flip':              'active',
+    'reco-json-nutrition-probiotics':           'active',
+    // ── Rows to merge or suppress (duplicate/off-strategy sub-categories) ─
+    'reco-json-yogurt-oikos-pro-high-protein':   'remove',
+    'reco-json-yogurt-oikos-caramel':            'remove',
+    'reco-json-yogurt-greek-yogurt-for-diabetics':'remove',
+    'reco-json-yogurt-triple-zero-greek-yogurt': 'remove',
+    'reco-json-yogurt-oikos-banana':             'remove',
+    'reco-json-yogurt-oikos-triple-zero':        'remove',
+    'reco-json-brand-oikos-nutrition':           'remove',
+    'reco-json-nutrition-nutrition-information': 'remove',
+    'reco-json-yogurt-triple-zero-yogurt':       'remove',
+    'reco-json-yogurt-triple-zero':              'remove',
+    'reco-json-brand-oikos':                     'remove',
+    'reco-json-brand-oikos-fusion':              'remove',
+    'reco-json-drink-oikos-drinkable-yogurt':    'remove',
+    'reco-json-yogurt-zero-yogurt':              'remove',
+    'reco-json-yogurt-yogurt-brands':            'remove',
+    'reco-json-brand-oikos-brand':               'remove',
+    'reco-json-brand-oikos-misspelling':         'remove',
+    'reco-json-misspelling':                     'remove',
+    'reco-json-brand-brand-name':                'remove',
+    'reco-json-brand':                           'remove',
+    'reco-json-yogurt-oikos-fusion':             'remove',
+    'reco-json-competitor-drinkable-yogurt':     'remove',
+    'reco-json-competitor-greek-yogurt':         'remove',
+    'reco-json-competitor-muscle-milk':          'remove',
+    'reco-json-competitor-core-power':           'remove',
+    'reco-json-competitor-premier-protein':      'remove',
+    'reco-json-brand-premier-protein-chocolate': 'remove',
+    'reco-json-brand-premier-protein':           'remove',
   };
   const RECO_MERGE_GROUPS = {
     'muscle-exercise': {
@@ -14556,6 +14589,33 @@ function renderRecommendations(){
       reco = '<strong>Long-term SEO strategy'+QS_MENTION+'</strong> — Editorial/health query (pos. '+posLabel+'). '
         +'Create or optimize a dedicated page addressing consumer health and wellness concerns. '
         +'High conversion potential through reassurance content.'
+        +(sqrDetail?' '+sqrDetail:'')+(hasLPIssue?' '+lpInfo:'');
+    }
+
+    // ── Override: suppress "Test SEM pause" language for confirmed SEO-priority rows ──
+    // These rows ranked top 3 organically and would auto-generate a pause test suggestion,
+    // but client direction is to maintain/grow SEO without any SEM pause recommendation.
+    const _NEVER_PAUSE_FIDS = new Set([
+      'reco-json-yogurt-drinkable-yogurt','reco-json-drink-protein-shake',
+      'reco-json-drink-drinkable-yogurt','reco-json-yogurt-flavored-greek-yogurt',
+      'reco-json-drink-oikos-protein-drink','reco-json-yogurt-oikos-greek-yogurt',
+      'reco-json-recipe-protein-shake-recipe','reco-json-yogurt-oikos-remix',
+      'reco-json-yogurt-high-protein-shake','reco-json-other',
+      'reco-json-nutrition-oikos-triple-zero','reco-json-yogurt-oikos-protein',
+      'reco-json-yogurt-oikos','reco-json-health-weight-loss',
+      'reco-json-yogurt-protein-drink','reco-json-nutrition-protein-shake-nutrition',
+      'reco-json-yogurt-protein-yogurt-drink','reco-json-drink-oikos-pro',
+      'reco-json-competitor-competitor-product','reco-json-yogurt-oikos-pro',
+      'reco-json-yogurt-protein-shake','reco-json-yogurt-oikos-flip',
+      'reco-json-yogurt-yogurt','reco-json-drink-high-protein-shake',
+      'reco-json-yogurt-sugar-free-yogurt','reco-json-yogurt-protein-yogurt',
+      'reco-json-drink-protein-smoothie','reco-json-drink-smoothie',
+    ]);
+    if (_NEVER_PAUSE_FIDS.has(_recoFid) && reco.includes('pause')) {
+      channel = 'SEO priority'; channelClass = 'channel-seo';
+      reco = '<strong>SEO priority — maintain and grow organic visibility</strong> — '
+        +'Focus on product and category page optimization to capture non-branded intent. '
+        +'Do not pause SEM without an incrementality measurement first.'
         +(sqrDetail?' '+sqrDetail:'')+(hasLPIssue?' '+lpInfo:'');
     }
 
