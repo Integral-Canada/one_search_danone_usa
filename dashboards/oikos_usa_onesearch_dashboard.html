@@ -13384,7 +13384,7 @@ var fmtN = n => Math.round(n).toLocaleString('en-CA');
 function evoHtml(c,p,mode){
   if(!p) return '<span class="evo-up">—</span>';
   const pct=((c-p)/Math.abs(p)*100);
-  const isPos=mode==="inv"?pct<=0:pct>=0;
+  const isPos=pct>=0;
   return '<span class="'+(isPos?'evo-up':'evo-down')+'">'+(pct>=0?'▲':'▼')+' '+Math.abs(pct).toFixed(1)+'%</span>';
 }
 
