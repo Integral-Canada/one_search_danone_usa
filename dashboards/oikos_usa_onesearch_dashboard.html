@@ -1528,11 +1528,22 @@ The status drives the urgency of action and how the territory is colour-coded in
     <span class="det-arrow" style="font-size:11px;color:#ffffffcc;">&#9654;</span>
   </button>
   <div style="display:none;">
-    <div style="display:flex;align-items:center;gap:8px;padding:10px 24px 4px;background:#f4f4f4;border-bottom:1px solid #e0e0e0;">
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 24px 4px;background:#f4f4f4;border-bottom:1px solid #e0e0e0;flex-wrap:wrap;">
       <span style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-right:4px;">Show:</span>
       <button class="reco-filter-btn" data-mode="active" onclick="filterRecoTable(this)" style="font-size:11px;padding:4px 14px;border:1px solid #1a7aad;border-radius:20px;background:#1a7aad;color:#fff;cursor:pointer;font-weight:600;">Active</button>
       <button class="reco-filter-btn" data-mode="long-term" onclick="filterRecoTable(this)" style="font-size:11px;padding:4px 14px;border:1px solid #78909c;border-radius:20px;background:#fff;color:#78909c;cursor:pointer;font-weight:600;">Long-term</button>
       <button class="reco-filter-btn" data-mode="all" onclick="filterRecoTable(this)" style="font-size:11px;padding:4px 14px;border:1px solid #bbb;border-radius:20px;background:#fff;color:#888;cursor:pointer;font-weight:600;">All</button>
+      <span style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-left:12px;margin-right:2px;">Channel:</span>
+      <select id="reco-filter-channel" onchange="applyRecoFilters()" style="font-size:11px;padding:3px 8px;border:1px solid #ccc;border-radius:4px;background:#fff;cursor:pointer;">
+        <option value="">All</option>
+        <option value="channel-seo">SEO</option>
+        <option value="channel-sem">SEM</option>
+        <option value="channel-both">Both</option>
+      </select>
+      <span style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-left:8px;margin-right:2px;">Category:</span>
+      <select id="reco-filter-cat" onchange="applyRecoFilters()" style="font-size:11px;padding:3px 8px;border:1px solid #ccc;border-radius:4px;background:#fff;cursor:pointer;">
+        <option value="">All</option>
+      </select>
       <span id="reco-row-count" style="font-size:10px;color:#aaa;margin-left:6px;"></span>
     </div>
     <div class="reco-section">
@@ -14745,7 +14756,7 @@ function renderRecommendations(){
         ? '<span style="background:#78909c;color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;margin-left:5px;vertical-align:middle;">LONG-TERM</span>'
         : '';
       var _rowStyle = _status==='long-term' ? ' style="opacity:.8;"' : '';
-      html2 += '<tr'+_trAttr+(_status==='remove'?'':_rowStyle)+'>'
+      html2 += '<tr'+_trAttr+(_status==='remove'?'':_rowStyle)+' data-channel="'+channelClass+'" data-cat="'+cat+'">'
         +'<td><strong>'+cat+'</strong>'+qsChip+'<div class="reco-metrics">'+d.kw_count+' keywords</div></td>'
         +'<td style="font-size:11px;color:#555;">'+subcat+_statusBadge+'</td>'
         +'<td>'+posGSCCell+'</td>'
@@ -14773,7 +14784,7 @@ function renderRecommendations(){
     if (!acc.kw_count) return;
     var mergedCov = acc.vol > 0 ? ((acc.clics_seo+acc.clics_sem)/acc.vol*100).toFixed(1)+'%' : '—';
     var mergedKws = acc.kws.sort(function(a,b){return b[1]-a[1];}).slice(0,4).map(function(x){return '<em>'+x[0]+'</em>';}).join(', ');
-    html2 += '<tr data-status="long-term" style="opacity:.8;border-left:3px solid #78909c;">'
+    html2 += '<tr data-status="long-term" style="opacity:.8;border-left:3px solid #78909c;" data-channel="'+cfg.channelClass+'" data-cat="'+cfg.cat+'">'
       +'<td><strong>'+cfg.cat+'</strong><div class="reco-metrics">'+acc.kw_count+' kw (merged)</div></td>'
       +'<td style="font-size:11px;color:#555;">'+cfg.subcat
       +'<span style="background:#78909c;color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;margin-left:5px;vertical-align:middle;">MERGED · LONG-TERM</span></td>'
@@ -14794,7 +14805,7 @@ function renderRecommendations(){
     var tCov    = ta.vol > 0 ? ((ta.clics_seo+ta.clics_sem)/ta.vol*100).toFixed(1)+'%' : '—';
     var tKws    = ta.kws.sort(function(a,b){return b[1]-a[1];}).slice(0,4).map(function(x){return '<em>'+x[0]+'</em>';}).join(', ');
     var tSubcats = ta.subcats.join(' · ');
-    html2 += '<tr data-status="active" style="opacity:.85;border-left:3px solid #90a4ae;">'
+    html2 += '<tr data-status="active" style="opacity:.85;border-left:3px solid #90a4ae;" data-channel="" data-cat="'+ta.cat+'">'
       +'<td><strong>'+ta.cat+'</strong><div class="reco-metrics">'+ta.kw_count+' kw · '+ta.subcats.length+' sub-cats</div></td>'
       +'<td style="font-size:10px;color:#777;font-style:italic;">'+tSubcats
       +'<span style="background:#90a4ae;color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;margin-left:5px;vertical-align:middle;">GROUPED</span></td>'
@@ -15115,30 +15126,61 @@ var _defaults = {};
   };
 })();
 
+var _recoActiveMode = 'active';
 function filterRecoTable(btn) {
-  var mode = btn.getAttribute('data-mode');
-  var rows = document.querySelectorAll('#recoBody tr[data-status]');
-  var shown = 0;
-  rows.forEach(function(tr) {
-    var s = tr.getAttribute('data-status') || 'active';
-    var visible = mode==='all'
-      || (mode==='active'    && (s==='active'||s==='priority'))
-      || (mode==='long-term' && s==='long-term');
-    tr.style.display = visible ? '' : 'none';
-    if (visible) shown++;
-  });
+  _recoActiveMode = btn.getAttribute('data-mode');
   document.querySelectorAll('.reco-filter-btn').forEach(function(b) {
     var bc = b.style.borderColor;
     b.style.background = '#fff'; b.style.color = bc;
   });
   btn.style.background = btn.style.borderColor; btn.style.color = '#fff';
+  applyRecoFilters();
+}
+function applyRecoFilters() {
+  var mode = _recoActiveMode || 'active';
+  var chanSel = document.getElementById('reco-filter-channel');
+  var catSel  = document.getElementById('reco-filter-cat');
+  var chanVal = chanSel ? chanSel.value : '';
+  var catVal  = catSel  ? catSel.value  : '';
+  var rows = document.querySelectorAll('#recoBody tr[data-status]');
+  var shown = 0;
+  rows.forEach(function(tr) {
+    var s = tr.getAttribute('data-status') || 'active';
+    var ch = tr.getAttribute('data-channel') || '';
+    var ct = tr.getAttribute('data-cat') || '';
+    var modeOk = mode==='all'
+      || (mode==='active'    && (s==='active'||s==='priority'))
+      || (mode==='long-term' && s==='long-term');
+    var chanOk = !chanVal || ch === chanVal;
+    var catOk  = !catVal  || ct === catVal;
+    var visible = modeOk && chanOk && catOk;
+    tr.style.display = visible ? '' : 'none';
+    if (visible) shown++;
+  });
   var el = document.getElementById('reco-row-count');
   if (el) el.textContent = shown + ' rows shown';
+}
+// Populate category dropdown after renderRecommendations runs
+function populateRecoCatFilter() {
+  var sel = document.getElementById('reco-filter-cat');
+  if (!sel) return;
+  var cats = new Set();
+  document.querySelectorAll('#recoBody tr[data-cat]').forEach(function(tr) {
+    var c = tr.getAttribute('data-cat');
+    if (c) cats.add(c);
+  });
+  var sorted = Array.from(cats).sort();
+  sorted.forEach(function(c) {
+    var o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    sel.appendChild(o);
+  });
 }
 // Default: show active only on load
 document.addEventListener('DOMContentLoaded', function() {
   var activeBtn = document.querySelector('.reco-filter-btn[data-mode="active"]');
   if (activeBtn) filterRecoTable(activeBtn);
+  populateRecoCatFilter();
 });
 
 </script>
