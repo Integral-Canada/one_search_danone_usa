@@ -14702,6 +14702,7 @@ function renderRecommendations(){
         +(sqrDetail?' '+sqrDetail:'')+(hasLPIssue?' '+lpInfo:'');
     }
 
+    const _recoFid = 'reco-json-'+(cat+'-'+subcat).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
     // ── Override: suppress "Test SEM pause" language for confirmed SEO-priority rows ──
     // These rows ranked top 3 organically and would auto-generate a pause test suggestion,
     // but client direction is to maintain/grow SEO without any SEM pause recommendation.
@@ -14778,7 +14779,6 @@ function renderRecommendations(){
     const caOS_p  = d.ca_seo_p + d.ca_sem_p;
     const covOS_p = d.vol_p > 0 ? (d.clics_seo_p + d.clics_sem_p) / d.vol_p : 0;
 
-    const _recoFid = 'reco-json-'+(cat+'-'+subcat).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
     var _rawStatus = RECO_STATUS[_recoFid] || 'active';
     var _isMerge   = _rawStatus.startsWith('merge:');
     var _mergeKey  = _isMerge ? _rawStatus.slice(6) : null;
