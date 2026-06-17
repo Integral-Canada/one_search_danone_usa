@@ -1,6 +1,7 @@
 # OneSearch Pipeline
 
 Google Sheets with Relevent Exports: https://docs.google.com/spreadsheets/d/1o526Qv4UzP_Qfe-cjrfvcA7jRUi6zUtd9Ecp2WPMIhQ/edit?gid=850184782#gid=850184782 
+Paid Synergies Drive: https://drive.google.com/drive/folders/1JrcfEbFvOFU0BniSy6bRNZOKff34Y1AQ 
 
 The OneSearch pipeline builds a unified keyword performance masterlist in Google Sheets. It answers the question: **for every keyword that drives traffic to the site — through organic search, paid search, or both — what does the full picture look like?**
 
