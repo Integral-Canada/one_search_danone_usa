@@ -5,7 +5,7 @@ Paid Synergies Drive: https://drive.google.com/drive/folders/1JrcfEbFvOFU0BniSy6
 
 The OneSearch pipeline builds a unified keyword performance masterlist in Google Sheets. It answers the question: **for every keyword that drives traffic to the site — through organic search, paid search, or both — what does the full picture look like?**
 
-It does this by pulling four data sources (Google Search Console, Google Ads, SE Ranking, and the internal Keyword Study), fuzzy-matching them all onto a single keyword spine, then writing a 57-column enriched masterlist to Google Sheets.
+It does this by pulling five data sources (Google Search Console, Google Ads, SE Ranking, the internal Keyword Study, and the GA4 Google Ads session export), fuzzy-matching them all onto a single keyword spine, then writing a 58-column enriched masterlist to Google Sheets. The 58th column (BF — SEM Recommendation) is written by a separate post-pipeline script: `sem_qv_attribution.py`.
 
 All computation runs locally in Python. No third-party packages required — stdlib only. Google Sheets is used only for reads (source data) and writes (results).
 
@@ -69,6 +69,7 @@ All source data is pulled from Google Sheets via the Sheets API. The sources are
 - **Keyword Study** — Internal keyword taxonomy sheet. Gives topic, category, sub-category, brand classification, and monthly search volume.
 - **GA4 Checkout** — GA4 page-level export filtered to `mikmak_checkout` events. Gives conversion counts per landing page for the checkout flow.
 - **GA4 Offline Store** — Same as above filtered to `mikmak_click_offline_store` events. Gives conversion counts for store locator interactions.
+- **GA4 Google Ads Sessions** *(new — required from Q1 2026 onward)* — GA4 session-level export for Google Ads campaigns. Tab name pattern: `Campagnes Google Ads: Requête Google Ads associée à cette session`. Columns required: `Requête Google Ads associée à cette session` (search query), `Page de destination + chaîne de requête` (landing page), `Sessions`, `Événements clés` (Key Events = Qualified Visits). Used to calculate true SEM QV per keyword via LP-rate attribution. **Important:** the tab name contains non-breaking spaces (`\xa0`) — always use `spreadsheets.get` to resolve the actual title before making range requests. Run `sem_qv_attribution.py` separately after the main pipeline completes.
 
 ### Step 3 — Normalize
 
@@ -277,9 +278,9 @@ block-beta
 
 ---
 
-## Masterlist columns (A–BE)
+## Masterlist columns (A–BF)
 
-Every column in the 57-column Masterlist, what it means, and where it comes from.
+Every column in the 58-column Masterlist (as of 2026-06-17), what it means, and where it comes from.
 
 ### Taxonomy (A–E) — from Keyword Study
 
@@ -364,7 +365,7 @@ GA4 conversion events joined to keywords via the SE Ranking landing page URL. On
 | Col | Name | What it means |
 |---|---|---|
 | AB | Conversions SEO Q1 2026 | Number of `mikmak_checkout` key events on the SE Ranking landing page in Q1 2026. Proxy for SEO-driven purchase intent. |
-| AC | Conversions SEM Q1 2026 | Number of `mikmak_click_offline_store` events — users clicking to find a physical store. Proxy for SEM-driven offline intent. |
+| AC | Conversions SEM Q1 2026 | **SEM Qualified Visits (QV SEM)** — calculated via LP-rate attribution from the GA4 Google Ads session export (Q1 2026, new methodology introduced Jun 2026). Formula: `(Keyword SEM Sessions / LP Total SEM Sessions) × LP Total Key Events`, summed across all landing pages per keyword. Source: `mikmak_checkout` key events (= Qualified Visits). See `one_search/scripts/sem_qv_attribution.py`. |
 | AD | Conversions SEO Q4 2025 | Same as AB for Q4 2025. Blank until Q4 GA4 files are added to source config. |
 | AE | Conversions SEM Q4 2025 | Same as AC for Q4 2025. Blank until Q4 GA4 files are added. |
 
@@ -404,6 +405,18 @@ These columns require a richer Keyword Study format with tag columns. The curren
 | AW | Bio | Bio/organic product mentions. |
 | AX | Moments | Consumption moment (e.g. breakfast, post-workout). |
 | AY | Recipes | Recipe-related queries. |
+
+### SEM Recommendation (BF) — from sem_qv_attribution.py
+
+> **Added 2026-06-17.** This column does not exist in the original pipeline output — it is written by a separate post-pipeline script.
+
+| Col | Name | What it means |
+|---|---|---|
+| BF | SEM Recommendation | Brand campaign optimization decision for BRAND-territory keywords. Values: `Exclude` (add as negative keyword — SEO coverage >10%, position ≤5, QV SEM = 0), `Keep-Active` (SEM generating QVs, SEO coverage <10%), `Keep-Test` (SEO coverage >10% but SEM still converting — monitor 4 weeks before pausing). Blank for all non-BRAND keywords. |
+
+**Script:** `one_search/scripts/sem_qv_attribution.py` — run after main pipeline to populate both AC and BF.
+
+---
 
 ### Monthly search volumes (AZ–BE) — from Keyword Study
 

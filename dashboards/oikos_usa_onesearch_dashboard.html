@@ -380,7 +380,7 @@ var OS_TERRITORY_TOPICS   = ["BRAND", "COMPETITOR", "CONSUMER HABITS", "GENERIC"
     <div class="g-hero-title">One Search Dashboard — Oikos USA</div>
     <div class="g-hero-sub">Digitad × Oikos USA · One Search · April 2026</div>
     <div class="g-hero-chips">
-      <span class="g-chip">Canadian Market</span>
+      <span class="g-chip">US Market</span>
       <span class="g-chip">2 070 priority keywords</span>
       <span class="g-chip">Q1 2026 vs Q4 2025</span>
       <span class="g-chip">2 390 kw — Position SEO</span>
@@ -507,6 +507,38 @@ var OS_TERRITORY_TOPICS   = ["BRAND", "COMPETITOR", "CONSUMER HABITS", "GENERIC"
       </div>
     </div>
 
+    <!-- SECTION 3B : SEM QV METHODOLOGY -->
+    <div class="g-section">
+      <div class="g-section-title">SEM Qualified Visit (QV) Methodology</div>
+      <p style="font-size:13px;color:var(--slate-600);line-height:1.7;margin:0 0 16px;">
+        Starting Q1 2026, SEM Qualified Visits are calculated using a landing-page pro-rata attribution method applied to the <strong>GA4 Google Ads session export</strong>. This aligns SEM QV measurement with the existing SEO QV methodology.
+      </p>
+      <p style="font-size:13px;color:var(--slate-600);line-height:1.7;margin:0 0 20px;padding:14px 18px;background:var(--slate-50);border-left:3px solid var(--primary);border-radius:0 var(--radius-md) var(--radius-md) 0;">
+        <strong>Source:</strong> GA4 Google Ads session export — tab <em>Campagnes Google Ads: Requête Google Ads associée à cette session</em>. Covers Jan 1 – Mar 31, 2026. Key Events = mcmack checkout events = Qualified Visits.
+      </p>
+      <div class="g-formula-grid" style="margin-bottom:20px;">
+        <div class="g-formula">
+          <h4>Step 1 — LP QV Rate</h4>
+          <span class="g-formula-expr">LP Key Events / LP Sessions</span>
+        </div>
+        <div class="g-formula">
+          <h4>Step 2 — Keyword Attribution</h4>
+          <span class="g-formula-expr">(Keyword Sessions / LP Total Sessions) × LP Total Key Events</span>
+        </div>
+        <div class="g-formula">
+          <h4>Step 3 — Sum Across LPs</h4>
+          <span class="g-formula-expr">Σ Attributed QV across all Landing Pages per keyword</span>
+        </div>
+        <div class="g-formula">
+          <h4>Verification</h4>
+          <span class="g-formula-expr">Σ Keyword QV SEM ≈ Total Key Events in GA4 export</span>
+        </div>
+      </div>
+      <div style="margin-top:0;padding:14px 20px;background:#f0f4ff;border:1px solid #c5d5f8;border-radius:var(--radius-md);font-size:12px;color:var(--slate-600);">
+        <strong style="color:#1565c0;">Q1 2026 result:</strong> 1,338 total SEM QVs attributed across 1,863 matched keywords (out of 3,663 in the keyword spine). 70 QVs are from search queries not yet in the spine — flagged for next spine expansion. Attribution delta vs GA4 total: 0.0 (verified).
+      </div>
+    </div>
+
     <!-- SECTION 4 : GLOSSAIRE -->
     <div class="g-section">
       <div class="g-section-title">Metrics Glossary</div>
@@ -520,7 +552,7 @@ var OS_TERRITORY_TOPICS   = ["BRAND", "COMPETITOR", "CONSUMER HABITS", "GENERIC"
             </tr>
           </thead>
           <tbody>
-            <tr><td class="g-term">Volume (Demand)</td><td>Estimated monthly searches on Google for a given keyword, on the Canadian market.</td></tr>
+            <tr><td class="g-term">Volume (Demand)</td><td>Estimated monthly searches on Google for a given keyword, on the US market.</td></tr>
             <tr><td class="g-term">Coverage OneSearch</td><td>Share of search volume captured via SEO or SEM during the current period. Key indicator of overall SERP presence.</td></tr>
             <tr><td class="g-term">Coverage SEO</td><td>Share of volume captured exclusively via organic traffic, for keywords with at least 1 SEO click.</td></tr>
             <tr><td class="g-term">Coverage SEM</td><td>Share of volume captured exclusively via paid traffic, for keywords with at least 1 SEM click.</td></tr>
@@ -533,6 +565,8 @@ var OS_TERRITORY_TOPICS   = ["BRAND", "COMPETITOR", "CONSUMER HABITS", "GENERIC"
             <tr><td class="g-term">CTR SEO</td><td>Organic click-through rate — measures the attractiveness of the organic result (title, meta, rich snippets).</td></tr>
             <tr><td class="g-term">CTR SEM</td><td>Paid click-through rate — measures the relevance and attractiveness of ads.</td></tr>
             <tr><td class="g-term">Conversions (Qualify Visits)</td><td>Number of qualified visits attributed to the Search channel during the period. Includes SEO and SEM separately. A Qualify Visit corresponds to a session with significant engagement on the site.</td></tr>
+            <tr><td class="g-term">QV SEO</td><td>Qualified Visits attributed to organic search. Source: GA4 mcmack key events joined to GSC keyword data via landing page URL.</td></tr>
+            <tr><td class="g-term">QV SEM</td><td>Qualified Visits attributed to paid search. Calculated via landing-page pro-rata attribution from the GA4 Google Ads session export (Q1 2026, new methodology). Formula: (Keyword SEM Sessions / LP Total SEM Sessions) × LP Total Key Events, summed across all landing pages per keyword.</td></tr>
             <tr><td class="g-term">SEM Cost</td><td>Total advertising spend on Google Ads for the category's keywords during the analyzed period.</td></tr>
             <tr><td class="g-term">Qualify Visit (QV)</td><td>Qualified session with significant engagement on the Oikos site. Primary conversion metric used to evaluate Search channel performance (SEO and SEM). Replaces revenue in a non-e-commerce context.</td></tr>
             <tr><td class="g-term">Avg. CPC</td><td>Average cost per click paid on Google Search ads. Directly dependent on Quality Score.</td></tr>
@@ -729,7 +763,7 @@ The status drives the urgency of action and how the territory is colour-coded in
 
 <!-- Executive summary — single US-level narrative -->
 <div style="background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:20px 24px;margin:0 24px 20px;border-left:4px solid #004f79;">
-  <h2 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#004f79;margin:0 0 14px;">Executive Summary — Oikos USA US (Q1 2026 vs Q4 2025)</h2>
+  <h2 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#004f79;margin:0 0 14px;">Executive Summary — Oikos USA (Q1 2026 vs Q4 2025)</h2>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
     <div>
       <div style="font-size:9px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">AI Draft — US aggregate signals</div>
@@ -785,10 +819,10 @@ The status drives the urgency of action and how the territory is colour-coded in
   </div>
   <!-- US-level action cards (SEO + SEM × Q1 + Q2) -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;">
-    <div style="background:#fff;border:1px solid #2e7d3230;border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;"><h4 style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#2e7d32;margin:0;padding-bottom:8px;border-bottom:1px solid #2e7d3220;">Q1 2026 &mdash; SEO Actions</h4><ul style="list-style:disc;padding-left:16px;margin:0;font-size:11px;line-height:1.5;color:#444;"><li style="margin-bottom:4px;line-height:1.45;">SEO clicks +4% QoQ &mdash; 68K clicks vs 65,541 in Q4 2025</li><li style="margin-bottom:4px;line-height:1.45;">Production plan created; thorough technical audit completed; 404 errors from the oikosyogurt.com &rarr; oikos.com migration addressed</li><li style="margin-bottom:4px;line-height:1.45;">No new content published; no other technical recommendations implemented in Q1</li><li style="margin-bottom:4px;line-height:1.45;">PRODUCT: 52K SEO clicks (13.6% coverage) &mdash; lacks visibility for smoothie and shake product keywords</li><li style="margin-bottom:4px;line-height:1.45;">Zero SEO clicks in: SOURCE OF PROTEIN, CONSUMER HABITS &mdash; content gap</li></ul><div contenteditable="true" data-field-id="us-q1-seo" data-placeholder="Add US-level Q1 SEO analyst notes…" style="min-height:54px;font-size:11px;line-height:1.5;color:#444;border:1px dashed #ccc;border-radius:5px;padding:7px 9px;background:#f8f9fb;outline:none;margin-top:2px;" onfocus="this.style.borderColor='#1a7aad';this.style.background='#fff';" onblur="this.style.borderColor='#ccc';this.style.background='#f8f9fb';">Add US-level Q1 SEO analyst notes…</div></div>
-    <div style="background:#fff;border:1px solid #1565c030;border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;"><h4 style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#1565c0;margin:0;padding-bottom:8px;border-bottom:1px solid #1565c020;">Q1 2026 &mdash; SEM Activity</h4><p style="font-size:11px;line-height:1.5;color:#888;margin:0;font-style:italic;">Not applicable &mdash; Oikos USA does not have an active SEM contract with digitad. The 210K paid clicks reflected in Q1 2026 data are from a standalone campaign and are not part of an ongoing managed program.</p><div contenteditable="true" data-field-id="us-q1-sem" data-placeholder="Add US-level Q1 SEM analyst notes…" style="min-height:54px;font-size:11px;line-height:1.5;color:#444;border:1px dashed #ccc;border-radius:5px;padding:7px 9px;background:#f8f9fb;outline:none;margin-top:2px;" onfocus="this.style.borderColor='#1a7aad';this.style.background='#fff';" onblur="this.style.borderColor='#ccc';this.style.background='#f8f9fb';">Add US-level Q1 SEM analyst notes…</div></div>
-    <div style="background:#fff;border:1px solid #2e7d3230;border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;"><h4 style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#2e7d32;margin:0;padding-bottom:8px;border-bottom:1px solid #2e7d3220;">Q2 2026 Pipeline &mdash; SEO</h4><ul style="list-style:disc;padding-left:16px;margin:0;font-size:11px;line-height:1.5;color:#444;"><li style="margin-bottom:4px;line-height:1.45;">Optimize category and product pages to improve visibility for non-branded product searches (protein shakes, high protein yogurt) &mdash; create missing category pages</li><li style="margin-bottom:4px;line-height:1.45;">Focus on non-branded search traffic &mdash; GENERIC and HEALTH territories are undercaptured (&lt;1% coverage)</li><li style="margin-bottom:4px;line-height:1.45;">Continue technical cleanup from the oikos.com migration &mdash; ensure 404s fully resolved, internal links updated</li><li style="margin-bottom:4px;line-height:1.45;">Close coverage gaps (&lt;3%) in: COMPETITOR, GENERIC, HEALTH</li></ul><div contenteditable="true" data-field-id="us-q2-seo" data-placeholder="Add US-level Q2 SEO pipeline notes…" style="min-height:54px;font-size:11px;line-height:1.5;color:#444;border:1px dashed #ccc;border-radius:5px;padding:7px 9px;background:#f8f9fb;outline:none;margin-top:2px;" onfocus="this.style.borderColor='#1a7aad';this.style.background='#fff';" onblur="this.style.borderColor='#ccc';this.style.background='#f8f9fb';">Add US-level Q2 SEO pipeline notes…</div></div>
-    <div style="background:#fff;border:1px solid #1565c030;border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;"><h4 style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#1565c0;margin:0;padding-bottom:8px;border-bottom:1px solid #1565c020;">Q2 2026 Pipeline &mdash; SEM</h4><ul style="list-style:disc;padding-left:16px;margin:0;font-size:11px;line-height:1.5;color:#444;"><li style="margin-bottom:4px;line-height:1.45;">Align Q2 ad groups with top-converting Q1 search terms</li><li style="margin-bottom:4px;line-height:1.45;">Explore SEO and SEM synergies with the Danone portfolio &mdash; coordinate keyword strategy across Danone North America brands</li></ul><div contenteditable="true" data-field-id="us-q2-sem" data-placeholder="Add US-level Q2 SEM pipeline notes…" style="min-height:54px;font-size:11px;line-height:1.5;color:#444;border:1px dashed #ccc;border-radius:5px;padding:7px 9px;background:#f8f9fb;outline:none;margin-top:2px;" onfocus="this.style.borderColor='#1a7aad';this.style.background='#fff';" onblur="this.style.borderColor='#ccc';this.style.background='#f8f9fb';">Add US-level Q2 SEM pipeline notes…</div></div>
+    <div style="background:#fff;border:1px solid #2e7d3230;border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;"><h4 style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#2e7d32;margin:0;padding-bottom:8px;border-bottom:1px solid #2e7d3220;">Q1 2026 &mdash; SEO Actions</h4><ul style="list-style:disc;padding-left:16px;margin:0;font-size:11px;line-height:1.5;color:#444;"><li style="margin-bottom:4px;line-height:1.45;">SEO clicks +4% QoQ &mdash; 68K clicks vs 65,541 in Q4 2025</li><li style="margin-bottom:4px;line-height:1.45;">Production plan created; thorough technical audit completed; 404 errors from the oikosyogurt.com &rarr; oikos.com migration addressed</li><li style="margin-bottom:4px;line-height:1.45;">No new content published; no other technical recommendations implemented in Q1</li><li style="margin-bottom:4px;line-height:1.45;">PRODUCT: 52K SEO clicks (13.6% coverage) &mdash; lacks visibility for smoothie and shake product keywords</li><li style="margin-bottom:4px;line-height:1.45;">Zero SEO clicks in: SOURCE OF PROTEIN, CONSUMER HABITS &mdash; content gap</li></ul><div contenteditable="true" data-field-id="us-q1-seo" data-placeholder="Add US-level Q1 SEO analyst notes…" style="min-height:54px;font-size:11px;line-height:1.5;color:#444;border:1px dashed #ccc;border-radius:5px;padding:7px 9px;background:#f8f9fb;outline:none;margin-top:2px;" onfocus="this.style.borderColor='#1a7aad';this.style.background='#fff';" onblur="this.style.borderColor='#ccc';this.style.background='#f8f9fb';"></div></div>
+    <div style="background:#fff;border:1px solid #1565c030;border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;"><h4 style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#1565c0;margin:0;padding-bottom:8px;border-bottom:1px solid #1565c020;">Q1 2026 &mdash; SEM Activity</h4><p style="font-size:11px;line-height:1.5;color:#888;margin:0;font-style:italic;">Not applicable &mdash; Oikos USA does not have an active SEM contract with digitad. The 210K paid clicks reflected in Q1 2026 data are from a standalone campaign and are not part of an ongoing managed program.</p><div contenteditable="true" data-field-id="us-q1-sem" data-placeholder="Add US-level Q1 SEM analyst notes…" style="min-height:54px;font-size:11px;line-height:1.5;color:#444;border:1px dashed #ccc;border-radius:5px;padding:7px 9px;background:#f8f9fb;outline:none;margin-top:2px;" onfocus="this.style.borderColor='#1a7aad';this.style.background='#fff';" onblur="this.style.borderColor='#ccc';this.style.background='#f8f9fb';"></div></div>
+    <div style="background:#fff;border:1px solid #2e7d3230;border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;"><h4 style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#2e7d32;margin:0;padding-bottom:8px;border-bottom:1px solid #2e7d3220;">Q2 2026 Pipeline &mdash; SEO</h4><ul style="list-style:disc;padding-left:16px;margin:0;font-size:11px;line-height:1.5;color:#444;"><li style="margin-bottom:4px;line-height:1.45;">Optimize category and product pages to improve visibility for non-branded product searches (protein shakes, high protein yogurt) &mdash; create missing category pages</li><li style="margin-bottom:4px;line-height:1.45;">Focus on non-branded search traffic &mdash; GENERIC and HEALTH territories are undercaptured (&lt;1% coverage)</li><li style="margin-bottom:4px;line-height:1.45;">Continue technical cleanup from the oikos.com migration &mdash; ensure 404s fully resolved, internal links updated</li><li style="margin-bottom:4px;line-height:1.45;">Close coverage gaps (&lt;3%) in: COMPETITOR, GENERIC, HEALTH</li></ul><div contenteditable="true" data-field-id="us-q2-seo" data-placeholder="Add US-level Q2 SEO pipeline notes…" style="min-height:54px;font-size:11px;line-height:1.5;color:#444;border:1px dashed #ccc;border-radius:5px;padding:7px 9px;background:#f8f9fb;outline:none;margin-top:2px;" onfocus="this.style.borderColor='#1a7aad';this.style.background='#fff';" onblur="this.style.borderColor='#ccc';this.style.background='#f8f9fb';"></div></div>
+    <div style="background:#fff;border:1px solid #1565c030;border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;"><h4 style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#1565c0;margin:0;padding-bottom:8px;border-bottom:1px solid #1565c020;">Q2 2026 Pipeline &mdash; SEM</h4><ul style="list-style:disc;padding-left:16px;margin:0;font-size:11px;line-height:1.5;color:#444;"><li style="margin-bottom:4px;line-height:1.45;">Align Q2 ad groups with top-converting Q1 search terms</li><li style="margin-bottom:4px;line-height:1.45;">Explore SEO and SEM synergies with the Danone portfolio &mdash; coordinate keyword strategy across Danone North America brands</li></ul><div contenteditable="true" data-field-id="us-q2-sem" data-placeholder="Add US-level Q2 SEM pipeline notes…" style="min-height:54px;font-size:11px;line-height:1.5;color:#444;border:1px dashed #ccc;border-radius:5px;padding:7px 9px;background:#f8f9fb;outline:none;margin-top:2px;" onfocus="this.style.borderColor='#1a7aad';this.style.background='#fff';" onblur="this.style.borderColor='#ccc';this.style.background='#f8f9fb';"></div></div>
   </div>
 </div>
 
@@ -1400,7 +1434,213 @@ The status drives the urgency of action and how the territory is colour-coded in
 </div>
 
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;padding:16px 24px;"><div style="background:#fff;border-radius:10px;padding:14px;text-align:center;border:1px solid #eee;border-top:3px solid #333;"><div style="font-size:10px;color:#888;text-transform:uppercase;margin-bottom:4px;">Territories Analyzed</div><div style="font-size:28px;font-weight:700;color:#333;">9</div><div style="font-size:10px;color:#888;">3,662 keywords classified</div></div><div style="background:#fff;border-radius:10px;padding:14px;text-align:center;border:1px solid #eee;border-top:3px solid #c62828;"><div style="font-size:10px;color:#888;text-transform:uppercase;margin-bottom:4px;">Immediate Actions</div><div style="font-size:28px;font-weight:700;color:#c62828;">5</div><div style="font-size:10px;color:#c62828;">coverage &lt; 3%</div></div><div style="background:#fff;border-radius:10px;padding:14px;text-align:center;border:1px solid #eee;border-top:3px solid #e65100;"><div style="font-size:10px;color:#888;text-transform:uppercase;margin-bottom:4px;">Short-Term Actions</div><div style="font-size:28px;font-weight:700;color:#e65100;">1</div><div style="font-size:10px;color:#e65100;">coverage 3–10%</div></div><div style="background:#fff;border-radius:10px;padding:14px;text-align:center;border:1px solid #eee;border-top:3px solid #2e7d32;"><div style="font-size:10px;color:#888;text-transform:uppercase;margin-bottom:4px;">Maintain</div><div style="font-size:28px;font-weight:700;color:#2e7d32;">3</div><div style="font-size:10px;color:#2e7d32;">coverage &gt; 10%</div></div></div>
-<div class="section-title">One Search Recommendations Prioritization</div><div style="background:#fff;margin:0 24px 16px;padding:20px 24px;border-radius:0 0 8px 8px;box-shadow:0 1px 3px rgba(0,0,0,.1);"><p style="font-size:11px;color:#888;margin:0 0 14px;line-height:1.5;">OneSearch Action Plan &mdash; Q1 2026 vs Q4 2025 &middot; 9 territories &middot; 3,662 keywords classified &middot; Coverage target: &gt;3% non-brand &middot; &gt;10% brand</p><div style="font-size:9px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Top 9 Priority Recommendations</div><ul style="list-style:disc;padding-left:18px;margin:0 0 12px;font-size:11px;line-height:1.5;color:#444;"><li style="margin-bottom:5px;line-height:1.45;"><strong>COMPETITOR — Coverage gap (1.7%)</strong> — Coverage at 1.7% — below 3% target. Territory has 813K monthly searches and 14K OS clicks in Q1 2026. Both channels active but coverage gap remains — optimize bid strategy and expand content.</li><li style="margin-bottom:5px;line-height:1.45;"><strong>GENERIC — Coverage gap (0.5%)</strong> — Coverage at 0.5% — below 3% target. Territory has 858K monthly searches and 4.5K OS clicks in Q1 2026. Both channels active but coverage gap remains — optimize bid strategy and expand content.</li><li style="margin-bottom:5px;line-height:1.45;"><strong>HEALTH — Coverage gap (0.3%)</strong> — Coverage at 0.3% — below 3% target. Territory has 968K monthly searches and 3.2K OS clicks in Q1 2026. Both channels active but coverage gap remains — optimize bid strategy and expand content.</li><li style="margin-bottom:5px;line-height:1.45;"><strong>SOURCE OF PROTEIN — Coverage gap (0.3%)</strong> — Coverage at 0.3% — below 3% target. Territory has 72K monthly searches and 227 OS clicks in Q1 2026. No SEO clicks — organic content opportunity to reduce SEM dependency.</li><li style="margin-bottom:5px;line-height:1.45;"><strong>CONSUMER HABITS — Coverage gap (0.0%)</strong> — Coverage at 0.0% — below 3% target. Territory has 14K monthly searches and 2 OS clicks in Q1 2026. No SEO clicks — organic content opportunity to reduce SEM dependency.</li><li style="margin-bottom:5px;line-height:1.45;"><strong>RECIPE — Growth opportunity</strong> — Coverage at 7.2% — approaching 3–10% range. 37K monthly searches. SEO: 415 clicks · SEM: 2.3K clicks in Q1 2026. Build content depth and optimize SEM bids to push coverage toward 10%+ target.</li><li style="margin-bottom:5px;line-height:1.45;"><strong>PRODUCT — Maintain coverage</strong> — Coverage at 14% — above target. Maintain SEO+SEM dual presence. Monitor competitor activity and protect top positions. SEO: 52K · SEM: 186K clicks in Q1 2026.</li><li style="margin-bottom:5px;line-height:1.45;"><strong>BRAND — Maintain coverage</strong> — Coverage at 29% — above target. Maintain SEO+SEM dual presence. Monitor competitor activity and protect top positions. SEO: 15K · SEM: 1.1K clicks in Q1 2026.</li><li style="margin-bottom:5px;line-height:1.45;"><strong>OTHER — Maintain coverage</strong> — Coverage at 51% — above target. Maintain SEO+SEM dual presence. Monitor competitor activity and protect top positions. SEO: 230 · SEM: 253 clicks in Q1 2026.</li></ul><p style="font-size:11px;line-height:1.5;color:#444;margin:0 0 8px;">Priority order: (1) PRODUCT — highest priority, Q2 optimizations planned; (2) SOURCE OF PROTEIN (yogurt queries, short term); (3) HEALTH (long term only — GLP-1 not a current priority); (4) GENERIC (Q2–Q4, high-protein snack content); (5) CONSUMER HABITS (long term); (6) RECIPE (Q3–Q4).</p><div contenteditable="true" data-field-id="top-recs-prioritization" data-placeholder="Add analyst notes or edit prioritization list…" style="min-height:54px;font-size:11px;line-height:1.5;color:#444;border:1px dashed #ccc;border-radius:5px;padding:7px 9px;background:#f8f9fb;outline:none;margin-bottom:20px;" onfocus="this.style.borderColor='#1a7aad';this.style.background='#fff';" onblur="this.style.borderColor='#ccc';this.style.background='#f8f9fb';"></div>
+<div class="section-title">15 Integrated SEO+SEM Actions — Q2 2026 Priority Plan</div>
+<div style="background:#fff;margin:0 24px 16px;padding:20px 24px;border-radius:0 0 8px 8px;box-shadow:0 1px 3px rgba(0,0,0,.1);">
+<p style="font-size:11px;color:#888;margin:0 0 16px;line-height:1.5;">OneSearch Action Plan &mdash; Q1 2026 vs Q4 2025 &middot; 9 territories &middot; 3,663 keywords classified &middot; 1,338 SEM QVs attributed &middot; Coverage target: &gt;3% non-brand &middot; &gt;10% brand</p>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;font-size:10px;">
+  <span style="padding:3px 9px;border-radius:12px;background:#e8f4e8;color:#1b5e20;font-weight:600;border:1px solid #1b5e2020;">SEO = Organic / Content</span>
+  <span style="padding:3px 9px;border-radius:12px;background:#e3f0ff;color:#1565c0;font-weight:600;border:1px solid #1565c020;">SEM = Paid Search</span>
+  <span style="padding:3px 9px;border-radius:12px;background:#fff3e0;color:#e65100;font-weight:600;border:1px solid #e6510020;">BOTH = Coordinated</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;">
+
+<div style="display:flex;gap:10px;padding:10px 14px;border-left:4px solid #c62828;background:#fdf5f5;border-radius:0 8px 8px 0;">
+  <span style="font-size:13px;font-weight:700;color:#c62828;min-width:28px;flex-shrink:0;">01</span>
+  <div style="flex:1;">
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px;">
+      <span style="font-size:10px;padding:1px 7px;background:#fff3e0;color:#e65100;border-radius:4px;font-weight:700;">BOTH</span>
+      <span style="font-size:9px;padding:1px 6px;background:#f0f0f0;color:#555;border-radius:3px;font-weight:600;">PRODUCT</span>
+      <span style="font-size:9px;padding:1px 6px;background:#c6282820;color:#c62828;border-radius:3px;font-weight:600;">Q2 2026 · Priority #1</span>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:#222;margin-bottom:3px;">Create &amp; optimize protein shake and protein drink category pages</div>
+    <div style="font-size:11px;color:#555;line-height:1.4;"><strong>SEO:</strong> Create missing category pages targeting <em>protein shake</em> (201K/mo), <em>protein drink</em> (49.5K/mo). Pages approved for Q2 by Danone. Target position ≤ 5 within 6 months. <strong>SEM:</strong> Run targeted ads on these terms while pages rank — 186K SEM clicks in Q1 show strong paid demand. Align landing pages with new category structure.</div>
+  </div>
+</div>
+
+<div style="display:flex;gap:10px;padding:10px 14px;border-left:4px solid #c62828;background:#fdf5f5;border-radius:0 8px 8px 0;">
+  <span style="font-size:13px;font-weight:700;color:#c62828;min-width:28px;flex-shrink:0;">02</span>
+  <div style="flex:1;">
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px;">
+      <span style="font-size:10px;padding:1px 7px;background:#e8f4e8;color:#1b5e20;border-radius:4px;font-weight:700;">SEO</span>
+      <span style="font-size:9px;padding:1px 6px;background:#f0f0f0;color:#555;border-radius:3px;font-weight:600;">PRODUCT</span>
+      <span style="font-size:9px;padding:1px 6px;background:#c6282820;color:#c62828;border-radius:3px;font-weight:600;">Q2 2026</span>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:#222;margin-bottom:3px;">Optimize product pages: Oikos Pro, Fusion, Vanilla Protein Yogurt</div>
+    <div style="font-size:11px;color:#555;line-height:1.4;">Product pages in writing (Digitad) for Q2: vanilla protein yogurt, plain Greek yogurt, strawberry protein yogurt. Target: <em>high protein yogurt</em> (44.5K/mo), <em>vanilla protein yogurt</em>, <em>plain Greek yogurt protein</em>. Approved by Danone. Oikos Pro and Fusion lack visibility in evaluate/buy funnel queries.</div>
+  </div>
+</div>
+
+<div style="display:flex;gap:10px;padding:10px 14px;border-left:4px solid #c62828;background:#fdf5f5;border-radius:0 8px 8px 0;">
+  <span style="font-size:13px;font-weight:700;color:#c62828;min-width:28px;flex-shrink:0;">03</span>
+  <div style="flex:1;">
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px;">
+      <span style="font-size:10px;padding:1px 7px;background:#e3f0ff;color:#1565c0;border-radius:4px;font-weight:700;">SEM</span>
+      <span style="font-size:9px;padding:1px 6px;background:#f0f0f0;color:#555;border-radius:3px;font-weight:600;">PRODUCT</span>
+      <span style="font-size:9px;padding:1px 6px;background:#c6282820;color:#c62828;border-radius:3px;font-weight:600;">Q2 2026</span>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:#222;margin-bottom:3px;">Align Q2 SEM ad groups with top-converting product queries</div>
+    <div style="font-size:11px;color:#555;line-height:1.4;">Q1 product territory: 186K SEM clicks, coverage 14%. Top QV-generating queries identified in GA4 Ads export. Restructure ad groups around product LP clusters (shakes, yogurt, Pro, Fusion). Ensure new category pages become SEM landing pages immediately on launch.</div>
+  </div>
+</div>
+
+<div style="display:flex;gap:10px;padding:10px 14px;border-left:4px solid #c62828;background:#fdf5f5;border-radius:0 8px 8px 0;">
+  <span style="font-size:13px;font-weight:700;color:#c62828;min-width:28px;flex-shrink:0;">04</span>
+  <div style="flex:1;">
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px;">
+      <span style="font-size:10px;padding:1px 7px;background:#e3f0ff;color:#1565c0;border-radius:4px;font-weight:700;">SEM</span>
+      <span style="font-size:9px;padding:1px 6px;background:#f0f0f0;color:#555;border-radius:3px;font-weight:600;">BRAND</span>
+      <span style="font-size:9px;padding:1px 6px;background:#c6282820;color:#c62828;border-radius:3px;font-weight:600;">Q2 2026 · Quick Win</span>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:#222;margin-bottom:3px;">Add 17 negative keywords to brand campaigns (SEO-covered, zero SEM QV)</div>
+    <div style="font-size:11px;color:#555;line-height:1.4;">Q1 analysis identified 17 BRAND keywords where SEO coverage &gt; 10%, SEO position ≤ 5, and SEM QV = 0 — paid clicks produce no qualified visits while organic already dominates. Adding these as negatives frees budget for higher-converting terms. See Brand SEM Campaign Optimization section below.</div>
+  </div>
+</div>
+
+<div style="display:flex;gap:10px;padding:10px 14px;border-left:4px solid #c62828;background:#fdf5f5;border-radius:0 8px 8px 0;">
+  <span style="font-size:13px;font-weight:700;color:#c62828;min-width:28px;flex-shrink:0;">05</span>
+  <div style="flex:1;">
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px;">
+      <span style="font-size:10px;padding:1px 7px;background:#e3f0ff;color:#1565c0;border-radius:4px;font-weight:700;">SEM</span>
+      <span style="font-size:9px;padding:1px 6px;background:#f0f0f0;color:#555;border-radius:3px;font-weight:600;">BRAND</span>
+      <span style="font-size:9px;padding:1px 6px;background:#e6510020;color:#e65100;border-radius:3px;font-weight:600;">Ongoing</span>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:#222;margin-bottom:3px;">Maintain 80% impression share on core brand terms</div>
+    <div style="font-size:11px;color:#555;line-height:1.4;">Target: 80% impression share for <em>oikos</em>, <em>oikos triple zero</em>, <em>oikos pro</em>, <em>oikos yogurt</em>. Brand coverage at 29% — above 10% threshold but impression share must be monitored monthly. Reallocate budget freed from negative keyword exclusions to defend core brand positions. 59 brand keywords confirmed Keep-Active with positive SEM QV.</div>
+  </div>
+</div>
+
+<div style="display:flex;gap:10px;padding:10px 14px;border-left:4px solid #e65100;background:#fff8f0;border-radius:0 8px 8px 0;">
+  <span style="font-size:13px;font-weight:700;color:#e65100;min-width:28px;flex-shrink:0;">06</span>
+  <div style="flex:1;">
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px;">
+      <span style="font-size:10px;padding:1px 7px;background:#e3f0ff;color:#1565c0;border-radius:4px;font-weight:700;">SEM</span>
+      <span style="font-size:9px;padding:1px 6px;background:#f0f0f0;color:#555;border-radius:3px;font-weight:600;">COMPETITOR</span>
+      <span style="font-size:9px;padding:1px 6px;background:#e6510020;color:#e65100;border-radius:3px;font-weight:600;">Q2 2026</span>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:#222;margin-bottom:3px;">Validate competitor SEM bid targets before scaling — coverage at 1.7%</div>
+    <div style="font-size:11px;color:#555;line-height:1.4;">813K monthly searches in COMPETITOR territory. Before investing in SEO content here, validate which competitor terms generate QV SEM. Q1 GA4 data shows mixed QV results on competitor queries. Refine target list: focus bids on terms where Oikos has a product advantage (e.g. <em>chobani protein shake</em>, <em>fairlife protein yogurt</em>).</div>
+  </div>
+</div>
+
+<div style="display:flex;gap:10px;padding:10px 14px;border-left:4px solid #e65100;background:#fff8f0;border-radius:0 8px 8px 0;">
+  <span style="font-size:13px;font-weight:700;color:#e65100;min-width:28px;flex-shrink:0;">07</span>
+  <div style="flex:1;">
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px;">
+      <span style="font-size:10px;padding:1px 7px;background:#e8f4e8;color:#1b5e20;border-radius:4px;font-weight:700;">SEO</span>
+      <span style="font-size:9px;padding:1px 6px;background:#f0f0f0;color:#555;border-radius:3px;font-weight:600;">SOURCE OF PROTEIN</span>
+      <span style="font-size:9px;padding:1px 6px;background:#e6510020;color:#e65100;border-radius:3px;font-weight:600;">Q2 2026 · Short-term</span>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:#222;margin-bottom:3px;">Create yogurt-as-protein-source content — 72K searches, zero SEO clicks</div>
+    <div style="font-size:11px;color:#555;line-height:1.4;">Zero organic clicks in SOURCE OF PROTEIN territory despite 72K monthly searches. Immediate opportunity: create informational content around <em>yogurt as a source of protein</em>, <em>how much protein in Greek yogurt</em>. SEM is covering 227 clicks but with no SEO backup. Short-term Q2 initiative before building broader protein-in-diet content.</div>
+  </div>
+</div>
+
+<div style="display:flex;gap:10px;padding:10px 14px;border-left:4px solid #e65100;background:#fff8f0;border-radius:0 8px 8px 0;">
+  <span style="font-size:13px;font-weight:700;color:#e65100;min-width:28px;flex-shrink:0;">08</span>
+  <div style="flex:1;">
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px;">
+      <span style="font-size:10px;padding:1px 7px;background:#e8f4e8;color:#1b5e20;border-radius:4px;font-weight:700;">SEO</span>
+      <span style="font-size:9px;padding:1px 6px;background:#f0f0f0;color:#555;border-radius:3px;font-weight:600;">RECIPE</span>
+      <span style="font-size:9px;padding:1px 6px;background:#e6510020;color:#e65100;border-radius:3px;font-weight:600;">Q2–Q3 2026</span>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:#222;margin-bottom:3px;">Publish Q2 approved recipes: banana bread, pancakes, brownies, cheesecake</div>
+    <div style="font-size:11px;color:#555;line-height:1.4;">Recipe territory at 7.2% coverage — approaching 10% target. 8 recipes approved by Danone for Q2: banana bread (15K/mo), protein pancakes, protein brownies (12K/mo), protein cheesecake (300/mo), Greek yogurt protein bars. Recipes + product content work together to build topical authority. Q3–Q4: muffins (12K/mo), chia pudding (6K/mo), overnight oats (8K/mo).</div>
+  </div>
+</div>
+
+<div style="display:flex;gap:10px;padding:10px 14px;border-left:4px solid #e65100;background:#fff8f0;border-radius:0 8px 8px 0;">
+  <span style="font-size:13px;font-weight:700;color:#e65100;min-width:28px;flex-shrink:0;">09</span>
+  <div style="flex:1;">
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px;">
+      <span style="font-size:10px;padding:1px 7px;background:#e3f0ff;color:#1565c0;border-radius:4px;font-weight:700;">SEM</span>
+      <span style="font-size:9px;padding:1px 6px;background:#f0f0f0;color:#555;border-radius:3px;font-weight:600;">RECIPE</span>
+      <span style="font-size:9px;padding:1px 6px;background:#e6510020;color:#e65100;border-radius:3px;font-weight:600;">Q2–Q3 2026</span>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:#222;margin-bottom:3px;">Maintain SEM bids on recipe terms while organic content builds ranking</div>
+    <div style="font-size:11px;color:#555;line-height:1.4;">Recipe SEM: 2.3K clicks in Q1, supporting 7.2% coverage. Keep paid support active on high-volume recipe queries while new content pages rank (typically 3–6 months). Reduce bids gradually as organic positions improve. Target: recipe territory reaches 10% organic coverage by Q4 2026.</div>
+  </div>
+</div>
+
+<div style="display:flex;gap:10px;padding:10px 14px;border-left:4px solid #1565c0;background:#f0f4ff;border-radius:0 8px 8px 0;">
+  <span style="font-size:13px;font-weight:700;color:#1565c0;min-width:28px;flex-shrink:0;">10</span>
+  <div style="flex:1;">
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px;">
+      <span style="font-size:10px;padding:1px 7px;background:#fff3e0;color:#e65100;border-radius:4px;font-weight:700;">BOTH</span>
+      <span style="font-size:9px;padding:1px 6px;background:#f0f0f0;color:#555;border-radius:3px;font-weight:600;">GENERIC</span>
+      <span style="font-size:9px;padding:1px 6px;background:#1565c020;color:#1565c0;border-radius:3px;font-weight:600;">Q3–Q4 2026</span>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:#222;margin-bottom:3px;">Create high-protein snack category — 858K searches at 0.5% coverage</div>
+    <div style="font-size:11px;color:#555;line-height:1.4;">GENERIC territory: largest untapped volume at 858K monthly searches, only 4.5K OS clicks. Q3–Q4 plan: create a <em>high-protein snack</em> section covering <em>protein snack</em> and related queries. SEM holds paid presence while organic builds. SEO content approved: protein snack recipes (Q2 Approved Danone). High-protein protein oatmeal (8K/mo) and oats content planned for Q3–Q4.</div>
+  </div>
+</div>
+
+<div style="display:flex;gap:10px;padding:10px 14px;border-left:4px solid #1565c0;background:#f0f4ff;border-radius:0 8px 8px 0;">
+  <span style="font-size:13px;font-weight:700;color:#1565c0;min-width:28px;flex-shrink:0;">11</span>
+  <div style="flex:1;">
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px;">
+      <span style="font-size:10px;padding:1px 7px;background:#e8f4e8;color:#1b5e20;border-radius:4px;font-weight:700;">SEO</span>
+      <span style="font-size:9px;padding:1px 6px;background:#f0f0f0;color:#555;border-radius:3px;font-weight:600;">PRODUCT / BRAND</span>
+      <span style="font-size:9px;padding:1px 6px;background:#1565c020;color:#1565c0;border-radius:3px;font-weight:600;">Q2 2026</span>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:#222;margin-bottom:3px;">Finalize technical cleanup from oikos.com domain migration</div>
+    <div style="font-size:11px;color:#555;line-height:1.4;">404 errors from the oikosyogurt.com &rarr; oikos.com migration were identified in Q1 and addressed. Q2 action: verify all 404s fully resolved, internal links updated, canonicals correct. Migration cleanup directly impacts SEO clicks for both PRODUCT and BRAND territories — unresolved redirects suppress rankings.</div>
+  </div>
+</div>
+
+<div style="display:flex;gap:10px;padding:10px 14px;border-left:4px solid #1565c0;background:#f0f4ff;border-radius:0 8px 8px 0;">
+  <span style="font-size:13px;font-weight:700;color:#1565c0;min-width:28px;flex-shrink:0;">12</span>
+  <div style="flex:1;">
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px;">
+      <span style="font-size:10px;padding:1px 7px;background:#e8f4e8;color:#1b5e20;border-radius:4px;font-weight:700;">SEO</span>
+      <span style="font-size:9px;padding:1px 6px;background:#f0f0f0;color:#555;border-radius:3px;font-weight:600;">HEALTH</span>
+      <span style="font-size:9px;padding:1px 6px;background:#1565c020;color:#1565c0;border-radius:3px;font-weight:600;">Long-term · Q4 2026+</span>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:#222;margin-bottom:3px;">Build long-term health &amp; muscle-building content strategy — 968K searches</div>
+    <div style="font-size:11px;color:#555;line-height:1.4;">HEALTH territory: 968K monthly searches at 0.3% coverage — largest volume gap in the study. GLP-1 content is not a current Danone priority. Focus on muscle/protein-building angle for Q4: <em>high protein diet</em>, <em>protein after workout</em>, <em>muscle building foods</em>. Oikos Pro and Triple Zero are natural fits. Plan content architecture now for Q4 execution.</div>
+  </div>
+</div>
+
+<div style="display:flex;gap:10px;padding:10px 14px;border-left:4px solid #1565c0;background:#f0f4ff;border-radius:0 8px 8px 0;">
+  <span style="font-size:13px;font-weight:700;color:#1565c0;min-width:28px;flex-shrink:0;">13</span>
+  <div style="flex:1;">
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px;">
+      <span style="font-size:10px;padding:1px 7px;background:#e8f4e8;color:#1b5e20;border-radius:4px;font-weight:700;">SEO</span>
+      <span style="font-size:9px;padding:1px 6px;background:#f0f0f0;color:#555;border-radius:3px;font-weight:600;">CONSUMER HABITS</span>
+      <span style="font-size:9px;padding:1px 6px;background:#1565c020;color:#1565c0;border-radius:3px;font-weight:600;">Q3–Q4 2026</span>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:#222;margin-bottom:3px;">Begin consumer habits content research — 14K searches, 0.0% coverage</div>
+    <div style="font-size:11px;color:#555;line-height:1.4;">CONSUMER HABITS territory: essentially invisible at 0.0% coverage. Discovery-stage queries around yogurt routines, breakfast habits, meal prep. Not a Q2 content priority — begin research in Q3 to define target keywords and content formats. Off-site link building in parallel: 6 guest posts planned for May–July 2026 (yoga, travel, food sites).</div>
+  </div>
+</div>
+
+<div style="display:flex;gap:10px;padding:10px 14px;border-left:4px solid #004f79;background:#f0f6fb;border-radius:0 8px 8px 0;">
+  <span style="font-size:13px;font-weight:700;color:#004f79;min-width:28px;flex-shrink:0;">14</span>
+  <div style="flex:1;">
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px;">
+      <span style="font-size:10px;padding:1px 7px;background:#e3f0ff;color:#1565c0;border-radius:4px;font-weight:700;">SEM</span>
+      <span style="font-size:9px;padding:1px 6px;background:#f0f0f0;color:#555;border-radius:3px;font-weight:600;">BRAND · Keep-Test (8 keywords)</span>
+      <span style="font-size:9px;padding:1px 6px;background:#004f7920;color:#004f79;border-radius:3px;font-weight:600;">Q2–Q3 2026</span>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:#222;margin-bottom:3px;">Monitor 8 brand keywords with high SEO coverage + active SEM QV before pausing</div>
+    <div style="font-size:11px;color:#555;line-height:1.4;">8 BRAND keywords flagged Keep-Test: SEO coverage &gt; 10% but SEM is still generating qualified visits. These terms are candidates for future pausing — but require 4-week monitoring of organic clicks after any change. Track GSC organic position and SEM QV monthly. Pause only when organic traffic holds without paid support for 2 consecutive months.</div>
+  </div>
+</div>
+
+<div style="display:flex;gap:10px;padding:10px 14px;border-left:4px solid #004f79;background:#f0f6fb;border-radius:0 8px 8px 0;">
+  <span style="font-size:13px;font-weight:700;color:#004f79;min-width:28px;flex-shrink:0;">15</span>
+  <div style="flex:1;">
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px;">
+      <span style="font-size:10px;padding:1px 7px;background:#fff3e0;color:#e65100;border-radius:4px;font-weight:700;">BOTH</span>
+      <span style="font-size:9px;padding:1px 6px;background:#f0f0f0;color:#555;border-radius:3px;font-weight:600;">ALL TERRITORIES</span>
+      <span style="font-size:9px;padding:1px 6px;background:#004f7920;color:#004f79;border-radius:3px;font-weight:600;">Ongoing · Q2 onward</span>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:#222;margin-bottom:3px;">Monthly SEM QV tracking via GA4 Ads export — establish Q2 baseline</div>
+    <div style="font-size:11px;color:#555;line-height:1.4;">Q1 2026 establishes the first QV SEM baseline (1,338 QVs attributed). Starting Q2: run monthly GA4 Ads export and apply LP-rate attribution methodology to track SEM qualified visit trends by keyword. Connect QV SEM data to coverage decisions (bid up on high-QV terms, add negatives on zero-QV SEO-covered terms). Update masterlist each quarter.</div>
+  </div>
+</div>
+
+</div><!-- /15-actions list -->
+</div><!-- /top-15 section -->
     <div style="margin-bottom:22px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #f0f0f0;">
         <span style="width:10px;height:10px;border-radius:50%;background:#c62828;flex-shrink:0;display:inline-block;"></span>
@@ -1420,8 +1660,103 @@ The status drives the urgency of action and how the territory is colour-coded in
         <span style="width:10px;height:10px;border-radius:50%;background:#2e7d32;flex-shrink:0;display:inline-block;"></span>
         <span style="font-size:11px;font-weight:700;color:#2e7d32;text-transform:uppercase;letter-spacing:.5px;">Maintain — Above Target</span>
       </div>
-      <div style="display:flex;flex-direction:column;gap:6px;"><div style="display:flex;gap:10px;padding:9px 12px;border-left:3px solid #2e7d32;background:#f1f8f1;border-radius:0 6px 6px 0;"><span style="font-size:12px;font-weight:700;color:#2e7d32;min-width:22px;flex-shrink:0;">07</span><div style="flex:1;"><div style="font-size:12px;font-weight:600;color:#222;margin-bottom:4px;">PRODUCT — Maintain coverage</div><div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px;"><span style="font-size:10px;padding:2px 7px;background:#e8f5e9;color:#1b5e20;border-radius:4px;font-weight:600;border:1px solid #1b5e2033;">SEO</span></div><div style="font-size:11px;color:#555;line-height:1.4;">Coverage at 14% — above target. Maintain SEO+SEM dual presence. Monitor competitor activity and protect top positions. SEO: 52K · SEM: 186K clicks in Q1 2026.</div><ul style="list-style:disc;padding-left:16px;margin:6px 0 4px;font-size:11px;line-height:1.5;color:#444;"><li>Q2 #1 PRIORITY: Optimize product pages and create/optimize category pages to capture non-branded evaluate-stage intent. Most affected: Oikos Pro, protein shakes, protein drinks (Fusion). Triple Zero performs well for 'high protein yogurt' — other categories lack visibility in evaluate and buy portions of the funnel.</li></ul><div contenteditable="true" data-field-id="detail-rec-product" data-placeholder="Add analyst notes for PRODUCT recommendations…" style="min-height:40px;font-size:11px;line-height:1.5;color:#444;border:1px dashed #ccc;border-radius:5px;padding:6px 8px;background:#f8f9fb;outline:none;margin-top:6px;" onfocus="this.style.borderColor='#1a7aad';this.style.background='#fff';" onblur="this.style.borderColor='#ccc';this.style.background='#f8f9fb';"></div></div></div><div style="display:flex;gap:10px;padding:9px 12px;border-left:3px solid #2e7d32;background:#f1f8f1;border-radius:0 6px 6px 0;"><span style="font-size:12px;font-weight:700;color:#2e7d32;min-width:22px;flex-shrink:0;">08</span><div style="flex:1;"><div style="font-size:12px;font-weight:600;color:#222;margin-bottom:4px;">BRAND — Maintain coverage</div><div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px;"><span style="font-size:10px;padding:2px 7px;background:#e8f5e9;color:#1b5e20;border-radius:4px;font-weight:600;border:1px solid #1b5e2033;">SEO</span></div><div style="font-size:11px;color:#555;line-height:1.4;">Coverage at 29% — above target. Maintain SEO+SEM dual presence. Monitor competitor activity and protect top positions. SEO: 15K · SEM: 1.1K clicks in Q1 2026.</div><div contenteditable="true" data-field-id="detail-rec-brand" data-placeholder="Add analyst notes for BRAND recommendations…" style="min-height:40px;font-size:11px;line-height:1.5;color:#444;border:1px dashed #ccc;border-radius:5px;padding:6px 8px;background:#f8f9fb;outline:none;margin-top:6px;" onfocus="this.style.borderColor='#1a7aad';this.style.background='#fff';" onblur="this.style.borderColor='#ccc';this.style.background='#f8f9fb';">Add analyst notes for BRAND recommendations…</div></div></div><div style="display:flex;gap:10px;padding:9px 12px;border-left:3px solid #2e7d32;background:#f1f8f1;border-radius:0 6px 6px 0;"><span style="font-size:12px;font-weight:700;color:#2e7d32;min-width:22px;flex-shrink:0;">09</span><div style="flex:1;"><div style="font-size:12px;font-weight:600;color:#222;margin-bottom:4px;">OTHER — Maintain coverage</div><div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px;"><span style="font-size:10px;padding:2px 7px;background:#e8f5e9;color:#1b5e20;border-radius:4px;font-weight:600;border:1px solid #1b5e2033;">SEO</span></div><div style="font-size:11px;color:#555;line-height:1.4;">Coverage at 51% — above target. Maintain SEO+SEM dual presence. Monitor competitor activity and protect top positions. SEO: 230 · SEM: 253 clicks in Q1 2026.</div><div contenteditable="true" data-field-id="detail-rec-other" data-placeholder="Add analyst notes for OTHER recommendations…" style="min-height:40px;font-size:11px;line-height:1.5;color:#444;border:1px dashed #ccc;border-radius:5px;padding:6px 8px;background:#f8f9fb;outline:none;margin-top:6px;" onfocus="this.style.borderColor='#1a7aad';this.style.background='#fff';" onblur="this.style.borderColor='#ccc';this.style.background='#f8f9fb';">Add analyst notes for OTHER recommendations…</div></div></div></div>
+      <div style="display:flex;flex-direction:column;gap:6px;"><div style="display:flex;gap:10px;padding:9px 12px;border-left:3px solid #2e7d32;background:#f1f8f1;border-radius:0 6px 6px 0;"><span style="font-size:12px;font-weight:700;color:#2e7d32;min-width:22px;flex-shrink:0;">07</span><div style="flex:1;"><div style="font-size:12px;font-weight:600;color:#222;margin-bottom:4px;">PRODUCT — Maintain coverage</div><div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px;"><span style="font-size:10px;padding:2px 7px;background:#e8f5e9;color:#1b5e20;border-radius:4px;font-weight:600;border:1px solid #1b5e2033;">SEO</span></div><div style="font-size:11px;color:#555;line-height:1.4;">Coverage at 14% — above target. Maintain SEO+SEM dual presence. Monitor competitor activity and protect top positions. SEO: 52K · SEM: 186K clicks in Q1 2026.</div><ul style="list-style:disc;padding-left:16px;margin:6px 0 4px;font-size:11px;line-height:1.5;color:#444;"><li>Q2 #1 PRIORITY: Optimize product pages and create/optimize category pages to capture non-branded evaluate-stage intent. Most affected: Oikos Pro, protein shakes, protein drinks (Fusion). Triple Zero performs well for 'high protein yogurt' — other categories lack visibility in evaluate and buy portions of the funnel.</li></ul><div contenteditable="true" data-field-id="detail-rec-product" data-placeholder="Add analyst notes for PRODUCT recommendations…" style="min-height:40px;font-size:11px;line-height:1.5;color:#444;border:1px dashed #ccc;border-radius:5px;padding:6px 8px;background:#f8f9fb;outline:none;margin-top:6px;" onfocus="this.style.borderColor='#1a7aad';this.style.background='#fff';" onblur="this.style.borderColor='#ccc';this.style.background='#f8f9fb';"></div></div></div><div style="display:flex;gap:10px;padding:9px 12px;border-left:3px solid #2e7d32;background:#f1f8f1;border-radius:0 6px 6px 0;"><span style="font-size:12px;font-weight:700;color:#2e7d32;min-width:22px;flex-shrink:0;">08</span><div style="flex:1;"><div style="font-size:12px;font-weight:600;color:#222;margin-bottom:4px;">BRAND — Maintain coverage</div><div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px;"><span style="font-size:10px;padding:2px 7px;background:#e8f5e9;color:#1b5e20;border-radius:4px;font-weight:600;border:1px solid #1b5e2033;">SEO</span></div><div style="font-size:11px;color:#555;line-height:1.4;">Coverage at 29% — above target. Maintain SEO+SEM dual presence. Monitor competitor activity and protect top positions. SEO: 15K · SEM: 1.1K clicks in Q1 2026.</div><div contenteditable="true" data-field-id="detail-rec-brand" data-placeholder="Add analyst notes for BRAND recommendations…" style="min-height:40px;font-size:11px;line-height:1.5;color:#444;border:1px dashed #ccc;border-radius:5px;padding:6px 8px;background:#f8f9fb;outline:none;margin-top:6px;" onfocus="this.style.borderColor='#1a7aad';this.style.background='#fff';" onblur="this.style.borderColor='#ccc';this.style.background='#f8f9fb';"></div></div></div><div style="display:flex;gap:10px;padding:9px 12px;border-left:3px solid #2e7d32;background:#f1f8f1;border-radius:0 6px 6px 0;"><span style="font-size:12px;font-weight:700;color:#2e7d32;min-width:22px;flex-shrink:0;">09</span><div style="flex:1;"><div style="font-size:12px;font-weight:600;color:#222;margin-bottom:4px;">OTHER — Maintain coverage</div><div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px;"><span style="font-size:10px;padding:2px 7px;background:#e8f5e9;color:#1b5e20;border-radius:4px;font-weight:600;border:1px solid #1b5e2033;">SEO</span></div><div style="font-size:11px;color:#555;line-height:1.4;">Coverage at 51% — above target. Maintain SEO+SEM dual presence. Monitor competitor activity and protect top positions. SEO: 230 · SEM: 253 clicks in Q1 2026.</div><div contenteditable="true" data-field-id="detail-rec-other" data-placeholder="Add analyst notes for OTHER recommendations…" style="min-height:40px;font-size:11px;line-height:1.5;color:#444;border:1px dashed #ccc;border-radius:5px;padding:6px 8px;background:#f8f9fb;outline:none;margin-top:6px;" onfocus="this.style.borderColor='#1a7aad';this.style.background='#fff';" onblur="this.style.borderColor='#ccc';this.style.background='#f8f9fb';"></div></div></div></div>
     </div></div>
+
+<!-- BRAND SEM CAMPAIGN OPTIMIZATION ACCORDION -->
+<div style="margin:0 24px 20px;border:1px solid #b0c4d8;border-radius:8px;overflow:hidden;">
+  <button onclick="var b=this.nextElementSibling;b.style.display=b.style.display==='none'?'block':'none';this.querySelector('.acc-arrow').textContent=b.style.display==='none'?'▶':'▼';" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:#e8f0f8;border:none;cursor:pointer;text-align:left;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#004f79;">Brand SEM Campaign Optimization</span>
+      <span style="font-size:10px;padding:2px 8px;background:#004f79;color:#fff;border-radius:10px;font-weight:600;">17 Exclude · 59 Keep-Active · 8 Keep-Test</span>
+    </div>
+    <span class="acc-arrow" style="font-size:11px;color:#004f79;font-weight:700;">▶</span>
+  </button>
+  <div style="display:none;padding:20px;">
+    <p style="font-size:11px;color:#555;line-height:1.6;margin:0 0 16px;">Based on Thomas's SEM brand campaign optimization methodology (Jun 16 2026). Criteria applied to all BRAND territory keywords using Q1 2026 GA4 Ads session export. Target: <strong>80% impression share</strong> on core brand terms. Full keyword list with tags in masterlist column BF (SEM Recommendation).</p>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">
+      <div style="padding:14px;background:#fdf5f5;border:1px solid #c6282830;border-radius:8px;text-align:center;">
+        <div style="font-size:24px;font-weight:700;color:#c62828;margin-bottom:4px;">17</div>
+        <div style="font-size:11px;font-weight:700;color:#c62828;margin-bottom:6px;">Exclude (Add as Negatives)</div>
+        <div style="font-size:10px;color:#555;line-height:1.4;">SEO coverage &gt; 10% · Position ≤ 5 · QV SEM = 0. Organic fully captures these — stop paying.</div>
+      </div>
+      <div style="padding:14px;background:#f0f6ff;border:1px solid #1565c030;border-radius:8px;text-align:center;">
+        <div style="font-size:24px;font-weight:700;color:#1565c0;margin-bottom:4px;">59</div>
+        <div style="font-size:11px;font-weight:700;color:#1565c0;margin-bottom:6px;">Keep-Active</div>
+        <div style="font-size:10px;color:#555;line-height:1.4;">QV SEM &gt; 0 with SEO coverage &lt; 10%. Paid is generating conversions — protect these terms.</div>
+      </div>
+      <div style="padding:14px;background:#fffde7;border:1px solid #f9a82530;border-radius:8px;text-align:center;">
+        <div style="font-size:24px;font-weight:700;color:#f57f17;margin-bottom:4px;">8</div>
+        <div style="font-size:11px;font-weight:700;color:#f57f17;margin-bottom:6px;">Keep-Test</div>
+        <div style="font-size:10px;color:#555;line-height:1.4;">SEO coverage &gt; 10% but SEM still generating QVs. Monitor 4 weeks before pausing.</div>
+      </div>
+    </div>
+
+    <div style="padding:12px 16px;background:#e8f4e8;border:1px solid #2e7d3230;border-radius:6px;margin-bottom:20px;display:flex;align-items:center;gap:12px;">
+      <span style="font-size:20px;font-weight:700;color:#2e7d32;">80%</span>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#2e7d32;">Impression Share Target — Core Brand Terms</div>
+        <div style="font-size:10px;color:#555;margin-top:2px;">Maintain 80% IS for <em>oikos</em>, <em>oikos triple zero</em>, <em>oikos pro</em>, <em>oikos yogurt</em>. Reallocate budget freed from the 17 negative additions to defend these positions.</div>
+      </div>
+    </div>
+
+    <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:16px;">
+      <thead>
+        <tr style="background:#f8f9fa;border-bottom:2px solid #ddd;">
+          <th style="padding:8px 10px;text-align:left;font-size:10px;text-transform:uppercase;color:#888;font-weight:700;letter-spacing:.05em;">Decision</th>
+          <th style="padding:8px 10px;text-align:left;font-size:10px;text-transform:uppercase;color:#888;font-weight:700;letter-spacing:.05em;">Criteria</th>
+          <th style="padding:8px 10px;text-align:left;font-size:10px;text-transform:uppercase;color:#888;font-weight:700;letter-spacing:.05em;">Action</th>
+          <th style="padding:8px 10px;text-align:right;font-size:10px;text-transform:uppercase;color:#888;font-weight:700;letter-spacing:.05em;">Count</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid #f0f0f0;">
+          <td style="padding:8px 10px;"><span style="font-weight:700;color:#c62828;">Exclude</span></td>
+          <td style="padding:8px 10px;color:#555;">SEO cov. &gt; 10% · Pos. ≤ 5 · QV SEM = 0</td>
+          <td style="padding:8px 10px;color:#555;">Add as negative keywords in brand campaign</td>
+          <td style="padding:8px 10px;text-align:right;font-weight:700;color:#c62828;">17</td>
+        </tr>
+        <tr style="border-bottom:1px solid #f0f0f0;background:#f8f9fb;">
+          <td style="padding:8px 10px;"><span style="font-weight:700;color:#1565c0;">Keep-Active</span></td>
+          <td style="padding:8px 10px;color:#555;">QV SEM &gt; 0 · SEO cov. &lt; 10%</td>
+          <td style="padding:8px 10px;color:#555;">Maintain or increase bids; organic not sufficient</td>
+          <td style="padding:8px 10px;text-align:right;font-weight:700;color:#1565c0;">59</td>
+        </tr>
+        <tr style="border-bottom:1px solid #f0f0f0;">
+          <td style="padding:8px 10px;"><span style="font-weight:700;color:#f57f17;">Keep-Test</span></td>
+          <td style="padding:8px 10px;color:#555;">SEO cov. &gt; 10% · QV SEM &gt; 0</td>
+          <td style="padding:8px 10px;color:#555;">Monitor 4 weeks; pause only if organic holds</td>
+          <td style="padding:8px 10px;text-align:right;font-weight:700;color:#f57f17;">8</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:10px;color:#aaa;margin:0;font-style:italic;">Full keyword list with QV SEM values: masterlist column AC (Conversions SEM Q1 2026) · Recommendation tags: masterlist column BF (SEM Recommendation). Source: GA4 Google Ads session export, Q1 2026.</p>
+
+    <!-- EXPERT ACCORDION (analyst-only, not client-facing) -->
+    <div style="margin-top:16px;border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;">
+      <button onclick="var b=this.nextElementSibling;b.style.display=b.style.display==='none'?'block':'none';this.querySelector('.exp-arrow').textContent=b.style.display==='none'?'▶ Expert View':'▼ Expert View';" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:#f4f4f4;border:none;cursor:pointer;text-align:left;">
+        <span style="font-size:10px;font-weight:700;color:#777;text-transform:uppercase;letter-spacing:.05em;">▶ Expert View</span>
+        <span style="font-size:9px;color:#aaa;">Analyst-only · Collapsed by default</span>
+      </button>
+      <div style="display:none;padding:14px;">
+        <p style="font-size:11px;color:#888;margin:0 0 10px;line-height:1.5;">Individual keyword details from Q1 2026 GA4 Ads export × masterlist join. Not intended for client presentation. Use masterlist for full export.</p>
+        <div style="font-size:11px;color:#555;padding:10px;background:#fafafa;border-radius:4px;border:1px solid #eee;">
+          <strong>Data summary — BRAND territory (Q1 2026):</strong><br>
+          &bull; Total BRAND keywords in masterlist: 84 with SEM Recommendation tag (17 Exclude / 59 Keep-Active / 8 Keep-Test)<br>
+          &bull; Total QV SEM attributed to BRAND territory: see masterlist column AC<br>
+          &bull; Top BRAND keyword by QV SEM: see masterlist, sort column AC descending<br>
+          &bull; Keywords with zero SEM traffic (blank AC): excluded from GA4 Ads export &mdash; not bid on in Q1<br>
+          &bull; Unmatched GA4 queries (not in masterlist): 70 QVs &mdash; flagged for spine expansion<br><br>
+          <strong>Anchor keyword note:</strong> &ldquo;oikos&rdquo; (36,800 vol) has QV SEM = 0.05 &mdash; very low despite being the primary brand term. Expected: bare brand queries likely land on the homepage, which has a lower conversion rate than product pages. &ldquo;oikos yogurt&rdquo; (17 QV) and &ldquo;oikos greek yogurt&rdquo; (5.9 QV) drive substantially more attributed conversions because they route to higher-converting product pages. No data gap.<br><br>
+          <strong>TOPICS corrections applied 2026-06-17:</strong> &ldquo;premier shakes&rdquo; and &ldquo;fairlife core power elite&rdquo; reclassified from BRAND &rarr; COMPETITOR in masterlist. Script blocklist also guards against accidental re-classification. Misspellings (oiko, okia, okias, olkos) remain classified as BRAND &mdash; these are legitimate Oikos brand queries.
+        </div>
+      </div>
+    </div><!-- /expert accordion -->
+
+  </div><!-- /brand sem content -->
+</div><!-- /brand sem accordion -->
+
 <div class="section-title">Detailed SEO / SEM Recommendations by Sub-Category</div>
 <div style="display:flex;align-items:center;gap:8px;padding:10px 24px 4px;background:#f4f4f4;border-bottom:1px solid #e0e0e0;">
   <span style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-right:4px;">Show:</span>
