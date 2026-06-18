@@ -6,27 +6,119 @@ Two steps, both run after the main pipeline writes to the Masterlist:
    that still have no volume after the pipeline (H and I both blank).
 
 2. enrich_taxonomy — Claude API classifies keywords missing TOPICS/CATEGORY/
-   SUB-CATEGORY and fills all taxonomy tag columns (Questions, Yogurt types,
-   Taste, Packaging, Ingredient, Brands, Retailer, Demography, Benefits,
-   Testimonials, Bio, Moments, Recipes).
+   SUB-CATEGORY and fills all taxonomy tag columns.
+
+All public functions accept an optional `cfg` dict (brand config).
+When provided, period labels, SE months, API source, taxonomy columns, and the
+system prompt are read from cfg. Module-level defaults are kept for standalone use.
 """
 import json
 import time
 import urllib.parse
 import urllib.request
 
-SE_MONTHS    = ["2025-10-01", "2025-11-01", "2025-12-01",
-                "2026-01-01", "2026-02-01", "2026-03-01"]
-SE_BATCH     = 500   # max keywords per SE Ranking API call
-CLAUDE_BATCH = 50    # keywords per Claude call — 50 keeps response well under token limit
-CLAUDE_MODEL = "claude-haiku-4-5-20251001"  # fast + cheap for classification tasks
+# Module-level defaults (overridden when cfg is passed at call time)
+_DEFAULT_SE_MONTHS = [
+    "2025-10-01", "2025-11-01", "2025-12-01",
+    "2026-01-01", "2026-02-01", "2026-03-01",
+]
+_DEFAULT_SE_SOURCE = "us"
 
-TAXONOMY_COLS = [
+SE_BATCH     = 500   # max keywords per SE Ranking API call
+CLAUDE_BATCH = 50    # keywords per Claude call
+CLAUDE_MODEL = "claude-haiku-4-5-20251001"
+
+_DEFAULT_TAXONOMY_COLS = [
     'Questions', 'Yogurt types', 'Taste', 'Packaging', 'Ingredient',
     'Brands', 'Retailer', 'Demography', 'Benefits', 'Testimonials',
     'Bio', 'Moments', 'Recipes',
 ]
 TOPIC_COLS = ['TOPICS', 'CATEGORY', 'SUB-CATEGORY']
+
+_MONTH_ABBR = {
+    '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr',
+    '05': 'May', '06': 'Jun', '07': 'Jul', '08': 'Aug',
+    '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dec',
+}
+
+
+# ── Config helpers ─────────────────────────────────────────────────────────────
+
+def _se_months(cfg: dict) -> list:
+    """Return list of ISO month strings from brand config or fall back to default."""
+    if cfg:
+        period = cfg.get('period', {})
+        p2 = period.get('se_months_p2', [])
+        p1 = period.get('se_months_p1', [])
+        combined = p2 + p1
+        if combined:
+            return combined
+    return _DEFAULT_SE_MONTHS
+
+
+def _se_source(cfg: dict) -> str:
+    if cfg:
+        return cfg.get('period', {}).get('se_api_source', _DEFAULT_SE_SOURCE)
+    return _DEFAULT_SE_SOURCE
+
+
+def _taxonomy_cols(cfg: dict) -> list:
+    if cfg and cfg.get('taxonomy_tags'):
+        return list(cfg['taxonomy_tags'])
+    return _DEFAULT_TAXONOMY_COLS
+
+
+def _month_label(iso_date: str) -> str:
+    """'2026-01-01' → 'Searches: Jan 2026'"""
+    parts = iso_date.split('-')
+    if len(parts) < 2:
+        return ''
+    return f"Searches: {_MONTH_ABBR.get(parts[1], parts[1])} {parts[0]}"
+
+
+def _p1_label(cfg: dict) -> str:
+    return cfg.get('period', {}).get('p1_label', 'Q1 2026') if cfg else 'Q1 2026'
+
+
+def _p2_label(cfg: dict) -> str:
+    return cfg.get('period', {}).get('p2_label', 'Q4 2025') if cfg else 'Q4 2025'
+
+
+def _build_system_message(cfg: dict) -> str:
+    """Build Claude classification system message from brand config.
+
+    Uses taxonomy_prompt.system_message if present.
+    Otherwise builds a generic prompt from brand_context, topics, and taxonomy_tags.
+    """
+    tp = (cfg or {}).get('taxonomy_prompt', {})
+
+    # Prefer an explicit full system message stored in config
+    if tp.get('system_message'):
+        return tp['system_message']
+
+    brand_ctx   = tp.get('brand_context', 'this brand')
+    topics      = tp.get('topics', ['PRODUCT', 'GENERIC', 'BRAND', 'COMPETITOR', 'HEALTH', 'RECIPE', 'OTHER'])
+    tag_cols    = _taxonomy_cols(cfg)
+
+    topic_str = ' | '.join(topics)
+    tag_fields = '\n'.join(
+        f'- "{col}": relevant value if detected, else ""'
+        for col in tag_cols
+    )
+
+    return (
+        f"You are classifying search keywords for {brand_ctx}.\n\n"
+        "For each keyword return a JSON array. Every item must have these exact fields:\n"
+        '- "keyword": copy the keyword exactly\n'
+        f'- "TOPICS": one of {topic_str}\n'
+        '- "CATEGORY": a short category label (e.g. "Yogurt", "Brand", "Nutrition")\n'
+        '- "SUB-CATEGORY": more specific label\n'
+        f'{tag_fields}\n\n'
+        "Rules:\n"
+        "- If TOPICS/CATEGORY/SUB-CATEGORY are noted as already set, keep them exactly as-is.\n"
+        '- Blank fields must be "" not null.\n'
+        "- Return ONLY a valid JSON array. No explanation, no markdown fences."
+    )
 
 
 # ── Sheets helpers ─────────────────────────────────────────────────────────────
@@ -40,13 +132,12 @@ def _sheets_get(token, sheet_id, range_):
         return json.loads(urllib.request.urlopen(req, timeout=60).read()).get("values", [])
     except urllib.error.HTTPError as e:
         if e.code == 400:
-            return None  # signals caller to stop reading (range exceeds grid)
+            return None
         print(f"  HTTP {e.code} on {range_}: {e.read().decode()[:200]}", flush=True)
         raise
 
 
 def _sheets_write(token, sheet_id, data_ranges):
-    """Write list of (range_str, [[value]]) pairs. Returns total cells written."""
     url = f"https://sheets.googleapis.com/v4/spreadsheets/{sheet_id}/values:batchUpdate"
     payload = {
         "valueInputOption": "USER_ENTERED",
@@ -69,7 +160,7 @@ def _sheets_write(token, sheet_id, data_ranges):
 
 
 def _col_letter(idx):
-    """Convert 0-based column index to A, B, … Z, AA, AB … letter."""
+    """Convert 0-based column index to A, B, … Z, AA, AB …"""
     if idx < 26:
         return chr(65 + idx)
     return chr(64 + idx // 26) + chr(65 + idx % 26)
@@ -79,9 +170,9 @@ def _read_all_rows(token, sheet_id, tab):
     """Read all data rows from tab in 1000-row chunks. Returns [(sheet_row, row_list), …]."""
     result = []
     for start in range(2, 10000, 1000):
-        chunk = _sheets_get(token, sheet_id, f"'{tab}'!A{start}:BE{start + 999}")
+        chunk = _sheets_get(token, sheet_id, f"'{tab}'!A{start}:BF{start + 999}")
         if chunk is None or chunk == []:
-            break  # None = grid limit hit; [] = no more data
+            break
         for i, row in enumerate(chunk):
             result.append((start + i, row))
     return result
@@ -89,9 +180,9 @@ def _read_all_rows(token, sheet_id, tab):
 
 # ── SE Ranking API ─────────────────────────────────────────────────────────────
 
-def _ser_fetch(keywords, api_key):
+def _ser_fetch(keywords, api_key, se_months, se_api_source='us'):
     """Bulk-fetch monthly volumes from SE Ranking. Returns {keyword_lower: avg_monthly_vol}."""
-    url  = "https://api.seranking.com/v1/keywords/export?source=us"
+    url  = f"https://api.seranking.com/v1/keywords/export?source={se_api_source}"
     body = json.dumps({"keywords": keywords}).encode()
     req  = urllib.request.Request(url, data=body,
         headers={"Authorization": f"Token {api_key}",
@@ -107,7 +198,7 @@ def _ser_fetch(keywords, api_key):
                 if not r.get("is_data_found"):
                     continue
                 trend = r.get("history_trend") or {}
-                vols  = [trend.get(m, 0) or 0 for m in SE_MONTHS]
+                vols  = [trend.get(m, 0) or 0 for m in se_months]
                 avg   = round(sum(vols) / len(vols)) if any(vols) else 0
                 if avg > 0:
                     result[r["keyword"].lower()] = avg
@@ -119,15 +210,18 @@ def _ser_fetch(keywords, api_key):
     return {}
 
 
-def enrich_volumes(token, master_id, master_tab, ser_api_key):
-    """Fill Average Search Volume (G), Volume Q1 (H), and Volume Q4 (I) for rows where
-    G is blank using the SE Ranking API.
+def enrich_volumes(token, master_id, master_tab, ser_api_key, cfg=None):
+    """Fill Average Search Volume, Volume P1, and Volume P2 for rows where average is blank.
 
     Average Search Volume = avg monthly volume from SE Ranking.
-    Volume Q1 and Volume Q4 are back-filled as avg * 3 (3-month proxy) so the masterlist
-    displays non-zero quarterly volumes and the HTML dashboard Coverage column works correctly.
+    Volume P1 and Volume P2 are back-filled as avg * 3 (3-month proxy).
     """
     print("\nEnriching missing search volumes via SE Ranking API…", flush=True)
+
+    months = _se_months(cfg)
+    source = _se_source(cfg)
+    p1     = _p1_label(cfg)
+    p2     = _p2_label(cfg)
 
     hdrs_raw = _sheets_get(token, master_id, f"'{master_tab}'!1:1")
     if not hdrs_raw:
@@ -137,9 +231,9 @@ def enrich_volumes(token, master_id, master_tab, ser_api_key):
     hdr_idx = {h: i for i, h in enumerate(hdrs)}
 
     g_idx  = hdr_idx.get('Average Search Volume')
-    h_idx  = hdr_idx.get('Volume Q1 2026')
-    i_idx  = hdr_idx.get('Volume Q4 2025')
-    l_idx  = hdr_idx.get('Clics OneSearch Q1 2026')
+    h_idx  = hdr_idx.get(f'Volume {p1}')
+    i_idx  = hdr_idx.get(f'Volume {p2}')
+    l_idx  = hdr_idx.get(f'Clics OneSearch {p1}')
     kw_idx = hdr_idx.get('Keyword', 1)
 
     if g_idx is None:
@@ -168,7 +262,7 @@ def enrich_volumes(token, master_id, master_tab, ser_api_key):
     for bi, batch in enumerate(batches):
         kws = [r['keyword'] for r in batch]
         print(f"  Batch {bi + 1}/{len(batches)}: {len(kws)} keywords… ", end="", flush=True)
-        result = _ser_fetch(kws, ser_api_key)
+        result = _ser_fetch(kws, ser_api_key, months, source)
         vol_map.update(result)
         print(f"{len(result)} found", flush=True)
         if bi < len(batches) - 1:
@@ -190,7 +284,7 @@ def enrich_volumes(token, master_id, master_tab, ser_api_key):
         if i_col:
             updates.append((f"'{master_tab}'!{i_col}{sr}", [[avg * 3]]))
 
-    print(f"  Writing {len(updates)} cells (avg vol + Q1/Q4 estimates)…", flush=True)
+    print(f"  Writing {len(updates)} cells…", flush=True)
     cells = 0
     for i in range(0, len(updates), 50):
         cells += _sheets_write(token, master_id, updates[i:i + 50])
@@ -201,36 +295,7 @@ def enrich_volumes(token, master_id, master_tab, ser_api_key):
 
 # ── Claude API ─────────────────────────────────────────────────────────────────
 
-_CLAUDE_SYSTEM = """\
-You are classifying search keywords for the Oikos USA yogurt brand.
-
-For each keyword return a JSON array. Every item must have these exact fields:
-- "keyword": copy the keyword exactly
-- "TOPICS": one of PRODUCT | GENERIC | BRAND | COMPETITOR | HEALTH | RECIPE | OTHER
-- "CATEGORY": e.g. "Yogurt", "Brand", "Nutrition", "Competitor", "Ingredient", "Recipe"
-- "SUB-CATEGORY": more specific, e.g. "Greek yogurt", "Oikos triple zero", "Protein yogurt"
-- "Questions": "YES" if phrased as a question, else ""
-- "Yogurt types": Greek | skyr | drinkable | plant-based | frozen | or ""
-- "Taste": flavor if mentioned (strawberry, vanilla, blueberry, peach, plain …) or ""
-- "Packaging": packaging if mentioned (single serve, cup, multipack, 32oz …) or ""
-- "Ingredient": key ingredient if mentioned (protein, probiotics, calcium, fiber …) or ""
-- "Brands": brand if mentioned (Oikos, Chobani, Yoplait, Dannon, Fage, Siggi's …) or ""
-- "Retailer": retailer if mentioned (Walmart, Target, Costco, Kroger, Amazon …) or ""
-- "Demography": audience if implied (kids, seniors, athletes, pregnant, diabetics …) or ""
-- "Benefits": health benefit if mentioned (high protein, low sugar, weight loss …) or ""
-- "Testimonials": always ""
-- "Bio": "YES" if organic or bio-related, else ""
-- "Moments": moment if implied (breakfast, snack, post-workout, dessert, lunch …) or ""
-- "Recipes": "YES" if recipe-related, else ""
-
-Rules:
-- If TOPICS/CATEGORY/SUB-CATEGORY are noted as already set, keep them exactly as-is.
-- Blank fields must be "" not null.
-- Return ONLY a valid JSON array. No explanation, no markdown fences.\
-"""
-
-
-def _claude_classify(items, api_key):
+def _claude_classify(items, api_key, system_message):
     """Send a batch of keyword dicts to Claude Haiku. Returns list of classified dicts."""
     lines = []
     for it in items:
@@ -242,7 +307,7 @@ def _claude_classify(items, api_key):
     body = json.dumps({
         "model":      CLAUDE_MODEL,
         "max_tokens": 16000,
-        "system":     _CLAUDE_SYSTEM,
+        "system":     system_message,
         "messages":   [{"role": "user", "content": user_msg}],
     }).encode()
     req = urllib.request.Request(
@@ -276,9 +341,9 @@ def _claude_classify(items, api_key):
     return []
 
 
-def _ser_fetch_monthly(keywords, api_key):
+def _ser_fetch_monthly(keywords, api_key, se_months, se_api_source='us'):
     """Bulk-fetch per-month volumes from SE Ranking. Returns {keyword_lower: {month: volume}}."""
-    url  = "https://api.seranking.com/v1/keywords/export?source=us"
+    url  = f"https://api.seranking.com/v1/keywords/export?source={se_api_source}"
     body = json.dumps({"keywords": keywords}).encode()
     req  = urllib.request.Request(url, data=body,
         headers={"Authorization": f"Token {api_key}",
@@ -294,7 +359,7 @@ def _ser_fetch_monthly(keywords, api_key):
                 if not r.get("is_data_found"):
                     continue
                 trend   = r.get("history_trend") or {}
-                monthly = {m: int(trend.get(m) or 0) for m in SE_MONTHS}
+                monthly = {m: int(trend.get(m) or 0) for m in se_months}
                 if any(v > 0 for v in monthly.values()):
                     result[r["keyword"].lower()] = monthly
             return result
@@ -305,9 +370,15 @@ def _ser_fetch_monthly(keywords, api_key):
     return {}
 
 
-def enrich_monthly_volumes(token, master_id, master_tab, ser_api_key):
-    """Fill monthly search volume columns (Searches: Oct 2025 – Mar 2026) where blank."""
-    print("\nEnriching monthly search volumes (Oct 2025–Mar 2026) via SE Ranking API…", flush=True)
+def enrich_monthly_volumes(token, master_id, master_tab, ser_api_key, cfg=None):
+    """Fill monthly search volume columns (Searches: Mon YYYY) where blank."""
+    months = _se_months(cfg)
+    source = _se_source(cfg)
+    p1     = _p1_label(cfg)
+
+    month_hdrs = [_month_label(m) for m in months]
+    label_range = f"{_month_label(months[0])} – {_month_label(months[-1])}" if months else ''
+    print(f"\nEnriching monthly search volumes ({label_range}) via SE Ranking API…", flush=True)
 
     hdrs_raw = _sheets_get(token, master_id, f"'{master_tab}'!1:1")
     if not hdrs_raw:
@@ -316,10 +387,6 @@ def enrich_monthly_volumes(token, master_id, master_tab, ser_api_key):
     hdrs    = hdrs_raw[0]
     hdr_idx = {h: i for i, h in enumerate(hdrs)}
 
-    month_hdrs = [
-        'Searches: Oct 2025', 'Searches: Nov 2025', 'Searches: Dec 2025',
-        'Searches: Jan 2026', 'Searches: Feb 2026', 'Searches: Mar 2026',
-    ]
     month_col_letters = [
         _col_letter(hdr_idx[h]) if h in hdr_idx else None for h in month_hdrs
     ]
@@ -332,8 +399,8 @@ def enrich_monthly_volumes(token, master_id, master_tab, ser_api_key):
 
     kw_idx   = hdr_idx.get('Keyword', 1)
     g_idx    = hdr_idx.get('Average Search Volume')
-    l_idx    = hdr_idx.get('Clics OneSearch Q1 2026')
-    first_mi = hdr_idx.get(month_hdrs[0])
+    l_idx    = hdr_idx.get(f'Clics OneSearch {p1}')
+    first_mi = hdr_idx.get(month_hdrs[0]) if month_hdrs else None
 
     if first_mi is None:
         return
@@ -367,7 +434,7 @@ def enrich_monthly_volumes(token, master_id, master_tab, ser_api_key):
     for bi, batch in enumerate(batches):
         kws = [r['keyword'] for r in batch]
         print(f"  Batch {bi + 1}/{len(batches)}: {len(kws)} keywords… ", end="", flush=True)
-        result = _ser_fetch_monthly(kws, ser_api_key)
+        result = _ser_fetch_monthly(kws, ser_api_key, months, source)
         vol_map.update(result)
         print(f"{len(result)} found", flush=True)
         if bi < len(batches) - 1:
@@ -378,7 +445,7 @@ def enrich_monthly_volumes(token, master_id, master_tab, ser_api_key):
         monthly = vol_map.get(item['keyword'].lower())
         if not monthly:
             continue
-        for col_ltr, month_key in zip(month_col_letters, SE_MONTHS):
+        for col_ltr, month_key in zip(month_col_letters, months):
             if col_ltr is None:
                 continue
             val = monthly.get(month_key, 0)
@@ -394,9 +461,12 @@ def enrich_monthly_volumes(token, master_id, master_tab, ser_api_key):
     print(f"  Monthly volumes done — {total_cells} cells updated", flush=True)
 
 
-def enrich_taxonomy(token, master_id, master_tab, anthropic_key):
+def enrich_taxonomy(token, master_id, master_tab, anthropic_key, cfg=None):
     """Fill taxonomy columns and missing TOPICS/CATEGORY/SUB-CATEGORY using Claude API."""
     print("\nEnriching taxonomy via Claude API…", flush=True)
+
+    tax_cols       = _taxonomy_cols(cfg)
+    system_message = _build_system_message(cfg)
 
     hdrs_raw = _sheets_get(token, master_id, f"'{master_tab}'!1:1")
     if not hdrs_raw:
@@ -404,7 +474,7 @@ def enrich_taxonomy(token, master_id, master_tab, anthropic_key):
     hdrs    = hdrs_raw[0]
     hdr_idx = {h: i for i, h in enumerate(hdrs)}
 
-    fill_cols = TOPIC_COLS + TAXONOMY_COLS
+    fill_cols = TOPIC_COLS + tax_cols
     missing   = [c for c in fill_cols if c not in hdr_idx]
     if missing:
         print(f"  Warning: headers not found — {missing}", flush=True)
@@ -417,7 +487,6 @@ def enrich_taxonomy(token, master_id, master_tab, anthropic_key):
         i = hdr_idx.get(col)
         return str(row[i]).strip() if i is not None and i < len(row) else ''
 
-    # Target: every row with a keyword and at least one enrichable column blank
     to_enrich = []
     for sheet_row, row in all_rows:
         kw = row[kw_idx] if kw_idx < len(row) else ''
@@ -445,24 +514,23 @@ def enrich_taxonomy(token, master_id, master_tab, anthropic_key):
 
     for bi, batch in enumerate(batches):
         print(f"    Batch {bi + 1}/{len(batches)}: {len(batch)} keywords… ", end="", flush=True)
-        results = _claude_classify(batch, anthropic_key)
+        results = _claude_classify(batch, anthropic_key, system_message)
         for r in results:
             kw = str(r.get('keyword', '')).strip()
             if kw:
                 classified_map[kw.lower()] = r
         print(f"{len(results)} classified", flush=True)
         if bi < len(batches) - 1:
-            time.sleep(1)  # brief pause between batches
+            time.sleep(1)
 
     print(f"  Total classified: {len(classified_map)}", flush=True)
 
-    # Build cell-level updates — never overwrite an already-populated cell
     updates = []
     for item in to_enrich:
         cls = classified_map.get(item['keyword'].lower())
         if not cls:
             continue
-        existing = item['_existing']
+        existing  = item['_existing']
         sheet_row = item['sheet_row']
 
         for col in fill_cols:

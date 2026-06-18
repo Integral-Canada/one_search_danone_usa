@@ -2,11 +2,19 @@
 
 GA4 exports have 9 metadata rows before the header (row 10 = header in Sheets).
 Key column is 'Key events ' (note trailing space in some exports).
+
+Also handles the GA4 Google Ads session export format, which uses:
+  'Page de destination + chaîne de requête' as the page path column.
 """
 from .normalize import clean_num
 
-_PATH_COL_CANDIDATES = ('Page path and screen class', 'Page path and screen class ',
-                         "Chemin de la page et classe de l'écran")
+_PATH_COL_CANDIDATES = (
+    'Page path and screen class',
+    'Page path and screen class ',
+    "Chemin de la page et classe de l'écran",
+    'Page de destination + chaîne de requête',   # GA4 Ads sessions export
+    'Landing page + query string',               # GA4 Ads sessions export (EN)
+)
 _EVENTS_COL_CANDIDATES = ('Key events ', 'Key events', 'Événements clés')
 
 
@@ -36,7 +44,9 @@ def norm_ga4_rows(rows: list) -> dict:
             if path_col is None:
                 continue  # still in metadata rows
 
-        path = str(row.get(path_col) or '').strip().rstrip('/')
+        raw_path = str(row.get(path_col) or '').strip()
+        # Strip query strings (?...) before normalizing — GA4 Ads export includes them
+        path = raw_path.split('?')[0].rstrip('/')
         if not path or path.startswith('#'):
             continue
 

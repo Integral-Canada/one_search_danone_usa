@@ -1,0 +1,45 @@
+{
+  "_comment": "Global defaults inherited by all brands. Values here are used if a brand config does not define them.",
+
+  "pipeline": {
+    "se_ranking_threshold": 0.60,
+    "ks_high_conf_threshold": 0.65,
+    "ks_review_threshold": 0.50,
+    "click_threshold": 1,
+    "chunk_size": 500,
+    "se_api_batch": 500,
+    "claude_batch": 50
+  },
+
+  "masterlist": {
+    "kw_review_border_tab": "5 < Cos < 0.65",
+    "kw_review_unmatch_tab": "Cos < .5",
+    "formula_cols": ["J", "K", "AI", "AK"],
+    "arrayformulas": [
+      { "cell": "J2",  "formula": "=ARRAYFORMULA(IF(B2:B=\"\",\"\",IF(G2:G=0,\"\",L2:L/G2:G)))" },
+      { "cell": "K2",  "formula": "=ARRAYFORMULA(IF(B2:B=\"\",\"\",IF(G2:G=0,\"\",N2:N/G2:G)))" },
+      { "cell": "AI2", "formula": "=ARRAYFORMULA(IF(ISBLANK(AF2:AF),\"\",AF2:AF*P2:P))" },
+      { "cell": "AK2", "formula": "=ARRAYFORMULA(IF(ISBLANK(AF2:AF),\"\",AF2:AF*R2:R))" }
+    ]
+  },
+
+  "coverage_targets": {
+    "brand": 10,
+    "generic": 3,
+    "competitor": 2
+  },
+
+  "sem_qv": {
+    "seo_cov_threshold": 0.10,
+    "seo_pos_threshold": 5
+  },
+
+  "conn_intent_exclusions": [
+    "login", "website", "my account"
+  ],
+
+  "conversion_label": {
+    "seo": "Qualified Visits (SEO)",
+    "sem": "Qualified Visits (SEM)"
+  }
+}

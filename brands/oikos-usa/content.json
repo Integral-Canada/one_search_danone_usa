@@ -1,0 +1,195 @@
+{
+  "_comment": "Editable content for the Oikos USA OneSearch dashboard. Edit this file and rebuild with build_dashboard.py. Run with --finalize to bake content as static HTML.",
+
+  "recommendations": [
+    {
+      "id": "01",
+      "channel": "SEO",
+      "channel_class": "channel-seo",
+      "priority": "High",
+      "quarter": "Q2",
+      "category": "PRODUCT",
+      "title": "Expand product page coverage for high-volume protein drink keywords",
+      "bullets": [
+        "Create or optimize pages for 'protein drink', 'protein shake', 'drinkable yogurt' — top-volume uncovered product queries",
+        "Target keywords with >10K monthly searches and <3% OneSearch coverage",
+        "Align page titles and H1s to exact-match high-volume variants",
+        "Internal link from yogurt category pages to protein drink pages"
+      ]
+    },
+    {
+      "id": "02",
+      "channel": "SEO",
+      "channel_class": "channel-seo",
+      "priority": "High",
+      "quarter": "Q2",
+      "category": "PRODUCT",
+      "title": "Create evaluate-funnel category pages for Greek yogurt and protein snack discovery",
+      "bullets": [
+        "Build a 'Best High-Protein Yogurt' comparison/evaluation page targeting commercial-intent queries",
+        "Target 'best greek yogurt', 'healthiest yogurt', 'high protein yogurt' — users in evaluation mode",
+        "Include product comparison table, nutritional highlights, and brand positioning",
+        "Target featured snippet with structured comparison markup"
+      ]
+    },
+    {
+      "id": "03",
+      "channel": "SEO",
+      "channel_class": "channel-seo",
+      "priority": "Medium",
+      "quarter": "Q2",
+      "category": "SOURCE OF PROTEIN",
+      "title": "Build informational content for protein-source queries",
+      "bullets": [
+        "Create hub page: 'Oikos as a Protein Source' targeting 'protein for muscle gain', 'protein for muscle building'",
+        "Sub-pages for key fitness use cases: post-workout recovery, daily protein intake, muscle building",
+        "Link from product pages to protein-source content to build topical authority",
+        "Target featured snippets with structured Q&A content"
+      ]
+    },
+    {
+      "id": "04",
+      "channel": "SEO",
+      "channel_class": "channel-seo",
+      "priority": "Medium",
+      "quarter": "Q3",
+      "category": "RECIPE",
+      "title": "Develop recipe content targeting high-volume Greek yogurt recipe queries",
+      "bullets": [
+        "Publish 5-10 recipe pages targeting 'Greek yogurt recipe', 'protein smoothie recipe', 'baking with Greek yogurt'",
+        "Each recipe page targets one primary keyword with schema markup (Recipe schema)",
+        "Cross-link recipe pages to relevant product pages",
+        "Optimize for Google Images and video rich results where applicable"
+      ]
+    },
+    {
+      "id": "05",
+      "channel": "SEO",
+      "channel_class": "channel-seo",
+      "priority": "Medium",
+      "quarter": "Q3",
+      "category": "CONSUMER HABITS",
+      "title": "Create lifestyle and habit-formation content for key consumption occasions",
+      "bullets": [
+        "Content for 'high protein breakfast', 'protein meal prep', 'post-workout snack' — habit-formation queries",
+        "Focus on occasions where Oikos Greek yogurt or protein shakes fit naturally",
+        "Editorial format: how-to guides, weekly meal plans, snack ideas",
+        "Internal linking from product and recipe pages"
+      ]
+    },
+    {
+      "id": "06",
+      "channel": "SEM",
+      "channel_class": "channel-sem",
+      "priority": "High",
+      "quarter": "Q2",
+      "category": "BRAND",
+      "title": "Apply negative keyword exclusions from Brand SEM analysis",
+      "bullets": [
+        "Add 17 identified Exclude keywords as negatives in brand campaigns",
+        "All three conditions met: SEO Coverage >10% + SEO Position ≤5 + QV SEM = 0",
+        "Reallocate freed budget to Keep-Active keywords with confirmed QV SEM > 0",
+        "Monitor for 30 days post-exclusion to confirm no QV SEM drop on affected keywords"
+      ]
+    },
+    {
+      "id": "07",
+      "channel": "SEM",
+      "channel_class": "channel-sem",
+      "priority": "High",
+      "quarter": "Q2",
+      "category": "BRAND",
+      "title": "Achieve 80% Impression Share on 4 priority brand keywords",
+      "bullets": [
+        "Increase bids on: oikos, oikos triple zero, oikos pro, oikos yogurt",
+        "Current IS below target on these terms — competitor bidding detected",
+        "Reallocate budget freed from negative keyword exclusions to these terms",
+        "Set target IS bid strategy at campaign level for these exact match terms"
+      ]
+    },
+    {
+      "id": "08",
+      "channel": "SEM",
+      "channel_class": "channel-sem",
+      "priority": "Medium",
+      "quarter": "Q2",
+      "category": "BRAND",
+      "title": "Monitor 8 Keep-Test keywords — pause if organic takes over",
+      "bullets": [
+        "8 keywords have SEO Coverage >10% but QV SEM >0 — organic present but paid still adding value",
+        "Review monthly: if organic holds top-5 AND QV SEM = 0 for 2 consecutive months → move to Exclude",
+        "Track week-over-week QV SEM trend for early pausing signals",
+        "Document decision in Brand SEM recommendation log"
+      ]
+    },
+    {
+      "id": "09",
+      "channel": "SEM",
+      "channel_class": "channel-sem",
+      "priority": "Medium",
+      "quarter": "Q2",
+      "category": "BRAND",
+      "title": "Implement incrementality measurement for brand SEM",
+      "bullets": [
+        "Run geo-based holdout test: pause brand SEM in select DMAs for 4 weeks",
+        "Measure organic click lift in holdout markets vs control",
+        "Use to quantify true incremental value of brand paid — informs long-term IS strategy",
+        "Results will refine the Keep-Active / Exclude thresholds for Q3"
+      ]
+    },
+    {
+      "id": "10",
+      "channel": "SEM",
+      "channel_class": "channel-sem",
+      "priority": "Medium",
+      "quarter": "Q2",
+      "category": "COMPETITOR",
+      "title": "Activate targeted SEM coverage for top competitor keywords",
+      "bullets": [
+        "Priority competitor targets: Core Power, Premier Protein, Fairlife — high-volume switcher traffic",
+        "Build dedicated ad groups per competitor brand with tailored ad copy",
+        "Landing pages: emphasize Oikos protein content advantage and taste differentiation",
+        "Cap spend to 15% of total SEM budget — monitor QV SEM per competitor term weekly"
+      ]
+    },
+    {
+      "id": "11",
+      "channel": "SEM",
+      "channel_class": "channel-sem",
+      "priority": "Medium",
+      "quarter": "Q2",
+      "category": "BRAND",
+      "title": "Improve Quality Score on 7 keywords below QS 5",
+      "bullets": [
+        "7 brand keywords have QS ≤5 — driving up CPC and reducing ad rank",
+        "Root cause: LP Experience rated Below Average — landing page content mismatch",
+        "Action: update landing pages for affected keywords to match ad copy intent",
+        "Rewrite ad copy for Expected CTR improvement on low-CTR ad groups"
+      ]
+    },
+    {
+      "id": "12",
+      "channel": "BOTH",
+      "channel_class": "channel-both",
+      "priority": "Low",
+      "quarter": "Q2",
+      "category": "BRAND",
+      "title": "Establish QV tracking cadence — monthly OneSearch review",
+      "bullets": [
+        "Set monthly cadence: refresh SQR + GSC + SE Ranking exports → rerun pipeline → rebuild dashboard",
+        "Track QV SEM trend by territory each month — flag any territory with >20% QoQ drop",
+        "Add Q2 2026 vs Q1 2026 comparison column to masterlist on next run",
+        "Share updated dashboard with stakeholders by end of first week each month"
+      ]
+    }
+  ],
+
+  "commentary": {
+    "intro": "",
+    "onesearch_dashboard": "",
+    "territory_deepdive": "",
+    "recommendations": "",
+    "quality_score": "",
+    "sqr": ""
+  }
+}

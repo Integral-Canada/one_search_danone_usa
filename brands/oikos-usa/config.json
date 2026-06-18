@@ -1,0 +1,212 @@
+{
+  "client_name": "Oikos USA",
+  "client_handle": "oikos-usa",
+  "lang": "EN",
+
+  "brand": {
+    "color": "#004f79",
+    "accent_color": "#1a7aad",
+    "light_bg": "#f0f6fb",
+    "regex_default": "oikos|triple zero",
+    "regex_sheet_id": "1o526Qv4UzP_Qfe-cjrfvcA7jRUi6zUtd9Ecp2WPMIhQ",
+    "regex_sheet_tab": "DANONE USA - Overview",
+    "regex_sheet_name_col": "Oikos"
+  },
+
+  "period": {
+    "p1_label": "Q1 2026",
+    "p2_label": "Q4 2025",
+    "display": "Q1 2026 vs Q4 2025",
+    "gsc_p1_prefix": "1/1/26 - 3/31/26",
+    "gsc_p2_prefix": "10/1/25 - 12/31/25",
+    "se_months_p1": ["2026-01-01", "2026-02-01", "2026-03-01"],
+    "se_months_p2": ["2025-10-01", "2025-11-01", "2025-12-01"],
+    "se_api_source": "us"
+  },
+
+  "sheets": {
+    "ref_id": "1o526Qv4UzP_Qfe-cjrfvcA7jRUi6zUtd9Ecp2WPMIhQ",
+    "ref_tab": "One Search ",
+    "master_id": "1W73Lzli30z4GnO_WtLjs0hWOdPcEZw1jptXKG8exKoU",
+    "master_tab": "Listing",
+    "qs_sheet_id": "1RDgH021qO2VLIOIxBuq0_R7COVXTAHrScYsx6R1xvRc",
+    "qs_sheet_tab": "OIKOS",
+    "ga4_ads_file_id": null,
+    "ga4_ads_tab": null
+  },
+
+  "column_aliases": {
+    "CPC avg. SEM Q1 2026": "CPC moy. SEM Q1 2026",
+    "Spent SEM Q1 2026": "Dépense SEM Q1 2026",
+    "Spent SEM Q4 2025": "Dépense SEM Q4 2025"
+  },
+
+  "header_corrections": {
+    "Conversions SEO Q4 2024": "Conversions SEO Q4 2025",
+    "Conversions SEM Q4 2024": "Conversions SEM Q4 2025",
+    "Searches: Oct 2024": "Searches: Oct 2025",
+    "Searches: Nov 2024": "Searches: Nov 2025",
+    "Searches: Dec 2024": "Searches: Dec 2025",
+    "Searches: Jan 2025": "Searches: Jan 2026",
+    "Searches: Feb 2025": "Searches: Feb 2026",
+    "Searches: Mar 2025": "Searches: Mar 2026"
+  },
+
+  "conn_intent_exclusions": [
+    "login", "website", "my account", "mon compte", "se connecter", "espace client"
+  ],
+
+  "sem_qv": {
+    "competitor_blocklist": [
+      "premier shakes",
+      "fairlife core power elite",
+      "fairlife core power",
+      "fairlife",
+      "core power elite",
+      "core power"
+    ]
+  },
+
+  "territory_colors": [
+    "#1565c0", "#2e7d32", "#e65100", "#6a1b9a",
+    "#0277bd", "#558b2f", "#c62828", "#4527a0",
+    "#00695c", "#f57f17", "#37474f", "#00838f"
+  ],
+
+  "territory_order": [
+    "BRAND", "COMPETITOR", "CONSUMER HABITS", "GENERIC",
+    "HEALTH", "OTHER", "PRODUCT", "RECIPE", "SOURCE OF PROTEIN"
+  ],
+
+  "territories": {
+    "BRAND": {
+      "desc": "Keywords that explicitly name the Oikos brand, product lines (Triple Zero, Pro, Fusion, Remix), or brand variants (misspellings, parent company). The highest-intent territory — users already know the brand.",
+      "intent": "Branded / Navigational",
+      "examples": ["oikos", "oikos triple zero", "oikos pro drinkable", "oikos protein shake", "oikos flip"],
+      "coverage_target": 10
+    },
+    "PRODUCT": {
+      "desc": "Generic product-type keywords — protein shakes, Greek yogurt, drinkable yogurt — where Oikos is a natural answer but the brand is not mentioned. Captures shoppers in product discovery or comparison mode.",
+      "intent": "Commercial / Transactional",
+      "examples": ["protein shake", "high protein Greek yogurt", "drinkable yogurt", "ready-to-drink protein", "protein drink"],
+      "coverage_target": 3
+    },
+    "COMPETITOR": {
+      "desc": "Keywords that name competing products or brands (Core Power, Premier Protein, Chobani, Fairlife). Oikos can capture switcher traffic and conquest clicks via SEM on these terms.",
+      "intent": "Competitive / Conquest",
+      "examples": ["core power protein shake", "premier protein shake", "fairlife core power", "chobani high protein"],
+      "coverage_target": 2
+    },
+    "GENERIC": {
+      "desc": "Broad, non-branded category queries about protein drinks, protein shakes, or yogurt with no specific brand intent. High volume, high competition. Entry-point for new-to-category consumers.",
+      "intent": "Informational / Top-of-funnel",
+      "examples": ["protein shake", "best protein drink", "RTD protein shake", "protein snack", "high protein snack"],
+      "coverage_target": 3
+    },
+    "HEALTH": {
+      "desc": "Health, diet, and nutrition queries — GLP-1 diets, weight loss, high-protein nutrition — where Oikos protein content is a relevant answer. Growing territory driven by GLP-1 medication trends.",
+      "intent": "Informational / Health-driven",
+      "examples": ["GLP-1 snacks", "high protein diet plan", "weight loss protein", "GLP-1 foods", "healthy protein shake"],
+      "coverage_target": 3
+    },
+    "SOURCE OF PROTEIN": {
+      "desc": "Functional protein-source queries tied to fitness and muscle goals (muscle gain, muscle building, bulking). Often searched by gym-goers and fitness-focused consumers evaluating protein sources.",
+      "intent": "Informational / Fitness-driven",
+      "examples": ["protein for muscle gain", "protein for muscle building", "protein for muscle mass", "muscle building protein"],
+      "coverage_target": 3
+    },
+    "RECIPE": {
+      "desc": "Recipe and meal-prep queries that use Greek yogurt or protein shakes as an ingredient. Supports content SEO and positions Oikos as a versatile kitchen staple beyond direct consumption.",
+      "intent": "Informational / Content",
+      "examples": ["Greek yogurt recipe", "protein shake recipe", "baking with Greek yogurt", "protein smoothie recipe", "yogurt cake"],
+      "coverage_target": 3
+    },
+    "CONSUMER HABITS": {
+      "desc": "Occasion and lifestyle queries (breakfast, snack, meal prep, sports) that frame protein consumption as part of a daily routine. Useful for editorial content targeting habit-formation moments.",
+      "intent": "Informational / Lifestyle",
+      "examples": ["high protein breakfast", "protein snack", "protein meal prep", "post-workout protein meal"],
+      "coverage_target": 3
+    },
+    "OTHER": {
+      "desc": "Miscellaneous queries including brand misspellings, customer service, promotions, and coupons. Low strategic priority but useful for brand monitoring and defensive coverage.",
+      "intent": "Mixed / Miscellaneous",
+      "examples": ["oikos coupon", "oikos customer service", "oikos promo code"],
+      "coverage_target": 3
+    }
+  },
+
+  "reco_filter": {
+    "reco-json-drink-protein-drink":            "priority",
+    "reco-json-drink-chocolate-protein-drink":  "priority",
+    "reco-json-nutrition-glp-1-snacks":         "long-term",
+    "reco-json-recipe-glp-1-recipes":           "long-term",
+    "reco-json-snack-protein-snacks":           "long-term",
+    "reco-json-meal-protein-meal":              "long-term",
+    "reco-json-source-of-protein-protein-for-muscle-mass":     "merge:muscle-exercise",
+    "reco-json-source-of-protein-protein-for-muscle-gain":     "merge:muscle-exercise",
+    "reco-json-source-of-protein-protein-for-muscle-building": "merge:muscle-exercise",
+    "reco-json-source-of-protein-protein-for-muscle-growth":   "merge:muscle-exercise",
+    "reco-json-drink-muscle-gain-drink":                       "merge:muscle-exercise",
+    "reco-json-drink-muscle-building-protein-drink":           "merge:muscle-exercise",
+    "reco-json-competitor-core-power-protein-drinkable": "remove",
+    "reco-json-competitor-core-power-protein":           "remove",
+    "reco-json-competitor-core-power-drinkable":         "remove",
+    "reco-json-competitor-core-power-protein-milk":      "remove",
+    "reco-json-competitor-core-power-nutrition":         "remove",
+    "reco-json-competitor-core-power-protein-shake":     "remove",
+    "reco-json-competitor-premier-protein-nutrition":    "remove",
+    "reco-json-competitor-premier-protein-shake":        "remove",
+    "reco-json-competitor-premier-protein-drinkable":    "remove",
+    "reco-json-competitor-premier-protein-milkshake":    "remove",
+    "reco-json-competitor-premier-protein-liquid":       "remove",
+    "reco-json-competitor-premier-protein-energy-drink": "remove",
+    "reco-json-competitor-premier-one-shake":            "remove",
+    "reco-json-competitor-competing-protein-product":    "remove",
+    "reco-json-drink-premium-shake":                "remove",
+    "reco-json-drink-vanilla-protein":              "remove",
+    "reco-json-drink-supplement-shake":             "remove",
+    "reco-json-drink-fresh-protein-shake":          "remove",
+    "reco-json-drink-natural-protein-shake":        "remove",
+    "reco-json-drink-weight-gain-shake":            "remove",
+    "reco-json-drink-bodybuilding-shake":           "remove",
+    "reco-json-drink-weight-and-muscle-gain-shake": "remove",
+    "reco-json-drink-bulking-shake":                "remove",
+    "reco-json-drink-protein-milk":                 "remove",
+    "reco-json-drink-protein-milkshake":            "remove",
+    "reco-json-supplement-mass-gainer":             "remove",
+    "reco-json-nutrition-protein-products":     "remove",
+    "reco-json-nutrition-diet-recommendations": "remove",
+    "reco-json-nutrition-glp-1-diet-plan":      "remove",
+    "reco-json-nutrition-glp-1-foods":          "remove",
+    "reco-json-health-glp-1-medication":        "remove",
+    "reco-json-health-weight-loss-medication":  "remove",
+    "reco-json-source-of-protein-protein-for-bulking":     "remove",
+    "reco-json-source-of-protein-protein-for-lean-muscle": "remove",
+    "reco-json-retailer-protein-shake-shop": "remove",
+    "reco-json-retailer-purchase-location":  "remove",
+    "reco-json-yogurt-oikos-oro": "remove"
+  },
+
+  "reco_merge_groups": {
+    "muscle-exercise": {
+      "cat": "SOURCE OF PROTEIN / DRINK",
+      "subcat": "Muscle building & exercise protein",
+      "note": "<strong>Long-term SEO strategy</strong> — Align with Oikos protein shake and yogurt narrative. Keywords cover muscle gain, muscle building, and exercise protein (Source of Protein + Drink). Low priority now; develop informational content as Oikos fitness positioning matures.",
+      "channel": "SEO",
+      "channelClass": "channel-seo"
+    }
+  },
+
+  "reco_tiny_threshold": 3,
+
+  "taxonomy_tags": [
+    "Questions", "Yogurt types", "Taste", "Packaging", "Ingredient",
+    "Brands", "Retailer", "Demography", "Benefits", "Testimonials",
+    "Bio", "Moments", "Recipes"
+  ],
+
+  "taxonomy_prompt": {
+    "brand_context": "Oikos USA yogurt and protein shake brand",
+    "topics": ["BRAND", "COMPETITOR", "CONSUMER HABITS", "GENERIC", "HEALTH", "OTHER", "PRODUCT", "RECIPE", "SOURCE OF PROTEIN"]
+  }
+}
