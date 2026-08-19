@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OneSearch Field Guide</title>
+<style>
+  :root {
+    --paper: #F2F3EE;
+    --paper-raised: #FFFFFF;
+    --ink: #1B211D;
+    --muted: #62695F;
+    --line: #D8DBD1;
+    --accent: #2F6F5E;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #E3EEE9;
+    --warn: #B4592A;
+    --warn-soft: #F7E8DD;
+    --code-bg: #E9EBE3;
+    --shadow: 0 1px 2px rgba(27,33,29,0.06), 0 6px 20px rgba(27,33,29,0.05);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #14181A;
+      --paper-raised: #1B2023;
+      --ink: #E7EBE6;
+      --muted: #93998F;
+      --line: #2B3230;
+      --accent: #5FBFA0;
+      --accent-ink: #0D1210;
+      --accent-soft: #1E2E29;
+      --warn: #E39A6B;
+      --warn-soft: #33241A;
+      --code-bg: #10201C;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #14181A;
+    --paper-raised: #1B2023;
+    --ink: #E7EBE6;
+    --muted: #93998F;
+    --line: #2B3230;
+    --accent: #5FBFA0;
+    --accent-ink: #0D1210;
+    --accent-soft: #1E2E29;
+    --warn: #E39A6B;
+    --warn-soft: #33241A;
+    --code-bg: #10201C;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: Charter, 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 44px;
+  }
+
+  .hgroup { display: flex; flex-direction: column; gap: 10px; }
+  .eyebrow {
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-weight: 800;
+    font-size: 38px;
+    letter-spacing: -0.015em;
+    line-height: 1.08;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .dek {
+    color: var(--muted);
+    font-size: 17px;
+    max-width: 58ch;
+    margin: 0;
+  }
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: var(--muted);
+    padding-top: 6px;
+  }
+  .meta-row span b { color: var(--ink); font-weight: 600; }
+
+  section { display: flex; flex-direction: column; gap: 14px; }
+  h2 {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  h2::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+  p { margin: 0; max-width: 66ch; }
+  .lede { font-size: 17px; }
+
+  code {
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.86em;
+    background: var(--code-bg);
+    border-radius: 4px;
+    padding: 0.1em 0.4em;
+  }
+
+  /* Pipeline diagram */
+  .flow {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    overflow-x: auto;
+  }
+  .flow-step {
+    flex: 1;
+    min-width: 150px;
+    padding: 18px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+  }
+  .flow-step + .flow-step { border-left: 1px dashed var(--line); }
+  .flow-step .tag {
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .flow-step .name { font-weight: 600; font-size: 14.5px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  .flow-step .sub { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+  .flow-step::after {
+    content: '→';
+    position: absolute;
+    right: -11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    background: var(--paper-raised);
+    width: 20px;
+    text-align: center;
+    z-index: 1;
+    font-size: 14px;
+  }
+  .flow-step:last-child::after { content: ''; }
+
+  /* Terminal block */
+  .term {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px 18px;
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 13.5px;
+    line-height: 1.9;
+    overflow-x: auto;
+  }
+  .term .c { color: var(--muted); }
+  .term .k { color: var(--accent); }
+
+  /* Steps */
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: grid;
+    grid-template-columns: 30px 1fr;
+    gap: 14px;
+    padding: 16px 0;
+  }
+  .step + .step { border-top: 1px solid var(--line); }
+  .step .num {
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .step .body { display: flex; flex-direction: column; gap: 6px; }
+  .step .body h3 {
+    margin: 0;
+    font-size: 15.5px;
+    font-weight: 700;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  .step .body p { font-size: 14.5px; color: var(--muted); }
+  .step .body p b { color: var(--ink); font-weight: 600; }
+
+  /* Table */
+  .tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--paper-raised); box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  thead th {
+    text-align: left;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody td:first-child { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12.5px; white-space: nowrap; }
+
+  /* Callout */
+  .callout {
+    display: flex;
+    gap: 12px;
+    background: var(--warn-soft);
+    border: 1px solid var(--warn);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .callout .mark { color: var(--warn); font-weight: 800; font-family: ui-monospace, monospace; }
+  .callout p { font-size: 14px; }
+  .callout p b { color: var(--ink); }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 560px) { .grid-2 { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .card .k { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--accent); }
+  .card .v { font-size: 14px; }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 12.5px;
+    color: var(--muted);
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  }
+
+  a { color: var(--accent); }
+
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="hgroup">
+    <div class="eyebrow">Digitad · Internal Skill</div>
+    <h1>OneSearch Field Guide</h1>
+    <p class="dek">A unified SEO + SEM keyword masterlist, built from five Google Sheets and one Python pipeline. This page is everything a teammate needs to run it for a brand they've never touched.</p>
+    <div class="meta-row">
+      <span>Repo: <b>one_search_danone_usa</b></span>
+      <span>Entry points: <b>run_pipeline.py</b> · <b>build_dashboard.py</b></span>
+      <span>Install: <b>none — stdlib only</b></span>
+    </div>
+  </div>
+
+  <section>
+    <h2>What it does</h2>
+    <p class="lede">For every keyword driving traffic to a brand's site — organic or paid — OneSearch answers one question: <b>what does the full picture look like?</b> It pulls Search Console, Google Ads search terms, SE Ranking, an internal keyword study, and GA4 conversions, fuzzy-matches them onto one keyword spine, and writes a single enriched masterlist back to Sheets. A dashboard script then turns that masterlist into a shareable HTML report.</p>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="tag">Read</div>
+        <div class="name">5 Google Sheets</div>
+        <div class="sub">GSC, Ads search terms, SE Ranking, keyword study, GA4</div>
+      </div>
+      <div class="flow-step">
+        <div class="tag">Normalize</div>
+        <div class="name">Clean & standardize</div>
+        <div class="sub">Every source reshaped to common field names</div>
+      </div>
+      <div class="flow-step">
+        <div class="tag">Match</div>
+        <div class="name">Fuzzy-match on trigrams</div>
+        <div class="sub">One keyword spine, similarity-scored joins</div>
+      </div>
+      <div class="flow-step">
+        <div class="tag">Write</div>
+        <div class="name">Masterlist + dashboard</div>
+        <div class="sub">Google Sheet, then a static HTML report</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Before you run it</h2>
+    <div class="grid-2">
+      <div class="card">
+        <div class="k">Access</div>
+        <div class="v">Edit rights on the brand's Masterlist, source-config, and export sheets — same Google account the pipeline's OAuth token was issued for.</div>
+      </div>
+      <div class="card">
+        <div class="k">Credentials</div>
+        <div class="v">A <code>.env</code> file in the repo root with <code>GOOGLE_CLIENT_ID</code>, <code>GOOGLE_CLIENT_SECRET</code>, <code>GOOGLE_REFRESH_TOKEN</code>. Ask whoever set up the last brand for a copy — it's shared per-team, not per-person.</div>
+      </div>
+      <div class="card">
+        <div class="k">Brand config</div>
+        <div class="v">A <code>brands/&lt;handle&gt;/config.json</code> already exists — see "Adding a new brand" if it doesn't yet.</div>
+      </div>
+      <div class="card">
+        <div class="k">Python</div>
+        <div class="v">Python 3, nothing else. No <code>pip install</code>, no virtualenv — the pipeline is standard-library only.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Run it</h2>
+    <div class="term">
+<span class="c"># build the masterlist for a brand</span>
+python3 <span class="k">run_pipeline.py</span> --brand oikos-usa
+
+<span class="c"># then build the HTML dashboard from it</span>
+python3 <span class="k">build_dashboard.py</span> --brand oikos-usa
+    </div>
+    <p style="font-size: 14.5px; color: var(--muted);">Swap <code>oikos-usa</code> for any handle under <code>brands/</code>. First time on a brand, run with <code>--max-rows 500</code> to sanity-check in under a minute before committing to a full run — a full masterlist can take several minutes and rewrites the whole sheet.</p>
+    <div class="term">
+python3 run_pipeline.py --brand oikos-usa <span class="k">--max-rows 500</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Adding a new brand</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="num">1</div>
+        <div class="body">
+          <h3>Register the exports</h3>
+          <p>In the shared source-config sheet, tab <code>One Search</code>, add a row block for the brand: <b>GSC Export</b>, <b>Account Level SQR Report</b>, <b>SE Ranking</b>, <b>Keyword study</b>, plus the two GA4 conversion exports. Each row needs a real Doc ID and tab name — a blank or <code>TBD</code> cell will hard-stop the run.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <div class="body">
+          <h3>Create <code>brands/&lt;handle&gt;/config.json</code></h3>
+          <p>Copy an existing brand's config as a starting point. Set <code>client_name</code>, <code>lang</code>, the <code>period</code> block (your two comparison quarters — labels must match the GSC export's column headers exactly), and the <code>sheets</code> block (Masterlist ID + tab).</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <div class="body">
+          <h3>Prep the destination Masterlist</h3>
+          <p>Row 1 needs the full column header set, with period labels matching <code>config.json</code> exactly (e.g. rename every stale period header to your brand's actual comparison period). The script reads column order from this row — it won't reorder or rename anything for you.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">4</div>
+        <div class="body">
+          <h3>Dry-run, then commit</h3>
+          <p>Run with <code>--max-rows 500</code> first and read the terminal summary — row counts per source, match rates, anything sent to review. Once it looks right, run the full pipeline, then <code>build_dashboard.py</code>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Reading the output</h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Tab</th><th>What lands there</th></tr></thead>
+        <tbody>
+          <tr><td>Listing</td><td>The masterlist itself — one row per keyword, ~58 columns of SEO, SEM, volume, cost, and taxonomy data.</td></tr>
+          <tr><td>5 &lt; Cos &lt; 0.65</td><td>Borderline keyword-study matches. Mark <code>approved = YES</code> (optionally correct <code>manual_ks_match</code>) and re-run to fold them into the masterlist.</td></tr>
+          <tr><td>Cos &lt; .5</td><td>Unmatched keywords — no confident pairing was found. Same review-and-approve flow as above.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size: 14.5px; color: var(--muted);">A blank cell in the masterlist almost always means one source export is missing or a period label doesn't line up — it's rarely the matching logic. Check the troubleshooting table below before assuming the data itself is at fault.</p>
+  </section>
+
+  <section>
+    <h2>When it won't run</h2>
+    <div class="callout">
+      <span class="mark">!</span>
+      <p>The pipeline hard-stops rather than guessing. A missing source or a mismatched label produces an immediate <code>ERROR: '...' not found in source config sheet</code> — not a partial, best-effort masterlist.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr><td>ERROR: 'X' not found in source config sheet</td><td>That export's row is missing, or its label doesn't match exactly (e.g. <code>Account Level SQR Report</code> vs. <code>..._Q1</code>/<code>..._Q2</code>)</td><td>Add or rename the row in the <code>One Search</code> tab so the label matches what <code>run_pipeline.py</code> requires. If Ads only exports one period at a time, merge the two per-period tabs into a single tab with <code>Clicks</code>/<code>Clicks (Compare to)</code> style columns first.</td></tr>
+          <tr><td>ERROR: required column '...' not found in Masterlist headers</td><td>Row 1 of the destination sheet doesn't have a header matching the brand's period labels</td><td>Rename the header cells to match <code>config.json</code>'s <code>period.p1_label</code> / <code>p2_label</code> exactly.</td></tr>
+          <tr><td>Whole columns blank (volume, monthly search)</td><td>The keyword study export doesn't include the expected <code>Searches: &lt;Month&gt; &lt;Year&gt;</code> columns for the current period</td><td>Re-export the keyword study with monthly columns covering both comparison periods. Month labels use 3-letter abbreviations (<code>Apr</code>, <code>Jun</code>) — spelled-out month names won't match.</td></tr>
+          <tr><td>SEM comparison-period columns all zero</td><td>The Ads search-term report was only exported for one period</td><td>Re-export with the comparison period selected, or merge two separate per-period tabs into one before registering it.</td></tr>
+          <tr><td>Position / CPC / intent columns sparse</td><td>No SE Ranking export registered</td><td>Position falls back to GSC's average automatically; CPC and intent have no fallback — add an SE Ranking export to fill them.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <span>Full architecture reference: <code>one_search/README.md</code></span>
+    <span>Questions → whoever last ran a brand onboarding</span>
+  </footer>
+
+</div>
+</body>
+</html>

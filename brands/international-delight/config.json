@@ -1,0 +1,44 @@
+{
+  "_comment": "Period updated to Q2 2026 vs Q1 2026 (2026-08-18) to match the live source exports. Fields still marked TBD: brand color/accent (dashboard theming), Quality Report sheet, and GA4 Google Ads Sessions export (SEM QV) — intentionally left unset rather than guessed. See one_search/docs/export_requirements_international_delight.md.",
+
+  "client_name": "International Delight USA",
+  "client_handle": "international-delight",
+  "lang": "EN",
+
+  "brand": {
+    "color": "TBD",
+    "accent_color": "TBD",
+    "light_bg": "TBD",
+    "regex_default": "international delight",
+    "regex_sheet_id": "1o526Qv4UzP_Qfe-cjrfvcA7jRUi6zUtd9Ecp2WPMIhQ",
+    "regex_sheet_tab": "DANONE USA - Overview",
+    "regex_sheet_name_col": "International Delight"
+  },
+
+  "period": {
+    "p1_label": "Q2 2026",
+    "p2_label": "Q1 2026",
+    "display": "Q2 2026 vs Q1 2026",
+    "gsc_p1_prefix": "4/1/26 - 6/30/26",
+    "gsc_p2_prefix": "1/1/26 - 3/31/26",
+    "se_months_p1": ["2026-04-01", "2026-05-01", "2026-06-01"],
+    "se_months_p2": ["2026-01-01", "2026-02-01", "2026-03-01"],
+    "se_api_source": "us"
+  },
+
+  "sheets": {
+    "ref_id": "1o526Qv4UzP_Qfe-cjrfvcA7jRUi6zUtd9Ecp2WPMIhQ",
+    "ref_tab": "INTERNATIONAL DELIGHT",
+    "ref_client": "INTERNATIONAL DELIGHT",
+    "master_id": "1bVEwAdCn4NoAfsdN__hm4LO6lhGEnRE-aMH_WS3Jo14",
+    "master_tab": "Listing",
+    "qs_sheet_id": "TBD",
+    "qs_sheet_tab": "TBD",
+    "ga4_ads_file_id": "TBD",
+    "ga4_ads_tab": null
+  },
+
+  "conn_intent_exclusions": [
+    "login", "website", "my account"
+  ]
+}

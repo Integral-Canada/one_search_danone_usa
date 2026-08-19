@@ -95,6 +95,12 @@ def _patch_module(brand_key: str, cfg: dict) -> None:
     _bh.SPEND_P4 = [f'Spent SEM {_bh.PERIOD_P4}', f'Dépense SEM {_bh.PERIOD_P4}',
                     f'Spend SEM {_bh.PERIOD_P4}',  f'Cost SEM {_bh.PERIOD_P4}']
 
+    # SEM conversions (QV SEM) are only real once a GA4 Ads Sessions export is
+    # configured for this brand — otherwise the column is genuinely unmeasured,
+    # not zero. Narrative text must say so instead of reading it as a real zero.
+    ga4_ads_id = sheets_cfg.get('ga4_ads_file_id')
+    _bh.SEM_CONV_MEASURED = bool(ga4_ads_id) and str(ga4_ads_id).strip().upper() != 'TBD'
+
     # ── Shared API helpers → use pipeline.utils ───────────────────────────────
     _bh.load_env   = load_env
     _bh.get_token  = get_token

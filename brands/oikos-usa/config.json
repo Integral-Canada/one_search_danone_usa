@@ -26,12 +26,13 @@
 
   "sheets": {
     "ref_id": "1o526Qv4UzP_Qfe-cjrfvcA7jRUi6zUtd9Ecp2WPMIhQ",
-    "ref_tab": "One Search ",
+    "ref_tab": "OIKOS",
+    "ref_client": "OIKOS",
     "master_id": "1W73Lzli30z4GnO_WtLjs0hWOdPcEZw1jptXKG8exKoU",
     "master_tab": "Listing",
     "qs_sheet_id": "1RDgH021qO2VLIOIxBuq0_R7COVXTAHrScYsx6R1xvRc",
     "qs_sheet_tab": "OIKOS",
-    "ga4_ads_file_id": null,
+    "ga4_ads_file_id": "1Z6QO82Gc3itROgnvqhBP2aoGTf4pIO0WLD-Kkbofb1w",
     "ga4_ads_tab": null
   },
 

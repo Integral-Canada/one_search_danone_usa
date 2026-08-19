@@ -14,6 +14,7 @@ Usage:
 import argparse
 import datetime
 import os
+import re
 import sys
 
 # ── Ensure pipeline/ is importable ───────────────────────────────────────────
@@ -22,7 +23,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from pipeline.utils import (
     load_brand_config, load_env, get_token,
     sheets_get, sheets_batch_update, sheets_clear,
-    col_letter,
+    col_letter, ensure_tab_exists,
 )
 from pipeline.normalize import normalize, clean_num
 from pipeline.ingest import norm_gsc, norm_sqr, norm_se, norm_ks
@@ -40,20 +41,35 @@ DEFAULT_BRAND = 'oikos-usa'
 
 # ── Source config reading ──────────────────────────────────────────────────────
 
-def read_source_config(token: str, ref_id: str, ref_tab: str) -> dict:
+def read_source_config(token: str, ref_id: str, ref_tab: str, client: str = None) -> dict:
     """Read the source-config sheet (Client / Export / Doc ID / Sheet Tab / URL).
     Returns {export_label: {doc_id, sheet_tab}}.
+
+    Column A (Client) is only filled in on the first row of each brand's block —
+    subsequent rows leave it blank and inherit the same client. This forward-fills
+    that column, then keeps only rows belonging to `client` (case-insensitive,
+    stripped). Without this filter, multiple brands sharing export labels like
+    "GSC Export" or "Keyword study" would collide in one dict and silently return
+    whichever brand's block appears last in the sheet — passing `client` is
+    required for any registry with more than one brand's rows in it.
     """
     raw = sheets_get(token, ref_id, f"'{ref_tab}'!A:E")
     if not raw:
         return {}
     config = {}
+    current_client = ''
+    want = client.strip().casefold() if client else None
     for row in raw[1:]:  # skip header
         if len(row) < 3:
             continue
+        cell_client = str(row[0]).strip() if len(row) > 0 else ''
+        if cell_client:
+            current_client = cell_client
         label   = str(row[1]).strip() if len(row) > 1 else ''
         doc_id  = str(row[2]).strip() if len(row) > 2 else ''
         tab     = str(row[3]).strip() if len(row) > 3 else ''
+        if want is not None and current_client.strip().casefold() != want:
+            continue
         if label and doc_id:
             config[label] = {'doc_id': doc_id, 'sheet_tab': tab}
     return config
@@ -106,6 +122,7 @@ def _run(brand_key: str, max_rows=None) -> None:
     sheets_cfg       = cfg.get('sheets', {})
     ref_id           = sheets_cfg['ref_id']
     ref_tab          = sheets_cfg['ref_tab']
+    ref_client       = sheets_cfg.get('ref_client')
     master_id        = sheets_cfg['master_id']
     master_tab       = sheets_cfg['master_tab']
     kw_review_border = cfg.get('kw_review_border_tab', '5 < Cos < 0.65')
@@ -125,18 +142,7 @@ def _run(brand_key: str, max_rows=None) -> None:
     conn_excl_list    = cfg.get('conn_intent_exclusions', [])
     conn_intent_excl  = frozenset(conn_excl_list)
 
-    # ARRAYFORMULAS — dynamic from master_tab
-    T = master_tab
-    arrayformulas = [
-        (f"'{T}'!J2",  f'=ARRAYFORMULA(IF(B2:B="","",IF(G2:G=0,"",L2:L/G2:G)))'),
-        (f"'{T}'!K2",  f'=ARRAYFORMULA(IF(B2:B="","",IF(G2:G=0,"",N2:N/G2:G)))'),
-        (f"'{T}'!AI2", f'=ARRAYFORMULA(IF(ISBLANK(AF2:AF),"",AF2:AF*P2:P))'),
-        (f"'{T}'!AK2", f'=ARRAYFORMULA(IF(ISBLANK(AF2:AF),"",AF2:AF*R2:R))'),
-    ]
-    formula_col_ranges = {
-        f"'{T}'!J2:J", f"'{T}'!K2:K",
-        f"'{T}'!AI2:AI", f"'{T}'!AK2:AK",
-    }
+    T = master_tab  # ARRAYFORMULA cells resolved dynamically once master_hdr is read (below)
 
     # ── Log file setup ────────────────────────────────────────────────────────
     log_dir  = os.path.join(os.path.dirname(__file__), 'logs')
@@ -178,7 +184,14 @@ def _run(brand_key: str, max_rows=None) -> None:
 
     # ── Source config ─────────────────────────────────────────────────────────
     print('\nReading source config…', flush=True)
-    source_config = read_source_config(token, ref_id, ref_tab)
+    if not ref_client:
+        sys.exit(
+            "ERROR: 'ref_client' is missing from brands/[handle]/config.json 'sheets' block.\n"
+            "This registry sheet has more than one brand's rows in it — without an exact "
+            "match to column A (Client) in the 'One Search' tab, exports would resolve to "
+            "whichever brand's block happens to appear last in the sheet."
+        )
+    source_config = read_source_config(token, ref_id, ref_tab, client=ref_client)
     for label, src in source_config.items():
         print(f'  [{label}]  doc={src["doc_id"][:22]}…  tab={src["sheet_tab"]!r}', flush=True)
 
@@ -249,7 +262,8 @@ def _run(brand_key: str, max_rows=None) -> None:
     se_norm = norm_se(se_raw)
     print(f'  SE:  {len(se_norm)}/{len(se_raw)} kept (pos ≤ 100)', flush=True)
 
-    ks_norm = norm_ks(ks_raw, se_months=se_months if se_months else None)
+    ks_norm = norm_ks(ks_raw, se_months=se_months if se_months else None,
+                       taxonomy_tags=cfg.get('taxonomy_tags'))
     print(f'  KS:  {len(ks_norm)}/{len(ks_raw)} kept', flush=True)
 
     # ── Connection-intent filter ──────────────────────────────────────────────
@@ -272,7 +286,7 @@ def _run(brand_key: str, max_rows=None) -> None:
     print(f'  Unified: {len(unified)} rows  (GSC-only: {gsc_only}, '
           f'SQR-only: {sqr_only}, Both: {both_})', flush=True)
 
-    base = format_base_rows(unified)
+    base = format_base_rows(unified, p1_label=p1_label, p2_label=p2_label)
 
     # ── Trigram index ─────────────────────────────────────────────────────────
     print('\nBuilding trigram index…', flush=True)
@@ -281,13 +295,19 @@ def _run(brand_key: str, max_rows=None) -> None:
 
     # ── Match SE Ranking ──────────────────────────────────────────────────────
     print('\nMatching SE Ranking (threshold=0.60)…', flush=True)
-    se_matches = match_se_keywords(se_norm, index)
+    se_matches = match_se_keywords(se_norm, index, p1_label=p1_label)
     print(f'  SE matches: {len(se_matches)}', flush=True)
     se_by_kw = {m['Keyword']: m for m in se_matches}
 
     # ── Match Keyword Study ───────────────────────────────────────────────────
     print('Matching Keyword Study (threshold=0.65)…', flush=True)
-    high_conf, review = match_ks_keywords(ks_norm, index, unified)
+    high_conf, review = match_ks_keywords(
+        ks_norm, index, unified,
+        p1_label=p1_label, p2_label=p2_label,
+        se_months_p1=period_cfg.get('se_months_p1'),
+        se_months_p2=period_cfg.get('se_months_p2'),
+        taxonomy_tags=cfg.get('taxonomy_tags'),
+    )
     print(f'  KS auto-matched: {len(high_conf)}  for review: {len(review)}', flush=True)
     ks_by_kw = {m['Keyword']: m for m in high_conf}
 
@@ -369,14 +389,23 @@ def _run(brand_key: str, max_rows=None) -> None:
                 if seo:
                     merged_rows[i][conv_col] = round(seo / total_seo * page_events, 4)
 
+    # Column ownership: Conversions SEM P1 (col AC) is exclusively owned by
+    # sem_qv.run_sem_qv() (Thomas's QV-SEM LP-attribution methodology) whenever
+    # GA4 Ads data is configured for this brand — it overwrites this column
+    # unconditionally later in this run. Writing the offline-store proxy here
+    # too would just be silently discarded, and misreports the pre-overwrite
+    # "hit count" below. Only fall back to the proxy when GA4 Ads QV SEM isn't
+    # configured, so the column isn't left completely blank.
+    has_qv_sem = bool(sheets_cfg.get('ga4_ads_file_id'))
     _distribute_conversions(checkout_map, f'Conversions SEO {p1_label}')
-    _distribute_conversions(offline_map, f'Conversions SEM {p1_label}')
+    if not has_qv_sem:
+        _distribute_conversions(offline_map, f'Conversions SEM {p1_label}')
     _distribute_conversions(checkout_q4_map, f'Conversions SEO {p2_label}')
     _distribute_conversions(offline_q4_map, f'Conversions SEM {p2_label}')
 
     conv_seo = sum(1 for r in merged_rows if r.get(f'Conversions SEO {p1_label}'))
-    conv_sem = sum(1 for r in merged_rows if r.get(f'Conversions SEM {p1_label}'))
-    print(f'  Conversion hits — SEO: {conv_seo}  SEM (proxy): {conv_sem}', flush=True)
+    sem_p1_note = 'owned by sem_qv.py (written below)' if has_qv_sem else 'SEM proxy (no GA4 Ads configured)'
+    print(f'  Conversion hits — SEO: {conv_seo}  |  Conversions SEM P1: {sem_p1_note}', flush=True)
 
     # ── Build row values aligned to Masterlist headers ────────────────────────
     print('\nReading Masterlist headers…', flush=True)
@@ -384,7 +413,6 @@ def _run(brand_key: str, max_rows=None) -> None:
     if not master_hdr_raw:
         sys.exit(f"ERROR: Could not read Masterlist '{master_tab}' headers")
 
-    import re  # already imported above but ensure it's available here
     master_hdr = [str(h) for h in master_hdr_raw[0]]
 
     # Apply header corrections (fix outdated year labels)
@@ -404,6 +432,53 @@ def _run(brand_key: str, max_rows=None) -> None:
     for pipeline_key, sheet_col in column_aliases.items():
         if sheet_col in master_hdr:
             alias_lookup[pipeline_key] = sheet_col
+
+    # ── Resolve ARRAYFORMULA target + input columns by header name, not literal
+    # letters. A column inserted anywhere in the Masterlist would silently break
+    # formulas that hardcode "J", "AF", etc. — resolving by name survives that.
+    def _hdr_letter(name: str, required: bool = True):
+        aliased = alias_lookup.get(name, name)
+        if aliased in master_hdr:
+            return col_letter(master_hdr.index(aliased) + 1)
+        if required:
+            sys.exit(f"ERROR: required column '{name}' not found in Masterlist headers "
+                      f"— cannot build ARRAYFORMULA cells")
+        return None
+
+    kw_col     = _hdr_letter('Keyword')
+    vol_col    = _hdr_letter('Average Search Volume')
+    os_p1_col  = _hdr_letter(f'Clics OneSearch {p1_label}')
+    os_p2_col  = _hdr_letter(f'Clics OneSearch {p2_label}')
+    cpc_col    = _hdr_letter(f'CPC SEO {p1_label}')
+    seo_p1_col = _hdr_letter(f'Clics SEO {p1_label}')
+    seo_p2_col = _hdr_letter(f'Clics SEO {p2_label}')
+    cov_p1_col = _hdr_letter(f'Coverage One Search {p1_label}', required=False)
+    cov_p2_col = _hdr_letter(f'Coverage One Search {p2_label}', required=False)
+    cost_p1_col = _hdr_letter(f'Cost SEO {p1_label}', required=False)
+    cost_p2_col = _hdr_letter(f'Cost SEO {p2_label}', required=False)
+
+    arrayformulas = []
+    formula_col_ranges = set()
+    if cov_p1_col:
+        arrayformulas.append((f"'{T}'!{cov_p1_col}2",
+            f'=ARRAYFORMULA(IF({kw_col}2:{kw_col}="","",IF({vol_col}2:{vol_col}=0,"",'
+            f'{os_p1_col}2:{os_p1_col}/{vol_col}2:{vol_col})))'))
+        formula_col_ranges.add(f"'{T}'!{cov_p1_col}2:{cov_p1_col}")
+    if cov_p2_col:
+        arrayformulas.append((f"'{T}'!{cov_p2_col}2",
+            f'=ARRAYFORMULA(IF({kw_col}2:{kw_col}="","",IF({vol_col}2:{vol_col}=0,"",'
+            f'{os_p2_col}2:{os_p2_col}/{vol_col}2:{vol_col})))'))
+        formula_col_ranges.add(f"'{T}'!{cov_p2_col}2:{cov_p2_col}")
+    if cost_p1_col:
+        arrayformulas.append((f"'{T}'!{cost_p1_col}2",
+            f'=ARRAYFORMULA(IF(ISBLANK({cpc_col}2:{cpc_col}),"",{cpc_col}2:{cpc_col}*{seo_p1_col}2:{seo_p1_col}))'))
+        formula_col_ranges.add(f"'{T}'!{cost_p1_col}2:{cost_p1_col}")
+    if cost_p2_col:
+        arrayformulas.append((f"'{T}'!{cost_p2_col}2",
+            f'=ARRAYFORMULA(IF(ISBLANK({cpc_col}2:{cpc_col}),"",{cpc_col}2:{cpc_col}*{seo_p2_col}2:{seo_p2_col}))'))
+        formula_col_ranges.add(f"'{T}'!{cost_p2_col}2:{cost_p2_col}")
+    if not arrayformulas:
+        print('  WARNING: no Coverage/Cost columns found — skipping ARRAYFORMULA cells', flush=True)
 
     def build_row(row_dict: dict) -> list:
         out = []
@@ -446,6 +521,11 @@ def _run(brand_key: str, max_rows=None) -> None:
     def write_review_tab(tab_name: str, rows: list) -> None:
         if not rows:
             return
+        gid = ensure_tab_exists(token, master_id, tab_name)
+        _, cur_rows = get_sheet_gid(token, master_id, tab_name)
+        needed = len(rows) + 50
+        if needed > cur_rows:
+            expand_sheet_rows(token, master_id, gid, needed - cur_rows)
         sheets_clear(token, master_id, f"'{tab_name}'!A2:ZZ")
         hdr_raw = sheets_get(token, master_id, f"'{tab_name}'!1:1")
         if not hdr_raw or not hdr_raw[0]:
@@ -533,5 +613,4 @@ def _list_brands() -> list:
 
 
 if __name__ == '__main__':
-    import re  # ensure re is in scope for the top-level run
     main()

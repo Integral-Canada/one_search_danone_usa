@@ -28,12 +28,14 @@ ACCENT_CLR  = '#1a7aad'    # lighter accent
 LIGHT_BG    = '#f0f6fb'    # very light blue background
 PERIOD_P1   = 'Q1 2026'
 PERIOD_P4   = 'Q4 2025'
+SEM_CONV_MEASURED = True  # False when this brand has no GA4 Ads Sessions export configured —
+                          # in that case Conversions SEM is unmeasured, not a real zero.
 TERRITORY_COLORS = [
     '#1565c0', '#2e7d32', '#e65100', '#6a1b9a',
     '#0277bd', '#558b2f', '#c62828', '#4527a0',
     '#00695c', '#f57f17', '#37474f', '#00838f',
 ]
-TEMPLATE    = os.path.join(os.path.dirname(__file__), 'reference',
+TEMPLATE    = os.path.join(os.path.dirname(__file__), '..', 'examples',
                             'activia_ca_onesearch_dashboard.html')
 OUTPUT_DIR  = os.path.join(os.path.dirname(__file__), 'one_search_html')
 OUTPUT_FILE = os.path.join(OUTPUT_DIR, 'oikos_usa_onesearch_dashboard.html')
@@ -815,7 +817,9 @@ def _q1_sem_bullets(topic, s):
         d = (s['sem_clicks_q1'] - s['sem_clicks_q4']) / s['sem_clicks_q4'] * 100
         sign = '+' if d >= 0 else ''
         items.append(f'Paid clicks {sign}{d:.0f}% QoQ vs {PERIOD_P4}')
-    if s['conv_sem_q1'] > 0:
+    if not SEM_CONV_MEASURED:
+        items.append('SEM conversions not yet measured — Google Ads Sessions export pending for this brand')
+    elif s['conv_sem_q1'] > 0:
         items.append(f'{s["conv_sem_q1"]:.0f} MikMak Click Offline Store conversions in {PERIOD_P1}')
     top_sem = sorted(s['top_kws'], key=lambda x: x['sem_q1'], reverse=True)
     if top_sem and top_sem[0]['sem_q1'] > 0:
@@ -867,7 +871,9 @@ def _q2_sem_bullets(topic, s):
             items.append(f'Untapped paid opportunity — {_fmt_num(s["avg_volume"])} monthly searches, '
                          f'{_fmt_pct(cov)} organic coverage only')
         items.append(f'Evaluate first paid entry into {topic.lower()} for Q2')
-    if s['conv_sem_q1'] == 0 and s['spend_q1'] > 0:
+    if not SEM_CONV_MEASURED and s['spend_q1'] > 0:
+        items.append('SEM conversions not yet measured for this brand — add before evaluating Q2 budget changes')
+    elif s['conv_sem_q1'] == 0 and s['spend_q1'] > 0:
         items.append('No conversions tracked in Q1 — verify tagging before scaling Q2 budgets')
     items.append('Align Q2 ad groups with top-converting search terms from Q1 learnings')
     return items

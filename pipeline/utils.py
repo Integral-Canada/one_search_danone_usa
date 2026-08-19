@@ -83,18 +83,26 @@ def load_env(env_file: str = None) -> dict:
 
 # ── Google OAuth2 token ───────────────────────────────────────────────────────
 
+_SHEETS_SCOPE = 'https://www.googleapis.com/auth/spreadsheets'
+
+
 def get_token(env: dict) -> str:
     """Exchange refresh token for a short-lived access token."""
-    # Prefer token file (handles expiry + refresh automatically) if available
+    # Prefer token file (handles expiry + refresh automatically) if available —
+    # but only if it's actually scoped for Sheets. GOOGLE_TOKEN_FILE is shared
+    # with other automations (e.g. a Gmail-send-only token) that would otherwise
+    # be silently used here and fail every Sheets call with HTTP 403.
     token_file = env.get('GOOGLE_TOKEN_FILE')
     if token_file and os.path.exists(token_file):
         try:
             from google.oauth2.credentials import Credentials
             from google.auth.transport.requests import Request
             creds = Credentials.from_authorized_user_file(token_file)
-            if not creds.valid and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
-            return creds.token
+            if _SHEETS_SCOPE in (creds.scopes or []):
+                if not creds.valid and creds.expired and creds.refresh_token:
+                    creds.refresh(Request())
+                return creds.token
+            # Wrong scope — fall through to manual refresh below
         except ImportError:
             pass  # fall through to manual refresh below
 
@@ -166,6 +174,29 @@ def sheets_clear(token: str, sheet_id: str, range_: str) -> None:
         'Content-Type': 'application/json',
     })
     urllib.request.urlopen(req, timeout=60)
+
+
+def ensure_tab_exists(token: str, sheet_id: str, tab_name: str) -> int:
+    """Return the tab's sheetId (gid), creating the tab first if it doesn't exist yet.
+
+    New brands' Masterlists are often set up with only the Listing tab present —
+    the KW Review tabs (e.g. '5 < Cos < 0.65', 'Cos < .5') get added on first run
+    rather than requiring manual pre-setup per brand.
+    """
+    url = f'https://sheets.googleapis.com/v4/spreadsheets/{sheet_id}?fields=sheets.properties'
+    req = urllib.request.Request(url, headers={'Authorization': f'Bearer {token}'})
+    meta = json.loads(urllib.request.urlopen(req, timeout=30).read())
+    for s in meta['sheets']:
+        if s['properties']['title'] == tab_name:
+            return s['properties']['sheetId']
+
+    body = json.dumps({'requests': [{'addSheet': {'properties': {'title': tab_name}}}]}).encode()
+    req2 = urllib.request.Request(
+        f'https://sheets.googleapis.com/v4/spreadsheets/{sheet_id}:batchUpdate',
+        data=body, headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
+    )
+    resp = json.loads(urllib.request.urlopen(req2, timeout=30).read())
+    return resp['replies'][0]['addSheet']['properties']['sheetId']
 
 
 # ── Column utilities ──────────────────────────────────────────────────────────

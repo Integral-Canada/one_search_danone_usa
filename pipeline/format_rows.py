@@ -5,7 +5,14 @@ def _f(v):
     return '' if (v is None or v == 0) else v
 
 
-def format_base_rows(unified: list) -> list:
+def format_base_rows(unified: list, p1_label: str = 'Q1 2026', p2_label: str = 'Q4 2025') -> list:
+    """p1_label/p2_label default to the original Oikos period for backward
+    compatibility. Pass a brand's actual period.p1_label/p2_label so the output
+    keys line up with that brand's Masterlist headers — without this, a brand
+    on a different period (e.g. Q2 2026 vs Q1 2026) would have its P1 (current)
+    data written under a key like 'Clics SEO Q1 2026' that happens to collide
+    with its OWN P2 (comparison) column, silently swapping the two periods.
+    """
     out = []
     for r in unified:
         gC1  = r.get('gsc_clicks_p1') or 0
@@ -26,25 +33,25 @@ def format_base_rows(unified: list) -> list:
             return round(cost / clicks * 100) / 100 if clicks > 0 else ''
 
         out.append({
-            'Keyword':                          r.get('query') or r.get('search_term') or r.get('unified_key'),
-            'Clics OneSearch Q1 2026':          _f(gC1 + sC1),
-            'Impressions OneSearch Q1 2026':    _f(gI1 + sI1),
-            'Clics OneSearch Q4 2025':          _f(gC2 + sC2),
-            'Impressions OneSearch Q4 2025':    _f(gI2 + sI2),
-            'Clics SEO Q1 2026':                _f(gC1),
-            'Clics SEM Q1 2026':                _f(sC1),
-            'Clics SEO Q4 2025':                _f(gC2),
-            'Clics SEM Q4 2025':                _f(sC2),
-            'Impr. SEO Q1 2026':                _f(gI1),
-            'Impr. SEM Q1 2026':                _f(sI1),
-            'Impr. SEO Q4 2025':                _f(gI2),
-            'Impr. SEM Q4 2025':                _f(sI2),
-            'CTR SEO Q1 2026':                  pct(gC1, gI1),
-            'CTR SEM Q1 2026':                  pct(sC1, sI1),
-            'CTR SEO Q4 2025':                  pct(gC2, gI2),
-            'CTR SEM Q4 2025':                  pct(sC2, sI2),
-            'CPC avg. SEM Q1 2026':             avg(sCo1, sC1),
-            'Spent SEM Q1 2026':                _f(sCo1),
-            'Spent SEM Q4 2025':                _f(sCo2),
+            'Keyword':                                    r.get('query') or r.get('search_term') or r.get('unified_key'),
+            f'Clics OneSearch {p1_label}':                _f(gC1 + sC1),
+            f'Impressions OneSearch {p1_label}':          _f(gI1 + sI1),
+            f'Clics OneSearch {p2_label}':                _f(gC2 + sC2),
+            f'Impressions OneSearch {p2_label}':          _f(gI2 + sI2),
+            f'Clics SEO {p1_label}':                      _f(gC1),
+            f'Clics SEM {p1_label}':                      _f(sC1),
+            f'Clics SEO {p2_label}':                      _f(gC2),
+            f'Clics SEM {p2_label}':                      _f(sC2),
+            f'Impr. SEO {p1_label}':                      _f(gI1),
+            f'Impr. SEM {p1_label}':                      _f(sI1),
+            f'Impr. SEO {p2_label}':                      _f(gI2),
+            f'Impr. SEM {p2_label}':                      _f(sI2),
+            f'CTR SEO {p1_label}':                        pct(gC1, gI1),
+            f'CTR SEM {p1_label}':                        pct(sC1, sI1),
+            f'CTR SEO {p2_label}':                        pct(gC2, gI2),
+            f'CTR SEM {p2_label}':                        pct(sC2, sI2),
+            f'CPC avg. SEM {p1_label}':                   avg(sCo1, sC1),
+            f'Spent SEM {p1_label}':                      _f(sCo1),
+            f'Spent SEM {p2_label}':                      _f(sCo2),
         })
     return out

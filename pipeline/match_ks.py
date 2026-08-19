@@ -8,10 +8,31 @@ Performance: pre-filter drops KS keywords with zero shared trigrams (lossless).
 Top-50 candidate cap bounds Jaccard calls per KS keyword.
 """
 from .trigram import trigrams_arr, jaccard
+from .ingest import _se_month_label, _DEFAULT_TAXONOMY_TAGS
 
 
 def match_ks_keywords(ks_rows: list, index: dict, unified: list,
-                      high_conf_threshold: float = 0.65) -> tuple:
+                      high_conf_threshold: float = 0.65,
+                      p1_label: str = 'Q1 2026', p2_label: str = 'Q4 2025',
+                      se_months_p1: list = None, se_months_p2: list = None,
+                      taxonomy_tags: list = None) -> tuple:
+    """
+    p1_label/p2_label and se_months_p1/p2 default to the original Oikos period
+    (Jan/Feb/Mar 2026 vs Oct/Nov/Dec 2025) for backward compatibility. Pass a
+    brand's actual period config so 'Volume {label}' and the monthly
+    'Searches: <Month> <Year>' columns line up with that brand's Masterlist headers.
+
+    taxonomy_tags: same list passed to ingest.norm_ks() for this run — must match
+    so the dimension names read from `ks` here are the ones actually present.
+    """
+    if se_months_p1 is None:
+        se_months_p1 = ['2026-01-01', '2026-02-01', '2026-03-01']
+    if se_months_p2 is None:
+        se_months_p2 = ['2025-10-01', '2025-11-01', '2025-12-01']
+    if taxonomy_tags is None:
+        taxonomy_tags = _DEFAULT_TAXONOMY_TAGS
+    p1_month_labels = [_se_month_label(d) for d in se_months_p1]
+    p2_month_labels = [_se_month_label(d) for d in se_months_p2]
     u_keys    = index['uKeys']
     u_display = index['uDisplay']
     u_tg      = index['uTg']
@@ -45,6 +66,11 @@ def match_ks_keywords(ks_rows: list, index: dict, unified: list,
 
         if bi >= 0:
             k = u_keys[bi]
+            # Tie-break rule: strictly-greater comparison means on an exact-score tie
+            # for the same unified row, the FIRST KS keyword encountered (in ks_rows
+            # iteration order) wins and later ties are discarded. Deterministic given
+            # a fixed ks_rows order, but that order is whatever the Keyword Study sheet
+            # returned — not guaranteed stable if the sheet is re-sorted.
             if k not in best_ks or bs > best_ks[k]['sim']:
                 best_ks[k] = {'ks': ks, 'sim': bs}
 
@@ -59,40 +85,23 @@ def match_ks_keywords(ks_rows: list, index: dict, unified: list,
 
         if match and match['sim'] >= high_conf_threshold:
             ks = match['ks']
-            vol_p1 = (float(ks.get('Searches: Jan 2026') or 0)
-                    + float(ks.get('Searches: Feb 2026') or 0)
-                    + float(ks.get('Searches: Mar 2026') or 0))
-            vol_p2 = (float(ks.get('Searches: Oct 2025') or 0)
-                    + float(ks.get('Searches: Nov 2025') or 0)
-                    + float(ks.get('Searches: Dec 2025') or 0))
-            high_conf.append({
+            vol_p1 = sum(float(ks.get(lbl) or 0) for lbl in p1_month_labels)
+            vol_p2 = sum(float(ks.get(lbl) or 0) for lbl in p2_month_labels)
+            row_out = {
                 'Keyword':        kw,
                 '_ks_avg_vol':    ks.get('avg_monthly_searches') or 0,
                 'LANG':           ks.get('lang')         or '',
                 'TOPICS':         ks.get('topic')        or '',
                 'CATEGORY':       ks.get('category')     or '',
                 'SUB-CATEGORY':   ks.get('sub_category') or '',
-                'Volume Q1 2026': vol_p1 or '',
-                'Volume Q4 2025': vol_p2 or '',
-                'Yogurt types':   ks.get('Yogurt types')       or '',
-                'Taste':          ks.get('Taste')              or '',
-                'Packaging':      ks.get('Packaging')          or '',
-                'Ingredient':     ks.get('Ingredient')         or '',
-                'Brands':         ks.get('Brands')             or '',
-                'Retailer':       ks.get('Retailer')           or '',
-                'Demography':     ks.get('Demography')         or '',
-                'Benefits':       ks.get('Benefits')           or '',
-                'Testimonials':   ks.get('Testimonials')       or '',
-                'Bio':            ks.get('Bio')                or '',
-                'Moments':        ks.get('Moments')            or '',
-                'Recipes':        ks.get('Recipes')            or '',
-                'Searches: Oct 2025': f(ks.get('Searches: Oct 2025')),
-                'Searches: Nov 2025': f(ks.get('Searches: Nov 2025')),
-                'Searches: Dec 2025': f(ks.get('Searches: Dec 2025')),
-                'Searches: Jan 2026': f(ks.get('Searches: Jan 2026')),
-                'Searches: Feb 2026': f(ks.get('Searches: Feb 2026')),
-                'Searches: Mar 2026': f(ks.get('Searches: Mar 2026')),
-            })
+                f'Volume {p1_label}': vol_p1 or '',
+                f'Volume {p2_label}': vol_p2 or '',
+            }
+            for tag in taxonomy_tags:
+                row_out[tag] = ks.get(tag) or ''
+            for lbl in p2_month_labels + p1_month_labels:
+                row_out[lbl] = f(ks.get(lbl))
+            high_conf.append(row_out)
         else:
             source = 'borderline' if (match and match['sim'] >= 0.50) else 'unmatched'
             review.append({

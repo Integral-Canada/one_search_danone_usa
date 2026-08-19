@@ -165,6 +165,7 @@ def tag_sem_recommendations(
     seo_cov_threshold: float = 0.10,
     seo_pos_threshold: int = 5,
     competitor_blocklist: set = None,
+    p1_label: str = 'Q1 2026',
 ) -> list:
     """Tag BRAND keywords with Exclude / Keep-Active / Keep-Test.
 
@@ -192,8 +193,8 @@ def tag_sem_recommendations(
             continue
 
         # OneSearch coverage = (SEO clicks + SEM clicks) / volume  [Issue 2 fix]
-        seo_clicks = clean_num(row.get('Clics SEO Q1 2026', 0))
-        sem_clicks = clean_num(row.get('Clics SEM Q1 2026', 0))
+        seo_clicks = clean_num(row.get(f'Clics SEO {p1_label}', 0))
+        sem_clicks = clean_num(row.get(f'Clics SEM {p1_label}', 0))
         volume     = clean_num(row.get('Average Search Volume', 0))
         os_cov     = (seo_clicks + sem_clicks) / volume if volume > 0 else 0.0
 
@@ -333,7 +334,7 @@ def run_sem_qv(token: str, cfg: dict) -> None:
     seo_pos_threshold = int(sem_qv_cfg.get('seo_pos_threshold', 5))
     competitor_blocklist = set(sem_qv_cfg.get('competitor_blocklist', []))
 
-    if not ga4_file_id:
+    if not ga4_file_id or str(ga4_file_id).strip().upper() == 'TBD':
         print("  SEM QV: GA4 Ads file ID not configured — skipping QV SEM calculation.\n"
               "  Add 'ga4_ads_file_id' to brands/[handle]/config.json to enable.",
               flush=True)
@@ -365,6 +366,7 @@ def run_sem_qv(token: str, cfg: dict) -> None:
         seo_cov_threshold=seo_cov_threshold,
         seo_pos_threshold=seo_pos_threshold,
         competitor_blocklist=competitor_blocklist,
+        p1_label=p1_label,
     )
 
     # Step 5: Write results

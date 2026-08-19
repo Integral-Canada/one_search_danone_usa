@@ -127,19 +127,35 @@ def _se_month_label(iso_date: str) -> str:
     return f"Searches: {_MONTH_ABBR.get(parts[1], parts[1])} {parts[0]}"
 
 
-def norm_ks(rows: list, se_months: list = None) -> list:
+_DEFAULT_TAXONOMY_TAGS = [
+    'Questions', 'Yogurt types', 'Taste', 'Packaging', 'Ingredient',
+    'Brands', 'Retailer', 'Demography', 'Benefits', 'Testimonials',
+    'Bio', 'Moments', 'Recipes',
+]
+
+
+def norm_ks(rows: list, se_months: list = None, taxonomy_tags: list = None) -> list:
     """Normalize Keyword Study rows.
 
     se_months: list of ISO date strings for all reporting months in order
     (both periods combined), e.g. ['2025-10-01', ..., '2026-03-01'].
     Generated from config['period']['se_months_p2'] + config['period']['se_months_p1'].
     Falls back to Oikos Q1/Q4 2025-2026 defaults if not supplied.
+
+    taxonomy_tags: list of taxonomy dimension column names to read from the KS
+    sheet (e.g. config['taxonomy_tags']). Falls back to Oikos's yogurt-specific
+    dimension set if not supplied — pass the brand's own list so dimensions
+    that don't apply to that brand (e.g. 'Yogurt types' for a coffee-creamer
+    brand) aren't silently expected, and so the brand's real dimensions
+    (whatever they're called) actually get read.
     """
     if se_months is None:
         se_months = [
             '2025-10-01', '2025-11-01', '2025-12-01',
             '2026-01-01', '2026-02-01', '2026-03-01',
         ]
+    if taxonomy_tags is None:
+        taxonomy_tags = _DEFAULT_TAXONOMY_TAGS
 
     month_labels = [_se_month_label(d) for d in se_months]
 
@@ -157,19 +173,10 @@ def norm_ks(rows: list, se_months: list = None) -> list:
             'topic':        topic,
             'category':     j.get('CATEGORY')     or '',
             'sub_category': j.get('SUB-CATEGORY') or '',
-            'Yogurt types': j.get('Yogurt types') or '',
-            'Taste':        j.get('Taste')        or '',
-            'Packaging':    j.get('Packaging')    or '',
-            'Ingredient':   j.get('Ingredient')   or '',
-            'Brands':       j.get('Brand') or j.get('Brands') or '',
-            'Retailer':     j.get('Retailer')     or '',
-            'Demography':   j.get('Demography')   or '',
-            'Benefits':     j.get('Benefits')     or '',
-            'Testimonials': j.get('Testimonials') or '',
-            'Bio':          j.get('Bio')          or '',
-            'Moments':      j.get('Moments')      or '',
-            'Recipes':      j.get('Recipes')      or '',
         }
+        for tag in taxonomy_tags:
+            # 'Brand' (singular) is a common real-world alias for 'Brands'
+            record[tag] = j.get(tag) or (j.get('Brand') if tag == 'Brands' else None) or ''
         for label in month_labels:
             record[label] = j.get(label) or ''
         out.append(record)
@@ -178,29 +185,40 @@ def norm_ks(rows: list, se_months: list = None) -> list:
 
 # ── SE Ranking ───────────────────────────────────────────────────────────────
 
+_SE_KW_CANDIDATES = ('Keyword', 'Mot clé', 'Mot-clé', 'Mots-clés', 'Mot cle')
+_se_kw_col_warned = False
+
+
 def norm_se(rows: list) -> list:
-    """Normalize SE Ranking rows. Handles BOM on Keyword col. Filters to position <= 100."""
+    """Normalize SE Ranking rows. Handles BOM + French keyword column names. Filters to position <= 100."""
+    global _se_kw_col_warned
     out = []
     for j in rows:
-        # BOM on first column header is stripped by finding the key that normalizes to 'Keyword'
-        kw_key = next((k for k in j if k.replace('﻿', '').replace('﻿', '') == 'Keyword'), 'Keyword')
-        kw = str(j.get(kw_key) or '').strip()
+        # Strip BOM (U+FEFF) from every key once, then try English then French keyword-column names
+        clean = {str(k).replace('﻿', '').strip(): v for k, v in j.items()}
+        kw_key = next((c for c in _SE_KW_CANDIDATES if c in clean), None)
+        if kw_key is None:
+            continue
+        if kw_key != 'Keyword' and not _se_kw_col_warned:
+            print(f"  norm_se: keyword column resolved as '{kw_key}' (not 'Keyword')", flush=True)
+            _se_kw_col_warned = True
+        kw = str(clean.get(kw_key) or '').strip()
         if not kw:
             continue
-        pos = clean_num(j.get('Position'))
+        pos = clean_num(clean.get('Position'))
         if pos <= 0 or pos > 100:
             continue
-        cpc_str = re.sub(r'[^0-9.]', '', str(j.get('CPC') or '0'))
+        cpc_str = re.sub(r'[^0-9.]', '', str(clean.get('CPC') or '0'))
         cpc = float(cpc_str) if cpc_str else 0.0
-        raw_url = str(j.get('URL') or '').strip()
+        raw_url = str(clean.get('URL') or '').strip()
         se_path = re.sub(r'^https?://[^/]+', '', raw_url).rstrip('/') or ''
         out.append({
             'norm_se_keyword':  normalize(kw),
             'se_keyword':       kw,
             'se_position':      pos,
-            'se_search_vol':    clean_num(j.get('Search vol.')),
+            'se_search_vol':    clean_num(clean.get('Search vol.')),
             'se_cpc':           cpc,
-            'se_search_intent': j.get('Search intent') or '',
+            'se_search_intent': clean.get('Search intent') or '',
             'se_url_path':      se_path,
         })
     return out

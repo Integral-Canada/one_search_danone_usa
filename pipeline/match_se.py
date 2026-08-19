@@ -2,7 +2,8 @@
 from .trigram import trigrams_arr, jaccard
 
 
-def match_se_keywords(se_rows: list, index: dict, threshold: float = 0.60) -> list:
+def match_se_keywords(se_rows: list, index: dict, threshold: float = 0.60,
+                      p1_label: str = 'Q1 2026') -> list:
     u_keys   = index['uKeys']
     u_display = index['uDisplay']
     u_tg     = index['uTg']
@@ -47,7 +48,7 @@ def match_se_keywords(se_rows: list, index: dict, threshold: float = 0.60) -> li
         {
             'Keyword':             se.get('_display') or key,
             'Position SE Ranking': f(se['se_position']),
-            'CPC SEO Q1 2026':     f(se['se_cpc']),
+            f'CPC SEO {p1_label}': f(se['se_cpc']),
             'Purchase intent':     se.get('se_search_intent') or '',
             '_se_url_path':        se.get('se_url_path') or '',
         }
