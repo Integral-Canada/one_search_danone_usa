@@ -40,5 +40,11 @@
 
   "conn_intent_exclusions": [
     "login", "website", "my account"
+  ],
+
+  "taxonomy_tags": [
+    "Questions", "Taste", "Packaging", "Ingredient",
+    "Brands", "Retailer", "Demography", "Benefits", "Testimonials",
+    "Bio", "Moments", "Recipes"
   ]
 }
