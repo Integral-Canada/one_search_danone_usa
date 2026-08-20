@@ -1,14 +1,14 @@
 {
-  "_comment": "Created 2026-08-18 alongside the International Delight config, same period. Fields marked TBD are intentionally left unset: brand color/accent (dashboard theming), Quality Report sheet, and GA4 Google Ads Sessions export (SEM QV) — not guessed ahead of real input.",
+  "_comment": "Created 2026-08-18 alongside the International Delight config, same period. brand.color and brand.light_bg were sampled 2026-08-20 from a screenshot of silk.com's homepage (navy background/wordmark + cream card). brand.accent_color has no second real color to sample from that crop — set to the same navy as a monochrome placeholder; replace with a real secondary/CTA color if one turns up (e.g. from a button, not just the hero). Quality Report sheet and GA4 Google Ads Sessions export (SEM QV) remain TBD — not guessed ahead of real input.",
 
   "client_name": "Silk USA",
   "client_handle": "silk",
   "lang": "EN",
 
   "brand": {
-    "color": "TBD",
-    "accent_color": "TBD",
-    "light_bg": "TBD",
+    "color": "#1B2A57",
+    "accent_color": "#1B2A57",
+    "light_bg": "#F0EAD9",
     "regex_default": "silk",
     "regex_sheet_id": "1o526Qv4UzP_Qfe-cjrfvcA7jRUi6zUtd9Ecp2WPMIhQ",
     "regex_sheet_tab": "DANONE USA - Overview",
