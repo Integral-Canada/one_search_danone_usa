@@ -1,14 +1,14 @@
 {
-  "_comment": "Period updated to Q2 2026 vs Q1 2026 (2026-08-18) to match the live source exports. Fields still marked TBD: brand color/accent (dashboard theming), Quality Report sheet, and GA4 Google Ads Sessions export (SEM QV) — intentionally left unset rather than guessed. See one_search/docs/export_requirements_international_delight.md.",
+  "_comment": "Period updated to Q2 2026 vs Q1 2026 (2026-08-18) to match the live source exports. brand.color and brand.accent_color were sampled 2026-08-20 from a screenshot of internationaldelight.com's Cold Foam Creamer page (blue headline + gold bottle cap — two genuinely distinct colors, unlike Silk's single-color crop). light_bg sampled as the page's plain white background. Quality Report sheet and GA4 Google Ads Sessions export (SEM QV) remain TBD — intentionally left unset rather than guessed. See one_search/docs/export_requirements_international_delight.md.",
 
   "client_name": "International Delight USA",
   "client_handle": "international-delight",
   "lang": "EN",
 
   "brand": {
-    "color": "TBD",
-    "accent_color": "TBD",
-    "light_bg": "TBD",
+    "color": "#00539F",
+    "accent_color": "#F2A900",
+    "light_bg": "#FFFFFF",
     "regex_default": "international delight",
     "regex_sheet_id": "1o526Qv4UzP_Qfe-cjrfvcA7jRUi6zUtd9Ecp2WPMIhQ",
     "regex_sheet_tab": "DANONE USA - Overview",
