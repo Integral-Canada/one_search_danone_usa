@@ -43,6 +43,11 @@ def norm_ga4_rows(rows: list) -> dict:
                     break
             if path_col is None:
                 continue  # still in metadata rows
+            if events_col is None:
+                print(f"  WARNING: GA4 export has a recognized path column ('{path_col}') "
+                      f"but no recognized events column (tried {_EVENTS_COL_CANDIDATES}). "
+                      f"All conversions from this source will be 0. "
+                      f"Header row keys: {list(row.keys())[:12]}", flush=True)
 
         raw_path = str(row.get(path_col) or '').strip()
         # Strip query strings (?...) before normalizing — GA4 Ads export includes them
@@ -50,7 +55,9 @@ def norm_ga4_rows(rows: list) -> dict:
         if not path or path.startswith('#'):
             continue
 
-        events = clean_num(row.get(events_col or '', 0))
+        if events_col is None:
+            continue  # already warned above; nothing to accumulate
+        events = clean_num(row.get(events_col, 0))
         if events > 0:
             result[path] = result.get(path, 0.0) + events
 

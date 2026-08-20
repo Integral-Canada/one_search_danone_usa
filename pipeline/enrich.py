@@ -17,6 +17,10 @@ import time
 import urllib.parse
 import urllib.request
 
+from .utils import sheets_get as _utils_sheets_get
+from .utils import sheets_batch_update as _utils_sheets_batch_update
+from .utils import col_letter as _utils_col_letter
+
 # Module-level defaults (overridden when cfg is passed at call time)
 _DEFAULT_SE_MONTHS = [
     "2025-10-01", "2025-11-01", "2025-12-01",
@@ -122,36 +126,20 @@ def _build_system_message(cfg: dict) -> str:
 
 
 # ── Sheets helpers ─────────────────────────────────────────────────────────────
+# Thin wrappers around pipeline.utils — kept as local names (same signatures
+# this module already called everywhere) so callers below didn't need to change,
+# while removing the four-way duplication of these helpers across the codebase.
 
 def _sheets_get(token, sheet_id, range_):
-    url = (f"https://sheets.googleapis.com/v4/spreadsheets/{sheet_id}"
-           f"/values/{urllib.parse.quote(range_, safe='!:')}"
-           f"?valueRenderOption=UNFORMATTED_VALUE")
-    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
-    try:
-        return json.loads(urllib.request.urlopen(req, timeout=60).read()).get("values", [])
-    except urllib.error.HTTPError as e:
-        if e.code == 400:
-            return None
-        print(f"  HTTP {e.code} on {range_}: {e.read().decode()[:200]}", flush=True)
-        raise
+    result = _utils_sheets_get(token, sheet_id, range_)
+    return result if result else None  # preserve this module's None-on-empty contract
 
 
 def _sheets_write(token, sheet_id, data_ranges):
-    url = f"https://sheets.googleapis.com/v4/spreadsheets/{sheet_id}/values:batchUpdate"
-    payload = {
-        "valueInputOption": "USER_ENTERED",
-        "data": [{"range": r, "majorDimension": "ROWS", "values": v}
-                 for r, v in data_ranges],
-    }
-    body = json.dumps(payload).encode()
     for attempt in range(5):
         try:
-            req = urllib.request.Request(url, data=body,
-                headers={"Authorization": f"Bearer {token}",
-                         "Content-Type": "application/json"})
-            return json.loads(urllib.request.urlopen(req, timeout=90).read()).get(
-                "totalUpdatedCells", 0)
+            resp = _utils_sheets_batch_update(token, sheet_id, data_ranges)
+            return resp.get("totalUpdatedCells", 0)
         except Exception as e:
             wait = 15 * (attempt + 1)
             print(f"    Write attempt {attempt + 1} failed: {e} — retry in {wait}s", flush=True)
@@ -160,10 +148,8 @@ def _sheets_write(token, sheet_id, data_ranges):
 
 
 def _col_letter(idx):
-    """Convert 0-based column index to A, B, … Z, AA, AB …"""
-    if idx < 26:
-        return chr(65 + idx)
-    return chr(64 + idx // 26) + chr(65 + idx % 26)
+    """Convert 0-based column index to A, B, … Z, AA, AB … (pipeline.utils.col_letter is 1-based)."""
+    return _utils_col_letter(idx + 1)
 
 
 def _read_all_rows(token, sheet_id, tab):
@@ -179,35 +165,54 @@ def _read_all_rows(token, sheet_id, tab):
 
 
 # ── SE Ranking API ─────────────────────────────────────────────────────────────
+# _SER_CACHE: process-local cache keyed by keyword_lower, populated by
+# _ser_fetch_combined(). enrich_volumes() and enrich_monthly_volumes() both need
+# SE Ranking data (avg + per-month) for largely overlapping keyword sets — the API
+# response already contains both in one call (history_trend), so caching here means
+# a keyword fetched by whichever of the two runs first is never re-fetched by the
+# other in the same pipeline run, instead of hitting the API twice per keyword.
+_SER_CACHE = {}
+
+
+def _ser_fetch_combined(keywords, api_key, se_months, se_api_source='us'):
+    """Bulk-fetch avg + per-month volumes from SE Ranking, using/populating _SER_CACHE.
+
+    Returns {keyword_lower: {'avg': int, 'monthly': {month: int}}} for the
+    requested keywords (from cache where available, fetched otherwise).
+    """
+    uncached = [kw for kw in keywords if kw.lower() not in _SER_CACHE]
+    if uncached:
+        url  = f"https://api.seranking.com/v1/keywords/export?source={se_api_source}"
+        body = json.dumps({"keywords": uncached}).encode()
+        req  = urllib.request.Request(url, data=body,
+            headers={"Authorization": f"Token {api_key}",
+                     "Content-Type": "application/json"})
+        for attempt in range(4):
+            try:
+                rows = json.loads(urllib.request.urlopen(req, timeout=90).read())
+                if not isinstance(rows, list):
+                    time.sleep(15 * (attempt + 1))
+                    continue
+                for r in rows:
+                    if not r.get("is_data_found"):
+                        continue
+                    trend   = r.get("history_trend") or {}
+                    monthly = {m: int(trend.get(m) or 0) for m in se_months}
+                    vols    = list(monthly.values())
+                    avg     = round(sum(vols) / len(vols)) if any(vols) else 0
+                    _SER_CACHE[r["keyword"].lower()] = {'avg': avg, 'monthly': monthly}
+                break
+            except Exception as e:
+                wait = 15 * (attempt + 1)
+                print(f"    SE API attempt {attempt + 1}: {e} — retry in {wait}s", flush=True)
+                time.sleep(wait)
+    return {kw.lower(): _SER_CACHE[kw.lower()] for kw in keywords if kw.lower() in _SER_CACHE}
+
 
 def _ser_fetch(keywords, api_key, se_months, se_api_source='us'):
-    """Bulk-fetch monthly volumes from SE Ranking. Returns {keyword_lower: avg_monthly_vol}."""
-    url  = f"https://api.seranking.com/v1/keywords/export?source={se_api_source}"
-    body = json.dumps({"keywords": keywords}).encode()
-    req  = urllib.request.Request(url, data=body,
-        headers={"Authorization": f"Token {api_key}",
-                 "Content-Type": "application/json"})
-    for attempt in range(4):
-        try:
-            rows = json.loads(urllib.request.urlopen(req, timeout=90).read())
-            if not isinstance(rows, list):
-                time.sleep(15 * (attempt + 1))
-                continue
-            result = {}
-            for r in rows:
-                if not r.get("is_data_found"):
-                    continue
-                trend = r.get("history_trend") or {}
-                vols  = [trend.get(m, 0) or 0 for m in se_months]
-                avg   = round(sum(vols) / len(vols)) if any(vols) else 0
-                if avg > 0:
-                    result[r["keyword"].lower()] = avg
-            return result
-        except Exception as e:
-            wait = 15 * (attempt + 1)
-            print(f"    SE API attempt {attempt + 1}: {e} — retry in {wait}s", flush=True)
-            time.sleep(wait)
-    return {}
+    """Bulk-fetch average monthly volumes from SE Ranking. Returns {keyword_lower: avg_monthly_vol}."""
+    combined = _ser_fetch_combined(keywords, api_key, se_months, se_api_source)
+    return {kw: v['avg'] for kw, v in combined.items() if v['avg'] > 0}
 
 
 def enrich_volumes(token, master_id, master_tab, ser_api_key, cfg=None):
@@ -334,7 +339,16 @@ def _claude_classify(items, api_key, system_message):
         except urllib.error.HTTPError as e:
             body_err = e.read().decode()[:200]
             print(f"    Claude HTTP {e.code} (attempt {attempt + 1}): {body_err}", flush=True)
-            time.sleep(15 if e.code == 529 else 10)
+            if e.code == 429:
+                try:
+                    wait = int(e.headers.get('retry-after', 60))
+                except (TypeError, ValueError):
+                    wait = 60
+            elif e.code == 529:
+                wait = 15
+            else:
+                wait = 10
+            time.sleep(wait)
         except Exception as e:
             print(f"    Claude API attempt {attempt + 1}: {e}", flush=True)
             time.sleep(10)
@@ -343,31 +357,8 @@ def _claude_classify(items, api_key, system_message):
 
 def _ser_fetch_monthly(keywords, api_key, se_months, se_api_source='us'):
     """Bulk-fetch per-month volumes from SE Ranking. Returns {keyword_lower: {month: volume}}."""
-    url  = f"https://api.seranking.com/v1/keywords/export?source={se_api_source}"
-    body = json.dumps({"keywords": keywords}).encode()
-    req  = urllib.request.Request(url, data=body,
-        headers={"Authorization": f"Token {api_key}",
-                 "Content-Type": "application/json"})
-    for attempt in range(4):
-        try:
-            rows = json.loads(urllib.request.urlopen(req, timeout=90).read())
-            if not isinstance(rows, list):
-                time.sleep(15 * (attempt + 1))
-                continue
-            result = {}
-            for r in rows:
-                if not r.get("is_data_found"):
-                    continue
-                trend   = r.get("history_trend") or {}
-                monthly = {m: int(trend.get(m) or 0) for m in se_months}
-                if any(v > 0 for v in monthly.values()):
-                    result[r["keyword"].lower()] = monthly
-            return result
-        except Exception as e:
-            wait = 15 * (attempt + 1)
-            print(f"    SE API attempt {attempt + 1}: {e} — retry in {wait}s", flush=True)
-            time.sleep(wait)
-    return {}
+    combined = _ser_fetch_combined(keywords, api_key, se_months, se_api_source)
+    return {kw: v['monthly'] for kw, v in combined.items() if any(m > 0 for m in v['monthly'].values())}
 
 
 def enrich_monthly_volumes(token, master_id, master_tab, ser_api_key, cfg=None):

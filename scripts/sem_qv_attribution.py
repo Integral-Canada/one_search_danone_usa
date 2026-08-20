@@ -1,4 +1,12 @@
 """
+** DEPRECATED (2026-08-04) — use pipeline/sem_qv.py (via run_pipeline.py) instead. **
+This was the original single-brand, Oikos-only SEM QV script (Jun 2026), superseded
+by pipeline/sem_qv.py, which run_pipeline.py now calls automatically as its final step.
+Kept for reference only — do not run it. Its local normalize() diverges from
+pipeline/normalize.py (uses \\w which keeps accented characters, unlike pipeline's
+[a-z0-9 ] — keywords with apostrophes/accents fail to match between the two and
+silently get 0 QV SEM). See one_search/docs/skeptic_notes.md.
+
 sem_qv_attribution.py
 ---------------------
 Calculates SEM Qualified Visits (QV SEM) per keyword using Thomas's methodology

@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 """
+** DEPRECATED (2026-08-04) — use run_pipeline.py instead. **
+This was the original single-brand, Oikos-only entry point (Apr 2026), superseded
+by the config-driven multi-brand rewrite (run_pipeline.py + brands/<handle>/config.json).
+Kept for reference only. Known issues not present in run_pipeline.py: hardcoded .env
+path, hardcoded GSC/KS column names, hardcoded Masterlist ARRAYFORMULA column letters,
+a column-AC write conflict with the SEM QV methodology. See one_search/docs/skeptic_notes.md.
+
 OneSearch production runner.
 Reads all sources from Google Sheets, runs the full pipeline, writes results to Masterlist.
 
