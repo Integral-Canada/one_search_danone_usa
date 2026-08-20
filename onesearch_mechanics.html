@@ -414,6 +414,48 @@
     </section>
 
     <section>
+      <h2>Correcting taxonomy &amp; competitor misclassification</h2>
+      <p class="lede">The Keyword Study match is the primary source of a row's category, but it's never exhaustive — a competitor's product line that isn't in the Keyword Study yet, or wasn't matched confidently enough, falls through to a generic bucket. <code>"flavors of natural bliss coffee creamer"</code> reading as a generic product query instead of a Natural Bliss competitor query is exactly this kind of gap. There's a dedicated, config-driven fix for it.</p>
+
+      <h3 style="font-size: 14.5px; margin-top: 4px;">The <code>competitors</code> block in a brand's config</h3>
+      <p style="font-size: 14px;">Every brand's <code>config.json</code> can carry a <code>competitors</code> list — each entry is a real competitor name plus the literal text patterns that identify it in a keyword:</p>
+      <div class="term">{
+  <span class="c">// brands/international-delight/config.json</span>
+  "competitors": [
+    { "name": <span class="k">"Coffee Mate"</span>, "patterns": [<span class="k">"coffee mate"</span>, <span class="k">"coffeemate"</span>, <span class="k">"nestle"</span>] },
+    { "name": <span class="k">"Natural Bliss"</span>, "patterns": [<span class="k">"natural bliss"</span>] },
+    { "name": <span class="k">"Starbucks"</span>, "patterns": [<span class="k">"starbucks"</span>] }
+  ]
+}</div>
+      <p style="font-size: 14px;">Every pipeline run checks every keyword against every brand's competitor patterns automatically — this needs no per-run request, it's a native step now. When a keyword contains one of these patterns, that overrides whatever category the row already had, including a real Keyword Study match — naming a competitor's product makes it a competitor query first, regardless of what else it superficially resembles.</p>
+      <div class="callout">
+        <span class="mark">i</span>
+        <p><b>When two competitors match the same keyword</b> (e.g. <code>"coffee mate natural bliss creamer"</code> names both Coffee Mate and its own Natural Bliss sub-line), the <b>longest matching pattern wins</b> — not whichever competitor happens to be listed first in the config. That's what correctly puts Natural Bliss queries under Natural Bliss even when the parent brand's name is also present. This isn't a detail you need to manage day to day, but it's worth knowing if a competitor tag ever looks wrong on a keyword that names two brands at once.</p>
+      </div>
+
+      <h3 style="font-size: 14.5px; margin-top: 4px;">Where the candidate list for a new brand comes from</h3>
+      <p style="font-size: 14px;">You don't have to invent a brand's competitor list from scratch. Two starting points, in order of how ready-to-use they are:</p>
+      <div class="steps">
+        <div class="step"><div class="num">1</div><div class="body"><h4>The registry's own "COMPETITORS" row</h4><p>The same source-config sheet that holds each brand's export links (Doc IDs, tabs) can also carry one row per brand labeled <code>COMPETITORS</code>, with a pipe-delimited list of candidate terms in the URL column. Every pipeline run reads this row automatically and prints any term not yet reflected in that brand's <code>config.json</code> — a nudge, not an auto-apply. It never writes classification from this row directly.</p></div></div>
+        <div class="step"><div class="num">2</div><div class="body"><h4>Carla Klaasen's Keyword Study filter formulas</h4><p>The older shared <a href="https://docs.google.com/spreadsheets/d/1o526Qv4UzP_Qfe-cjrfvcA7jRUi6zUtd9Ecp2WPMIhQ/edit?gid=0#gid=0">Danone multiverse document</a> has a <b>"Topical cluster"</b> tab with a <code>FILTER</code>/<code>REGEXMATCH</code> formula per brand, built for a different purpose (filtering out irrelevant queries from a Keyword Study), but its first regex clause lists every brand/competitor name the analyst had identified at the time. It's a genuinely useful reference — but it was never built to be a clean competitor list on its own.</p></div></div>
+      </div>
+      <div class="callout warn">
+        <span class="mark">⚑</span>
+        <p><b>Do not copy either list into <code>config.json</code> as-is.</b> Both mix real competitors with noise — retailers (Kroger, Walmart, Amazon, Whole Foods), unrelated brands, and generic terms that happen to co-occur in the same filtered-out query set. When Silk's registry row was reviewed this way, terms like <code>kroger</code>, <code>walmart</code>, <code>trader joe</code>, <code>vitamix</code>, <code>can</code>, and <code>powder</code> were deliberately left out. A term also needs a judgment call if it names something real but not a true external competitor — International Delight's row listed <code>dunkin</code>, which is <b>Dunkin' Creamers, a fellow Danone-owned brand</b>, not a market competitor; and <code>splanda</code>, almost certainly a typo for <b>Splenda</b>, a sweetener ingredient brand rather than a competing creamer. Both were flagged in that brand's config comment instead of added. Treat every candidate list as a first pass to review line by line, never a paste target.</p>
+      </div>
+
+      <h3 style="font-size: 14.5px; margin-top: 4px;">What this mechanism can't do</h3>
+      <p style="font-size: 14px;">Competitor classification only fires on keywords that <b>literally name</b> a competitor in their text. It has no visibility into which brands actually show up in the search results for a generic query — <code>"zero sugar coffee creamer"</code> names no competitor, even on a day when the top organic results are wall-to-wall Silk, Nutpods, and MALK instead of the usual Coffee Mate/Chobani mix that dominates flavor and seasonal searches. That's a real, useful pattern to notice — it just lives in SERP composition data, not keyword text, so it has to be observed by checking rankings directly rather than read off the Masterlist's <code>CATEGORY</code> column. If this turns out to matter enough to track over time, it would need its own data source and its own dashboard cut — flag it for a scoping conversation rather than expecting the existing classifier to surface it.</p>
+
+      <h3 style="font-size: 14.5px; margin-top: 4px;">Fixing a specific row you've spotted</h3>
+      <div class="steps">
+        <div class="step"><div class="num">1</div><div class="body"><h4>Tell Claude the specific example</h4><p>"'[keyword]' is showing as [wrong category] — it should be [competitor name]." A concrete example is far more useful than a general "the competitors look off."</p></div></div>
+        <div class="step"><div class="num">2</div><div class="body"><h4>Claude adds or updates a <code>competitors</code> entry</h4><p>In that brand's <code>config.json</code> — a new entry, or a new pattern on an existing one.</p></div></div>
+        <div class="step"><div class="num">3</div><div class="body"><h4>Ask for it to be applied</h4><p>A full pipeline rebuild picks it up automatically going forward. To fix it on an <b>already-built</b> Masterlist without a full rebuild (which would also wipe any other manual edits sitting in that sheet), ask Claude to apply just the competitor pass to the existing rows instead.</p></div></div>
+      </div>
+    </section>
+
+    <section>
       <h2>A worked example</h2>
       <p style="font-size: 14px;">Say you're setting up a coffee-creamer brand for the first time, comparing Q2 2026 against Q1 2026:</p>
       <div class="steps">
@@ -477,6 +519,11 @@
           <div class="situation">This brand doesn't fit the default categories</div>
           <div class="say">"This brand doesn't sell yogurt — can we set up categories that actually match what they sell?"</div>
           <div class="why">The category/tag system is customizable per brand — it just needs to be told what the right categories are.</div>
+        </div>
+        <div class="prompt-card">
+          <div class="situation">A competitor keyword is miscategorized</div>
+          <div class="say">"'[keyword]' is showing as [category] but it should be a [competitor name] competitor query."</div>
+          <div class="why">Claude adds the competitor pattern to that brand's config — see "Correcting taxonomy &amp; competitor misclassification" above.</div>
         </div>
       </div>
     </section>
