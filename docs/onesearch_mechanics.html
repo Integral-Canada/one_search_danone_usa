@@ -145,6 +145,10 @@
   svg .arrow-optional { stroke-dasharray: 4 4; stroke: var(--muted); }
   svg .arrow-human { stroke: var(--warn); }
 
+  .term { background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; white-space: pre; }
+  .term .c { color: var(--muted); }
+  .term .k { color: var(--accent); }
+
   footer { border-top: 1px solid var(--line); padding-top: 20px; font-size: 12.5px; color: var(--muted); font-family: ui-monospace, monospace; }
   @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
 </style>
@@ -203,6 +207,21 @@
           <div class="ehead"><h4>Purchase intent</h4></div>
           <dl><dd>A label (from SE Ranking) describing what kind of search this is — commercial (ready to buy), informational (researching), navigational (looking for a specific site), or local.</dd></dl>
         </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Defining territories for a brand</h2>
+      <p class="lede">Territories are what turn a raw list of thousands of keywords into a dashboard you can actually read — but there's no automated wizard for setting them up yet. It's a short, one-time step someone does by hand (with Claude's help) before a brand's first dashboard build.</p>
+      <div class="steps">
+        <div class="step"><div class="num">1</div><div class="body"><h4>Look at what the data actually contains</h4><p>Before inventing categories, look at a sample of real keywords for this brand — what actually shows up matters more than what you'd guess in the abstract.</p></div></div>
+        <div class="step"><div class="num">2</div><div class="body"><h4>Pick the territories that make sense for this brand's category</h4><p>Not every brand needs the same buckets. A yogurt brand's territories (Brand, Competitor, Source of Protein, Recipe...) don't fit a coffee-creamer or plant-milk brand — those need their own set, built around their own products and competitors.</p></div></div>
+        <div class="step"><div class="num">3</div><div class="body"><h4>Write each one up</h4><p>For each territory: a short name, a one-or-two sentence description of what belongs in it, a few real example keywords, and a coverage target — the "good coverage" benchmark for that category (branded terms usually target much higher coverage than broad generic ones).</p></div></div>
+        <div class="step"><div class="num">4</div><div class="body"><h4>These live in the brand's config, not the sheet</h4><p>Territory definitions are written into that brand's setup file, not into the Masterlist itself — ask Claude to add them once you've decided what they should be.</p></div></div>
+      </div>
+      <div class="callout">
+        <span class="mark">i</span>
+        <p><b>This step is optional, not required.</b> Skip it and the dashboard still groups keywords automatically using whatever categories are already in the data — it just won't have friendly descriptions, a deliberate display order, or coverage benchmarks until someone defines them. Worth doing before a dashboard goes in front of a client; not a blocker for an internal first look.</p>
       </div>
     </section>
 
@@ -268,6 +287,10 @@
             <dt>What it's for</dt><dd>Two specific columns depend on this alone. Missing it leaves just those two waiting — nothing else is affected.</dd>
           </dl>
         </div>
+      </div>
+      <div class="callout warn">
+        <span class="mark">⚑</span>
+        <p><b>Flagged — potential inconsistency worth investigating.</b> You may see rows labeled <b>"Page_de_destination"</b> registered for a brand — real landing-page-level GA4 exports (Oikos's has live data). They're not one of the six sources above, and nothing in this pipeline reads them under that name today. Tracing it further turned up a separate, parallel skill (<code>onesearch-danone</code>, documented for Danone Canada) that reads this exact file type from local CSVs as one of its required inputs, using its own dashboard template entirely — not this pipeline. Best guess is this is a carry-over from an earlier or parallel methodology, not something intentionally wired into <code>run_pipeline.py</code>. Unconfirmed — worth checking with whoever owns that Canada skill before deciding whether it should stay registered here at all.</p>
       </div>
     </section>
 
@@ -353,6 +376,20 @@
     </section>
 
     <section>
+      <h2>When the Keyword Study is missing volume</h2>
+      <p class="lede">Sometimes a keyword doesn't match anything in the Keyword Study, or the Keyword Study simply doesn't have volume data for the current time period — this happened for both new brands onboarded so far. Claude doesn't leave those numbers blank if it can help it.</p>
+      <div class="steps">
+        <div class="step"><div class="num">1</div><div class="body"><h4>After the Masterlist is written, it's checked again</h4><p>Every keyword that's actually active — it has real clicks, or a partial volume number — but is still missing search volume gets flagged.</p></div></div>
+        <div class="step"><div class="num">2</div><div class="body"><h4>Those keywords get looked up directly</h4><p>Claude queries the SE Ranking tool's own database by keyword text — a second, independent path to volume data, separate from whatever the Keyword Study had.</p></div></div>
+        <div class="step"><div class="num">3</div><div class="body"><h4>The result fills in both places</h4><p>The overall average search volume, and the individual monthly numbers, for whichever keywords needed it.</p></div></div>
+      </div>
+      <div class="callout">
+        <span class="mark">i</span>
+        <p>This only recovers volume for keywords that are already clearly active — it's not trying to guess a number for every blank row. It also requires an SE Ranking API key to be configured; ask Claude to confirm one is set up if a brand's volume numbers seem sparser than expected.</p>
+      </div>
+    </section>
+
+    <section>
       <h2>How the process actually flows</h2>
       <div class="journey">
         <div class="jstep"><div class="dot you">1</div><div class="label">You gather the exports</div><div class="sub">Search Console, Ads, SE Ranking, Keyword Study</div></div>
@@ -385,16 +422,6 @@
         <div class="step"><div class="num">3</div><div class="body"><h4>Claude builds it</h4><p>A few minutes later, you have a Masterlist with a few thousand rows — most keywords automatically categorized, a smaller set waiting in the review tab.</p></div></div>
         <div class="step"><div class="num">4</div><div class="body"><h4>You spot-check it</h4><p>The brand's own name shows real clicks in the right columns, a well-known flavor keyword shows up with a sensible category — it passes the smell test.</p></div></div>
         <div class="step"><div class="num">5</div><div class="body"><h4>Later, more data arrives</h4><p>The GA4 Ads export finally comes through. You ask Claude to rebuild — the two conversion-related columns that were waiting now fill in, nothing else changes.</p></div></div>
-      </div>
-    </section>
-
-    <section>
-      <h2>Frequently asked</h2>
-      <div class="prompts">
-        <div class="prompt-card"><div class="situation">Do I need to know how to code?</div><div class="why">No. Everything here is a plain-English request to Claude — the prompt cards below are close to word-for-word what you'd actually type.</div></div>
-        <div class="prompt-card"><div class="situation">How often should I rebuild a brand's Masterlist?</div><div class="why">Whenever meaningful new data comes in, or on whatever reporting cadence you're using — quarterly is typical. Rebuilding is quick and always safe.</div></div>
-        <div class="prompt-card"><div class="situation">What if I don't have access to the Google Sheets?</div><div class="why">Ask whoever manages the brand's Google Workspace access to add you — Claude can't open anything you can't.</div></div>
-        <div class="prompt-card"><div class="situation">Can two people rebuild the same brand at the same time?</div><div class="why">Don't — rebuilding clears and rewrites the whole sheet, so a second run mid-way through the first will conflict.</div></div>
       </div>
     </section>
 
@@ -575,20 +602,56 @@
     </section>
 
     <section>
+      <h2>How the Recommendations panel actually works</h2>
+      <p class="lede">The write-up behind the Recommendations panel lives in its own small file per brand, separate from the Masterlist — this is the one part of the dashboard that's genuinely written, not just computed from the data.</p>
+
+      <h3>What the file actually contains</h3>
+      <p style="font-size: 14px;">One file per brand (<code>content.json</code>), with exactly two things in it:</p>
+      <div class="term">{
+  <span class="c">// one card per recommendation — this is what renders in the panel</span>
+  "recommendations": [
+    {
+      "id": "01",
+      "channel": <span class="k">"SEO"</span>,
+      "priority": <span class="k">"High"</span>,
+      "quarter": "Q2",
+      "category": "PRODUCT",
+      "title": "Expand product page coverage for high-volume keywords",
+      "bullets": [
+        "Create pages for the top uncovered high-volume queries",
+        "Target keywords with &gt;10K monthly searches and &lt;3% coverage"
+      ]
+    }
+  ],
+
+  <span class="c">// short narrative blurbs, one per dashboard section — optional, often left blank</span>
+  "commentary": {
+    "intro": "",
+    "territory_deepdive": "",
+    "recommendations": "",
+    "quality_score": ""
+  }
+}</div>
+      <p style="font-size: 13.5px; color: var(--muted);"><b>Recommendations</b> are the actual cards a viewer sees — each one needs a title, a priority, a category, and a few bullet points, and Claude can draft all of this once a Masterlist exists. <b>Commentary</b> is a separate, smaller thing: short freeform narrative text for specific sections of the dashboard (the intro, the Territory Deep Dive, etc.) — it's fine to leave any of these blank, the dashboard just shows that section without extra commentary.</p>
+
+      <div class="steps">
+        <div class="step"><div class="num">1</div><div class="body"><h4>Ask Claude to draft it</h4><p>Once a Masterlist exists, ask Claude to draft recommendations based on what it's actually showing — coverage gaps, high-volume/low-coverage keywords, where competitor spend is winning. Each recommendation becomes a short card: a title, a priority, a category, and a few bullet points.</p></div></div>
+        <div class="step"><div class="num">2</div><div class="body"><h4>Review and edit the wording</h4><p>Read it like you'd read a first draft from a colleague — adjust tone, cut anything generic, make sure it actually reflects the brand's situation. This is the one place worth reading closely before it goes anywhere.</p></div></div>
+        <div class="step"><div class="num">3</div><div class="body"><h4>Rebuild to see it live</h4><p>While you're still iterating, the dashboard reads this file fresh each time you open it — so the recommendations file needs to stay in the same folder as the dashboard while you're working on it.</p></div></div>
+        <div class="step"><div class="num">4</div><div class="body"><h4>Finalize when you're happy with it</h4><p>Ask Claude to finalize the dashboard once the wording is settled. This bakes the recommendations permanently into the HTML file itself — the dashboard no longer needs the separate file to display them correctly.</p></div></div>
+      </div>
+      <div class="callout">
+        <span class="mark">i</span>
+        <p><b>"Removing the JSON file" in practice:</b> once finalized, the standalone dashboard HTML is the complete deliverable — you can share just that one file, and the separate recommendations file doesn't need to travel with it. Keep the original around anyway if you might want to update the wording later; editing the finalized HTML directly doesn't survive a rebuild.</p>
+      </div>
+    </section>
+
+    <section>
       <h2>What to look for when it's done</h2>
       <div class="checklist">
         <div class="check-item"><span class="box"></span><span>Open the file and click through a few sections — does the brand's name, colors, and numbers look right?</span></div>
         <div class="check-item"><span class="box"></span><span>If any conversion or paid-search number reads as <b>0</b>, ask whether that's a real zero or just data that hasn't come in yet — the two look identical in the table right now</span></div>
         <div class="check-item"><span class="box"></span><span>Before sending it externally, ask Claude to confirm which data sources (if any) are still pending for this brand, so you know what caveats to give</span></div>
-      </div>
-    </section>
-
-    <section>
-      <h2>Frequently asked</h2>
-      <div class="prompts">
-        <div class="prompt-card"><div class="situation">Can I edit the dashboard after it's built?</div><div class="why">It's a static file, so manual edits won't survive a rebuild. If something needs to change permanently, that's a config or data fix, then rebuild.</div></div>
-        <div class="prompt-card"><div class="situation">Does it update automatically as new data comes in?</div><div class="why">No — it's a snapshot of the Masterlist at build time. Ask Claude to rebuild it whenever you want it refreshed.</div></div>
-        <div class="prompt-card"><div class="situation">Can I send this outside Digitad?</div><div class="why">Yes, it's a single self-contained file — but check what's still pending for that brand first, and caveat accordingly.</div></div>
       </div>
     </section>
 
@@ -614,6 +677,16 @@
           <div class="situation">New data just came in</div>
           <div class="say">"We just got [Brand]'s missing Ads/conversion data — rebuild the Masterlist, then the dashboard."</div>
           <div class="why">Both rebuilds are quick and safe to re-run any time new data lands.</div>
+        </div>
+        <div class="prompt-card">
+          <div class="situation">Drafting recommendations</div>
+          <div class="say">"Draft recommendations for [Brand]'s dashboard based on what the Masterlist is showing."</div>
+          <div class="why">Claude looks at the actual coverage/spend patterns for this brand rather than writing something generic.</div>
+        </div>
+        <div class="prompt-card">
+          <div class="situation">Locking in the recommendations</div>
+          <div class="say">"The recommendations look good — finalize [Brand]'s dashboard."</div>
+          <div class="why">Bakes the wording into the HTML permanently, so the file is ready to share on its own.</div>
         </div>
       </div>
     </section>
