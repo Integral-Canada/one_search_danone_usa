@@ -48,11 +48,14 @@
     "Bio", "Moments", "Recipes"
   ],
 
-  "_competitors_comment": "Added 2026-08-20. Competitor-name presence in a keyword overrides whatever TOPICS/CATEGORY it already has — see pipeline/classify.py. This list is almost certainly incomplete; add any competitor product line as its own entry (not just the parent company) as they turn up.",
+  "_competitors_comment": "Added 2026-08-20, updated 2026-08-20 against the registry's 'COMPETITORS' row (16-h0rmI.../INTERNATIONAL DELIGHT row 16: 'chobani|coffee mate|nestle|nestlé|nutpods|chobani|malk|splanda|satarbucks|dunkin|silk'). Competitor-name presence in a keyword overrides whatever TOPICS/CATEGORY it already has — see pipeline/classify.py. Two terms from that row were deliberately NOT added, and need a human call, not an automatic one: (1) 'dunkin' — Dunkin' Creamers is a Danone-owned sibling brand (see shared/brand-guidelines/dunkincreamers.md), not an external competitor; tagging it COMPETITOR would misclassify internal-portfolio overlap as market competition. (2) 'splanda' — almost certainly a typo for Splenda, a sweetener/ingredient brand, not a competing creamer; likely belongs under an Ingredient taxonomy tag instead, not COMPETITOR. 'nestle'/'nestlé' folded into Coffee Mate's patterns since Coffee Mate is Nestlé-owned and the two terms co-occur in the same creamer-competitor queries. This list is still almost certainly incomplete; add any competitor product line as its own entry (not just the parent company) as they turn up.",
   "competitors": [
-    {"name": "Coffee Mate", "patterns": ["coffee mate", "coffeemate", "natural bliss"]},
+    {"name": "Coffee Mate", "patterns": ["coffee mate", "coffeemate", "nestle", "nestlé"]},
     {"name": "Natural Bliss", "patterns": ["natural bliss"]},
     {"name": "Starbucks", "patterns": ["starbucks"]},
-    {"name": "Chobani", "patterns": ["chobani"]}
+    {"name": "Chobani", "patterns": ["chobani"]},
+    {"name": "Nutpods", "patterns": ["nutpod"]},
+    {"name": "MALK", "patterns": ["malk"]},
+    {"name": "Silk", "patterns": ["silk"]}
   ]
 }
