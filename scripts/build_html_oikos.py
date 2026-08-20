@@ -339,6 +339,9 @@ def load_qs_data(token, rows):
       [0]KW [1]MATCH [2]CAMP [3]ADGR [4]STATUS [5]URL [6]QS [7]LP [8]CTR_ATT
       [9]PERT [10]IMPR [11]CLICS [12]COUT [13]CPC [14]CONV [15]TOPIC [16]CAT [17]SUB
     """
+    if not QS_SHEET_ID or str(QS_SHEET_ID).strip().upper() == 'TBD':
+        print("  QS_CLASSIFIED: qs_sheet_id not configured for this brand — skipping", flush=True)
+        return 'const QS_CLASSIFIED = [];'
     raw = sheets_get(token, QS_SHEET_ID, 'A1:G10000')
     if not raw:
         return 'const QS_CLASSIFIED = [];'
