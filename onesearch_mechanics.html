@@ -453,6 +453,11 @@
         <div class="step"><div class="num">2</div><div class="body"><h4>Claude adds or updates a <code>competitors</code> entry</h4><p>In that brand's <code>config.json</code> — a new entry, or a new pattern on an existing one.</p></div></div>
         <div class="step"><div class="num">3</div><div class="body"><h4>Ask for it to be applied</h4><p>A full pipeline rebuild picks it up automatically going forward. To fix it on an <b>already-built</b> Masterlist without a full rebuild (which would also wipe any other manual edits sitting in that sheet), ask Claude to apply just the competitor pass to the existing rows instead.</p></div></div>
       </div>
+
+      <div class="callout warn">
+        <span class="mark">⚑</span>
+        <p><b>Worth revisiting: competitor names sitting in <code>CATEGORY</code> don't really match the rest of that column.</b> Everywhere else, <code>CATEGORY</code> is a topical grouping — "Coffee creamer," "Zero sugar creamers," "Iced coffee." A competitor classification instead writes the competitor's <i>name</i> there — "Natural Bliss," "Coffee Mate" — which is a different kind of thing (brand identity, not topic) sitting in the same column and the same donut chart as everything else. It works today because <code>TOPICS = COMPETITOR</code> at least keeps them grouped apart from the topical rows, but it's an inconsistency worth a second look — possibly moving the competitor name into the existing <code>Brands</code> taxonomy column instead, and giving <code>CATEGORY</code>/<code>SUB-CATEGORY</code> a real topical value even on a competitor row (e.g. <code>TOPICS=COMPETITOR</code>, <code>CATEGORY="Coffee creamer"</code>, <code>Brands="Natural Bliss"</code>). Flagged here rather than changed outright, since it touches how the Territory Deep Dive and donut charts already group data for every live brand.</p>
+      </div>
     </section>
 
     <section>
@@ -699,6 +704,10 @@
         <div class="check-item"><span class="box"></span><span>Open the file and click through a few sections — does the brand's name, colors, and numbers look right?</span></div>
         <div class="check-item"><span class="box"></span><span>If any conversion or paid-search number reads as <b>0</b>, ask whether that's a real zero or just data that hasn't come in yet — the two look identical in the table right now</span></div>
         <div class="check-item"><span class="box"></span><span>Before sending it externally, ask Claude to confirm which data sources (if any) are still pending for this brand, so you know what caveats to give</span></div>
+      </div>
+      <div class="callout warn">
+        <span class="mark">⚑</span>
+        <p><b>Worth revisiting: the MM Checkout / MM Offline Store split in the KPI panel is a pipeline convention, not a true SEO/SEM split.</b> The panel's SEO row always shows the Checkout number and the SEM row always shows the Offline Store number — that's a hardcoded pairing in the template, not something derived per row from actual channel data. It exists because the pipeline currently writes Checkout conversions into the <code>Conversions SEO</code> column and Offline Store conversions into <code>Conversions SEM</code> — and for a brand with no GA4 Ads sessions export configured yet, that SEM number is only a proxy standing in for the real thing. Once a brand's GA4 Ads export does get configured, <code>sem_qv.py</code> takes over the <code>Conversions SEM</code> column with a real paid-attribution number, and the Offline Store proxy that used to live there needs a decision: is Checkout genuinely more SEO-driven and Offline Store genuinely more SEM-driven for this brand, or was the pairing just a convenient placeholder that shouldn't be presented as a real channel split? Check this before presenting the KPI panel as a meaningful SEO-vs-SEM comparison.</p>
       </div>
     </section>
 
