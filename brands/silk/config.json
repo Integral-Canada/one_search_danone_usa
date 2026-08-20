@@ -40,5 +40,27 @@
 
   "conn_intent_exclusions": [
     "login", "website", "my account"
+  ],
+
+  "_competitors_comment": "Added 2026-08-20. Curated from the registry's 'COMPETITORS' candidate row (see 16-h0rmI.../SILK row 16, sourced from Carla Klaasen's Keyword Study filter formula — the same source described in the 'Topical cluster' reference, see onesearch_mechanics.html). That raw row is a pipe-delimited blob mixing real competitors with retailers, generic terms, and unrelated brands: kroger, walmart, amazon, aveeno, trader joe, kirkland, whole foods, private label, maker, vitamix, can, powder, thai, fage, coco lopez were deliberately excluded as non-competitors, per explicit instruction not to copy-paste it wholesale. 'diamond' → Blue Diamond (Almond Breeze's parent) rather than a bare pattern, to avoid matching unrelated 'diamond' keywords. Still needs a second human pass — this list is not guaranteed complete or fully correct.",
+  "competitors": [
+    {"name": "Almond Breeze / Blue Diamond", "patterns": ["almond breeze", "blue diamond"]},
+    {"name": "Chobani", "patterns": ["chobani"]},
+    {"name": "Fairlife", "patterns": ["fairlife"]},
+    {"name": "Califia Farms", "patterns": ["califia"]},
+    {"name": "Planet Oat", "patterns": ["planet oat", "oat planet"]},
+    {"name": "Nutpods", "patterns": ["nutpod"]},
+    {"name": "Forager Project", "patterns": ["forager"]},
+    {"name": "Cocojune", "patterns": ["cocojune", "cocjune"]},
+    {"name": "Siggi's", "patterns": ["siggi"]},
+    {"name": "Oatly", "patterns": ["oatly"]},
+    {"name": "Coffee Mate", "patterns": ["coffee mate", "coffeemate"]},
+    {"name": "Natural Bliss", "patterns": ["natural bliss"]},
+    {"name": "Starbucks", "patterns": ["starbucks"]},
+    {"name": "Kite Hill", "patterns": ["kite hill", "kit hill"]},
+    {"name": "International Delight", "patterns": ["international delight"]},
+    {"name": "So Delicious", "patterns": ["so delicious"]},
+    {"name": "MALK", "patterns": ["malk"]},
+    {"name": "Orgain", "patterns": ["orgain"]}
   ]
 }

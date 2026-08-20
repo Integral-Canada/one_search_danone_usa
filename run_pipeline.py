@@ -35,6 +35,7 @@ from pipeline.match_se import match_se_keywords
 from pipeline.match_ks import match_ks_keywords
 from pipeline.sem_qv import run_sem_qv
 from pipeline.enrich import enrich_volumes, enrich_monthly_volumes
+from pipeline.classify import classify_competitors
 
 DEFAULT_BRAND = 'oikos-usa'
 
@@ -73,6 +74,40 @@ def read_source_config(token: str, ref_id: str, ref_tab: str, client: str = None
         if label and doc_id:
             config[label] = {'doc_id': doc_id, 'sheet_tab': tab}
     return config
+
+
+def read_competitor_candidates(token: str, ref_id: str, ref_tab: str, client: str = None) -> list:
+    """Read the 'COMPETITORS' row from the source-config sheet, if one exists.
+
+    That row has no Doc ID (column C) — the pipe-delimited regex candidate
+    list lives in column E (URL) instead, so it's invisible to
+    read_source_config()'s `if label and doc_id` filter by design. This is a
+    separate, deliberately raw intake point: an analyst pastes in whatever
+    competitor/brand regex they already have (e.g. copied from an existing
+    Keyword Study filter formula) as a first-pass candidate list.
+
+    It is NOT auto-applied to classification. Those lists reliably mix in
+    non-competitor noise (retailers, unrelated brands, generic terms) — see
+    brands/silk/config.json's `_competitors_comment`. This function only
+    surfaces candidates for a human to curate into a brand's config.json
+    `competitors` block.
+    """
+    raw = sheets_get(token, ref_id, f"'{ref_tab}'!A:E")
+    if not raw:
+        return []
+    current_client = ''
+    want = client.strip().casefold() if client else None
+    for row in raw[1:]:
+        cell_client = str(row[0]).strip() if len(row) > 0 else ''
+        if cell_client:
+            current_client = cell_client
+        label = str(row[1]).strip() if len(row) > 1 else ''
+        if want is not None and current_client.strip().casefold() != want:
+            continue
+        if label.strip().upper() == 'COMPETITORS':
+            blob = str(row[4]).strip() if len(row) > 4 else ''
+            return [t.strip() for t in blob.split('|') if t.strip()]
+    return []
 
 
 def raw_to_dicts(raw_values: list) -> tuple:
@@ -194,6 +229,21 @@ def _run(brand_key: str, max_rows=None) -> None:
     source_config = read_source_config(token, ref_id, ref_tab, client=ref_client)
     for label, src in source_config.items():
         print(f'  [{label}]  doc={src["doc_id"][:22]}…  tab={src["sheet_tab"]!r}', flush=True)
+
+    # A 'COMPETITORS' row in the registry is a raw, uncurated candidate list —
+    # never auto-applied (see read_competitor_candidates docstring). Just flag
+    # it so the analyst knows to reconcile it with config['competitors'].
+    candidates = read_competitor_candidates(token, ref_id, ref_tab, client=ref_client)
+    configured_names = {c['name'].casefold() for c in cfg.get('competitors', [])}
+    unreviewed = [t for t in candidates if t.casefold() not in configured_names
+                  and not any(t.casefold() in p for c in cfg.get('competitors', [])
+                              for p in c.get('patterns', []))]
+    if unreviewed:
+        print(f"\nNOTE: registry has a COMPETITORS candidate row with {len(unreviewed)} term(s) "
+              f"not yet reflected in this brand's config['competitors']:", flush=True)
+        print(f"  {' | '.join(unreviewed)}", flush=True)
+        print("  This raw list mixes real competitors with retailers/generic noise — "
+              "review and curate into config.json manually, do not copy wholesale.", flush=True)
 
     def require(label: str) -> dict:
         if label not in source_config:
@@ -347,6 +397,12 @@ def _run(brand_key: str, max_rows=None) -> None:
                 row['Position SE Ranking'] = round(gsc_pos)
 
         merged_rows.append(row)
+
+    # ── Competitor classification (config-driven fallback) ───────────────────
+    n_competitor = classify_competitors(merged_rows, cfg.get('competitors', []))
+    if n_competitor:
+        print(f"\nCompetitor classification: {n_competitor} rows reclassified from "
+              f"config['competitors']", flush=True)
 
     # ── GA4 pro-rata conversion distribution ──────────────────────────────────
     print('\nDistributing GA4 conversions…', flush=True)

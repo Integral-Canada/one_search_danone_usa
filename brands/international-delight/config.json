@@ -46,5 +46,13 @@
     "Questions", "Taste", "Packaging", "Ingredient",
     "Brands", "Retailer", "Demography", "Benefits", "Testimonials",
     "Bio", "Moments", "Recipes"
+  ],
+
+  "_competitors_comment": "Added 2026-08-20. Competitor-name presence in a keyword overrides whatever TOPICS/CATEGORY it already has — see pipeline/classify.py. This list is almost certainly incomplete; add any competitor product line as its own entry (not just the parent company) as they turn up.",
+  "competitors": [
+    {"name": "Coffee Mate", "patterns": ["coffee mate", "coffeemate", "natural bliss"]},
+    {"name": "Natural Bliss", "patterns": ["natural bliss"]},
+    {"name": "Starbucks", "patterns": ["starbucks"]},
+    {"name": "Chobani", "patterns": ["chobani"]}
   ]
 }
