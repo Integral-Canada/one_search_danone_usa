@@ -31,7 +31,7 @@ Then check which inputs below are already present vs. still needed. Only ask for
 | KW Review tab | `KW Review` |
 | Keyword Study Sheet ID | `1rTdi4cLDiFUdQHH8hj4V1GIQb8iKToKXRgFHlQcVHEI` |
 | Keyword Study tab | `Keyword study US` |
-| Reference Sheet ID | `1o526Qv4UzP_Qfe-cjrfvcA7jRUi6zUtd9Ecp2WPMIhQ` |
+| Reference Sheet ID | `16-h0rmI-5fx0RVXfxbVOIjcrGugkvY3vH31JWgRLqLg` *(updated 2026-08-20 — dedicated registry sheet, one tab per brand)* |
 
 **Local source files (already downloaded):**
 
@@ -148,14 +148,18 @@ Once collected: drop the CSVs into the project folder and update the config sect
 
 ## Entry point
 
-`run_onesearch.py` — **built and operational** (Apr 2026). Reads all sources from Google Sheets, runs the full pipeline, writes to the Masterlist, then calls the SE Ranking API to fill in missing search volumes. Run with:
+`run_pipeline.py` — **current entry point** (multi-brand rewrite, since 2026-06-18). Config-driven via `brands/<handle>/config.json` — reads all sources from Google Sheets, runs the full pipeline, writes to the Masterlist, runs SEM QV attribution, then calls the SE Ranking API to fill in missing search volumes. Run with:
 
 ```bash
-python3 run_onesearch.py
-python3 run_onesearch.py --max-rows 500   # smaller test batch
+python3 run_pipeline.py --brand oikos-usa
+python3 run_pipeline.py --brand oikos-usa --max-rows 500   # smaller test batch
 ```
 
+Follow with `python3 build_dashboard.py --brand oikos-usa` to build the HTML dashboard.
+
 A timestamped log is written to `logs/` on each run.
+
+**Deprecated:** `run_onesearch.py` (Apr 2026) was the original single-brand, Oikos-only entry point. It's kept for reference only — do not run it. It hardcodes the `.env` path, GSC/KS column names, and Masterlist column letters, none of which `run_pipeline.py` does.
 
 ---
 

@@ -1,6 +1,6 @@
 # OneSearch Pipeline
 
-Google Sheets with Relevent Exports: https://docs.google.com/spreadsheets/d/1o526Qv4UzP_Qfe-cjrfvcA7jRUi6zUtd9Ecp2WPMIhQ/edit?gid=850184782#gid=850184782 
+Google Sheets with Relevant Exports: https://docs.google.com/spreadsheets/d/16-h0rmI-5fx0RVXfxbVOIjcrGugkvY3vH31JWgRLqLg/edit?usp=sharing *(updated 2026-08-20 — dedicated registry sheet, one tab per brand)*
 Paid Synergies Drive: https://drive.google.com/drive/folders/1JrcfEbFvOFU0BniSy6bRNZOKff34Y1AQ 
 
 The OneSearch pipeline builds a unified keyword performance masterlist in Google Sheets. It answers the question: **for every keyword that drives traffic to the site — through organic search, paid search, or both — what does the full picture look like?**
@@ -37,19 +37,24 @@ Google credentials come from an OAuth 2.0 client ID in Google Cloud Console with
 
 ## How to run
 
-Open Terminal and run:
+**Current entry points (multi-brand rewrite, since 2026-06-18):** `run_pipeline.py` builds the Masterlist, `build_dashboard.py` builds the HTML dashboard from it. Both read all client-specific config from `brands/<handle>/config.json` — no code changes needed per brand.
 
 ```bash
-python3 run_onesearch.py
+python3 run_pipeline.py --brand oikos-usa
+python3 build_dashboard.py --brand oikos-usa
 ```
 
 To test with a smaller batch first (faster, limits rows per source):
 
 ```bash
-python3 run_onesearch.py --max-rows 500
+python3 run_pipeline.py --brand oikos-usa --max-rows 500
 ```
 
-The script prints progress to the terminal as it goes and prints a summary when done. It handles Google Sheets authentication automatically using the credentials in `.env`.
+Add `--finalize` to `build_dashboard.py` to bake `content.json` into static HTML (no dynamic JSON loader in the output). Add `--skip-validation` to bypass the Masterlist validation step (not recommended).
+
+The scripts print progress to the terminal as they go and print a summary when done. They handle Google Sheets authentication automatically using the credentials in `.env`.
+
+> **Deprecated:** `run_onesearch.py` and `scripts/sem_qv_attribution.py` are the pre-rewrite, single-brand (Oikos-only) entry points. They're kept in the repo for reference only — do not run them. Known bugs fixed by `run_pipeline.py` / `pipeline/sem_qv.py`: `run_onesearch.py` hardcodes the `.env` path, GSC/KS column names, and ARRAYFORMULA column letters, and has a column-AC write conflict with the SEM QV methodology; `scripts/sem_qv_attribution.py` has its own `normalize()` that diverges from `pipeline/normalize.py`. See the deprecation notice at the top of each file.
 
 ---
 
@@ -597,8 +602,8 @@ SE Ranking uses a lower threshold (0.60) than KS because SE keyword text is more
 | Period 1 | Q1 2026 (Jan 1 – Mar 31, 2026) |
 | Period 2 | Q4 2025 (Oct 1 – Dec 31, 2025) |
 | Masterlist Sheet ID | `1W73Lzli30z4GnO_WtLjs0hWOdPcEZw1jptXKG8exKoU` |
-| Source config Sheet ID | `1o526Qv4UzP_Qfe-cjrfvcA7jRUi6zUtd9Ecp2WPMIhQ` |
-| Source config tab | `One Search ` *(trailing space is intentional — matches actual sheet tab name)* |
+| Source config Sheet ID | `16-h0rmI-5fx0RVXfxbVOIjcrGugkvY3vH31JWgRLqLg` *(updated 2026-08-20 — dedicated registry sheet, replaces the old shared multi-purpose reference sheet)* |
+| Source config tab | `OIKOS` *(one tab per brand — see "Adding a new client" below; each brand's `config.json` sets `ref_client` to match)* |
 | Keyword Study Sheet ID | `1kiOgeo5J66tAngETUGVv1CFX072g4rnDiWKLf6KP7co` |
 | KS tab | `Keyword study US` |
 
@@ -616,16 +621,13 @@ SE Ranking uses a lower threshold (0.60) than KS because SE keyword text is more
 
 ## Adding a new client
 
-To run the pipeline for a new client:
+**Note (2026-08-20):** this section previously described the deprecated single-brand `run_onesearch.py` flow and a shared `One Search ` registry tab. Both are gone — `run_onesearch.py` is legacy/do-not-run, and the registry sheet is now one tab per brand specifically so that a second brand's rows can never collide with another's. Current process:
 
-1. Add a new row block in the source config sheet (`REF_ID`, tab `One Search `) with the client's export labels and sheet IDs
-2. Update the constants at the top of `run_onesearch.py`:
-   - `MASTER_ID` — the client's Masterlist sheet ID
-   - `MASTER_TAB` — the Listing tab name
-   - `CLIENT_LANG` — default language for rows with no KS LANG value (e.g. `"EN"`, `"FR"`)
-3. Ensure the Masterlist has a header row in row 1 with the correct 57-column names
-4. Run `python3 run_onesearch.py`
+1. Add a new tab to the registry sheet (`16-h0rmI-5fx0RVXfxbVOIjcrGugkvY3vH31JWgRLqLg`), named after the client (e.g. `SILK`), with columns `Client | Export | Doc ID | Sheet Tab | URL` — one row per export (`GSC Export`, `Account Level SQR Report`, `SE Ranking`, `Keyword study`, plus any conversion exports).
+2. Create `brands/<handle>/config.json` (copy an existing brand's as a starting point). Set `client_name`, `lang`, the `period` block, and the `sheets` block — `ref_id` is the registry sheet ID above, `ref_tab` and `ref_client` both match the tab name you just created.
+3. Ensure the destination Masterlist has a header row in row 1 with the correct column names, using this brand's actual period labels (not copied verbatim from another brand's template).
+4. Run `python3 run_pipeline.py --brand <handle>`, then `python3 build_dashboard.py --brand <handle>`.
 
-The script reads column order from the live header row, so no code changes are needed as long as column names match.
+The script reads column order from the live header row and reads taxonomy dimensions from `config.json`'s `taxonomy_tags`, so no code changes are needed for a typical new brand — only config and the registry tab.
 
-**Multi-language clients:** Set `CLIENT_LANG` to the client's primary market language. For bilingual clients (e.g. Danone Canada EN/FR), the Keyword Study's `LANG` column drives language per keyword — `CLIENT_LANG` only applies to keywords that have no KS match. Trigram matching is language-agnostic and handles mixed-language keyword sets automatically.
+**Multi-language clients:** the Keyword Study's `LANG` column drives language per keyword; `config.json`'s `lang` only applies as a fallback for keywords with no KS match. Trigram matching is language-agnostic and handles mixed-language keyword sets automatically.

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OneSearch Mechanics</title>
+<title>OneSearch Starter Guide</title>
 <style>
   :root {
     --paper: #F2F3EE;
@@ -40,21 +40,12 @@
     font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased;
   }
   ::selection { background: var(--accent-soft); }
-  .page { max-width: 880px; margin: 0 auto; padding: 48px 24px 96px; display: flex; flex-direction: column; gap: 32px; }
+  .page { max-width: 820px; margin: 0 auto; padding: 48px 24px 96px; display: flex; flex-direction: column; gap: 32px; }
   .hgroup { display: flex; flex-direction: column; gap: 10px; }
   .eyebrow { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
-  h1 { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 800; font-size: 36px; letter-spacing: -.015em; line-height: 1.08; margin: 0; text-wrap: balance; }
-  .dek { color: var(--muted); font-size: 17px; max-width: 62ch; margin: 0; }
+  h1 { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 800; font-size: 34px; letter-spacing: -.015em; line-height: 1.1; margin: 0; text-wrap: balance; }
+  .dek { color: var(--muted); font-size: 17px; max-width: 60ch; margin: 0; }
 
-  /* Legend */
-  .legend { display: flex; gap: 20px; flex-wrap: wrap; padding: 12px 16px; background: var(--paper-raised); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); font-size: 13px; }
-  .legend .item { display: flex; align-items: center; gap: 7px; }
-  .legend .swatch { width: 13px; height: 13px; border-radius: 3px; flex-shrink: 0; }
-  .legend .swatch.auto { background: var(--accent); }
-  .legend .swatch.human { background: var(--warn); }
-  .legend .swatch.optional { border: 1.5px dashed var(--muted); background: transparent; }
-
-  /* Tabs */
   .tabbar { display: flex; gap: 4px; border-bottom: 2px solid var(--line); }
   .tabbtn {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -64,7 +55,7 @@
   }
   .tabbtn.active { color: var(--accent); border-bottom-color: var(--accent); }
   .tabbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .tabpanel { display: none; flex-direction: column; gap: 32px; }
+  .tabpanel { display: none; flex-direction: column; gap: 30px; }
   .tabpanel.active { display: flex; }
 
   section { display: flex; flex-direction: column; gap: 14px; }
@@ -74,41 +65,48 @@
     margin: 0; display: flex; align-items: baseline; gap: 10px;
   }
   h2::after { content: ''; flex: 1; height: 1px; background: var(--line); }
-  h3 { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 15px; font-weight: 700; margin: 0; }
-  p { margin: 0; max-width: 68ch; }
+  p { margin: 0; max-width: 66ch; }
   .lede { font-size: 16.5px; }
   code { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: .86em; background: var(--code-bg); border-radius: 4px; padding: .1em .4em; }
 
-  figure { margin: 0; display: flex; flex-direction: column; gap: 10px; }
-  .diagram-wrap { background: var(--paper-raised); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); padding: 16px; overflow-x: auto; }
-  .diagram-wrap svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
-  figcaption { font-size: 13px; color: var(--muted); text-align: center; }
-
-  svg text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: currentColor; }
-  svg .lbl { font-size: 12px; font-weight: 600; }
-  svg .sub { font-size: 10px; fill: var(--muted); }
-  svg .arrlbl { font-size: 10.5px; fill: var(--muted); font-style: italic; }
-  svg .box-required { fill: var(--paper); stroke: currentColor; stroke-width: 1.5; }
-  svg .box-optional { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 5 4; }
-  svg .box-human { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.5; }
-  svg .spine { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
-  svg line, svg path.arrow { stroke: currentColor; stroke-width: 1.4; fill: none; }
-  svg .arrow-optional { stroke-dasharray: 4 4; stroke: var(--muted); }
-  svg .arrow-human { stroke: var(--warn); }
+  /* Simple journey stepper — no mechanism, just the shape of the process */
+  .journey { display: flex; align-items: flex-start; background: var(--paper-raised); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); padding: 22px 18px; overflow-x: auto; gap: 0; }
+  .jstep { flex: 1; min-width: 140px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; position: relative; padding: 0 8px; }
+  .jstep .dot { width: 34px; height: 34px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: ui-monospace, monospace; font-size: 14px; z-index: 1; }
+  .jstep .dot.you { background: var(--warn-soft); color: var(--warn); }
+  .jstep .label { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 700; font-size: 12.5px; }
+  .jstep .sub { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
+  .jstep::before { content: ''; position: absolute; top: 17px; left: -50%; width: 100%; height: 2px; background: var(--line); z-index: 0; }
+  .jstep:first-child::before { display: none; }
 
   .steps { display: flex; flex-direction: column; gap: 0; }
   .step { display: grid; grid-template-columns: 30px 1fr; gap: 14px; padding: 14px 0; }
   .step + .step { border-top: 1px solid var(--line); }
   .step .num { font-family: ui-monospace, monospace; font-weight: 700; font-size: 13px; color: var(--accent); background: var(--accent-soft); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .step .body { display: flex; flex-direction: column; gap: 4px; }
-  .step .body .title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .step .body h4 { margin: 0; font-size: 14.5px; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
   .step .body p { font-size: 13.5px; color: var(--muted); }
 
-  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; padding: 2px 8px; border-radius: 10px; }
-  .badge.auto { background: var(--accent-soft); color: var(--accent); }
-  .badge.human { background: var(--warn-soft); color: var(--warn); }
-  .badge.opt { background: var(--code-bg); color: var(--muted); }
+  .checklist { display: flex; flex-direction: column; gap: 0; background: var(--paper-raised); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); }
+  .check-item { display: grid; grid-template-columns: 20px 1fr; gap: 12px; padding: 12px 16px; font-size: 13.5px; }
+  .check-item + .check-item { border-top: 1px solid var(--line); }
+  .check-item .box { width: 16px; height: 16px; border: 1.5px solid var(--accent); border-radius: 4px; margin-top: 2px; flex-shrink: 0; }
+  .check-item b { color: var(--ink); }
+  .check-item .note { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+
+  .callout { display: flex; gap: 12px; background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 8px; padding: 14px 16px; }
+  .callout.warn { background: var(--warn-soft); border-color: var(--warn); }
+  .callout .mark { font-weight: 800; font-family: ui-monospace, monospace; color: var(--accent); flex-shrink: 0; }
+  .callout.warn .mark { color: var(--warn); }
+  .callout p { font-size: 14px; }
+  .callout p b { color: var(--ink); }
+
+  /* Prompt cards — what to actually say to Claude */
+  .prompts { display: flex; flex-direction: column; gap: 10px; }
+  .prompt-card { background: var(--paper-raised); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .prompt-card .situation { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 700; font-size: 12.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .prompt-card .say { font-size: 14px; padding: 10px 12px; background: var(--code-bg); border-radius: 6px; border-left: 3px solid var(--accent); font-style: italic; }
+  .prompt-card .why { font-size: 12.5px; color: var(--muted); }
 
   .tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--paper-raised); box-shadow: var(--shadow); }
   table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
@@ -116,26 +114,36 @@
   tbody td { padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
   tbody tr:last-child td { border-bottom: none; }
 
-  .callout { display: flex; gap: 12px; background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 8px; padding: 14px 16px; }
-  .callout.warn { background: var(--warn-soft); border-color: var(--warn); }
-  .callout .mark { font-weight: 800; font-family: ui-monospace, monospace; color: var(--accent); }
-  .callout.warn .mark { color: var(--warn); }
-  .callout p { font-size: 14px; }
-  .callout p b { color: var(--ink); }
+  /* Export detail cards */
+  .export-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .export-grid { grid-template-columns: 1fr; } }
+  .export-card { background: var(--paper-raised); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .export-card.optional { border-style: dashed; }
+  .export-card .ehead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .export-card h4 { margin: 0; font-size: 14px; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  .tag { font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+  .tag.req { background: var(--accent-soft); color: var(--accent); }
+  .tag.opt { background: var(--code-bg); color: var(--muted); }
+  .export-card dl { margin: 0; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+  .export-card dt { font-weight: 700; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .03em; }
+  .export-card dd { margin: 0 0 6px 0; color: var(--ink); }
 
-  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  @media (max-width: 640px) { .split { grid-template-columns: 1fr; } }
-  .split-col { background: var(--paper-raised); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
-  .split-col .k { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; }
-  .split-col.cfg .k { color: var(--accent); }
-  .split-col.code .k { color: var(--warn); }
-  .split-col ul { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
-  .split-col ul li b { color: var(--ink); }
-
-  .checklist { display: flex; flex-direction: column; gap: 0; background: var(--paper-raised); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); }
-  .check-item { display: grid; grid-template-columns: 20px 1fr; gap: 12px; padding: 12px 16px; font-size: 13.5px; }
-  .check-item + .check-item { border-top: 1px solid var(--line); }
-  .check-item .box { width: 16px; height: 16px; border: 1.5px solid var(--accent); border-radius: 4px; margin-top: 2px; }
+  /* Mechanism diagrams */
+  figure { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  .diagram-wrap { background: var(--paper-raised); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); padding: 16px; overflow-x: auto; }
+  .diagram-wrap svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+  figcaption { font-size: 13px; color: var(--muted); text-align: center; }
+  svg text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: currentColor; }
+  svg .lbl { font-size: 12px; font-weight: 600; }
+  svg .sub2 { font-size: 10px; fill: var(--muted); }
+  svg .arrlbl { font-size: 10.5px; fill: var(--muted); font-style: italic; }
+  svg .box-required { fill: var(--paper); stroke: currentColor; stroke-width: 1.5; }
+  svg .box-optional { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 5 4; }
+  svg .box-human { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.5; }
+  svg .spine { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+  svg line { stroke: currentColor; stroke-width: 1.4; fill: none; }
+  svg .arrow-optional { stroke-dasharray: 4 4; stroke: var(--muted); }
+  svg .arrow-human { stroke: var(--warn); }
 
   footer { border-top: 1px solid var(--line); padding-top: 20px; font-size: 12.5px; color: var(--muted); font-family: ui-monospace, monospace; }
   @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
@@ -147,15 +155,9 @@
 <div class="page">
 
   <div class="hgroup">
-    <div class="eyebrow">Digitad · Internal Skill</div>
-    <h1>OneSearch Mechanics</h1>
-    <p class="dek">How the OneSearch pipeline actually works, in order — for anyone who needs to read a masterlist, sanity-check a dashboard, or explain either to a client without opening a Python file.</p>
-  </div>
-
-  <div class="legend">
-    <div class="item"><span class="swatch auto"></span> Pipeline handles this automatically</div>
-    <div class="item"><span class="swatch human"></span> A person needs to review or decide something here</div>
-    <div class="item"><span class="swatch optional"></span> Optional — the rest works fine without it</div>
+    <div class="eyebrow">Digitad · Getting Started</div>
+    <h1>OneSearch Starter Guide</h1>
+    <p class="dek">Everything a first-time user needs: what OneSearch is, what to have ready before you start, how the process actually flows, and exactly what to say to Claude at each stage.</p>
   </div>
 
   <div class="tabbar" role="tablist">
@@ -167,226 +169,288 @@
   <div class="tabpanel active" id="panel-masterlist">
 
     <section>
-      <h2>What it is</h2>
-      <p class="lede">The Masterlist is one row per keyword, unifying organic (SEO) and paid (SEM) performance for that keyword — built by pulling five Google Sheets, matching them onto a shared keyword list, and merging the results. Everything below happens in a fixed order; later steps depend on earlier ones.</p>
+      <h2>What this is</h2>
+      <p class="lede">The Masterlist is one spreadsheet, one row per keyword, showing how that keyword performs across <b>both</b> organic search and paid search — for a given brand, over two time periods you're comparing (like this quarter vs. last quarter). It's built by Claude pulling together data from several sources and combining it into one list. You ask for it; Claude does the assembly.</p>
     </section>
 
     <section>
-      <h2>The full sequence</h2>
+      <h2>Why this matters</h2>
+      <p class="lede">Most reporting looks at organic and paid search separately — one team watches rankings, another watches ad spend, and nobody sees the full picture for a single keyword at once. The Masterlist exists to answer one question you can't easily answer from either side alone: <b>for everything people search for, how much of that demand are we actually capturing — and are we capturing it for free, or paying for it?</b></p>
+      <p style="font-size: 14px;">That combined view is what surfaces the insights that matter most:</p>
+      <div class="checklist">
+        <div class="check-item"><span class="box"></span><span><b>Wasted spend</b> — you're paying for ads on a keyword you already rank #1 for organically. The Masterlist is where that becomes visible, because it's the only place clicks from both channels sit side by side.</span></div>
+        <div class="check-item"><span class="box"></span><span><b>Untapped demand</b> — a keyword with huge search volume but almost no clicks from either channel. That's a content or bidding gap worth acting on.</span></div>
+        <div class="check-item"><span class="box"></span><span><b>What's actually driving results</b> — which specific keywords and categories (competitor names, product types, recipes, etc.) are pulling their weight, and which aren't, once you can see both channels together.</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Key terms, in plain language</h2>
+      <div class="export-grid">
+        <div class="export-card">
+          <div class="ehead"><h4>Coverage</h4></div>
+          <dl><dd>What share of a keyword's total search volume you're actually capturing in clicks — organic and paid combined. Low coverage on a high-volume keyword is usually the single most useful number on the whole sheet.</dd></dl>
+        </div>
+        <div class="export-card">
+          <div class="ehead"><h4>SEO vs. SEM</h4></div>
+          <dl><dd>SEO = organic, unpaid search results (from Search Console). SEM = paid search ads (from Google Ads). Every performance column comes in both flavors so you can compare them directly.</dd></dl>
+        </div>
+        <div class="export-card">
+          <div class="ehead"><h4>Territory / Category</h4></div>
+          <dl><dd>The bucket a keyword gets sorted into — Brand, Competitor, Recipe, and so on. This is what turns a flat list of thousands of keywords into groups you can actually make decisions about.</dd></dl>
+        </div>
+        <div class="export-card">
+          <div class="ehead"><h4>Purchase intent</h4></div>
+          <dl><dd>A label (from SE Ranking) describing what kind of search this is — commercial (ready to buy), informational (researching), navigational (looking for a specific site), or local.</dd></dl>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>What you need before you start</h2>
+      <div class="checklist">
+        <div class="check-item"><span class="box"></span><span><b>Access</b> to the brand's Google Sheets — both the raw data exports and the destination Masterlist sheet.<span class="note">If you can't open these yourself, Claude can't either.</span></span></div>
+        <div class="check-item"><span class="box"></span><span><b>The two time periods you're comparing</b> — e.g. "Q2 2026 vs. Q1 2026." Every export needs to cover both.</span></div>
+        <div class="check-item"><span class="box"></span><span><b>Four data exports</b>, already pulled: Search Console, the Google Ads search-term report, an SE Ranking export, and the brand's Keyword Study. These four are non-negotiable — without any one of them, nothing else can happen.<span class="note">Two more (GA4 conversions, GA4 Ads sessions) are nice-to-have, not required — more on that below.</span></span></div>
+        <div class="check-item"><span class="box"></span><span><b>Know whether this brand is new or returning.</b> A brand new to OneSearch needs a short one-time setup; a returning brand just needs a refresh.</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>The exports, in detail</h2>
+      <p style="font-size: 14px; color: var(--muted);">What each one actually is, where it comes from, and what it's for.</p>
+      <div class="export-grid">
+        <div class="export-card">
+          <div class="ehead"><h4>Search Console</h4><span class="tag req">Required</span></div>
+          <dl>
+            <dt>Where it comes from</dt><dd>Google Search Console → Performance report → Queries, exported for both comparison periods.</dd>
+            <dt>What's in it</dt><dd>For every search query: organic clicks, impressions, click-through rate, and average ranking position.</dd>
+            <dt>What it's for</dt><dd>The "did we show up and get clicked, for free" half of the picture.</dd>
+          </dl>
+        </div>
+        <div class="export-card">
+          <div class="ehead"><h4>Google Ads Search Terms</h4><span class="tag req">Required</span></div>
+          <dl>
+            <dt>Where it comes from</dt><dd>Google Ads → Reports → Search terms report, exported for both comparison periods.</dd>
+            <dt>What's in it</dt><dd>The actual search terms that triggered a paid ad — clicks, cost, impressions, and which campaign/keyword matched.</dd>
+            <dt>What it's for</dt><dd>The "did we pay to show up, and how much" half of the picture.</dd>
+          </dl>
+        </div>
+        <div class="export-card">
+          <div class="ehead"><h4>SE Ranking</h4><span class="tag req">Required</span></div>
+          <dl>
+            <dt>Where it comes from</dt><dd>SE Ranking (third-party rank tracker) — a keyword export for the brand's tracked set, most recent month.</dd>
+            <dt>What's in it</dt><dd>Current ranking position, estimated monthly search volume, CPC, and Google's own search-intent label, per keyword.</dd>
+            <dt>What it's for</dt><dd>Market-level numbers — total demand and typical cost — that Search Console and Ads don't report on their own.</dd>
+          </dl>
+        </div>
+        <div class="export-card">
+          <div class="ehead"><h4>Keyword Study</h4><span class="tag req">Required</span></div>
+          <dl>
+            <dt>Where it comes from</dt><dd>The brand's own internal keyword taxonomy sheet, maintained by the SEO/strategy team.</dd>
+            <dt>What's in it</dt><dd>Every relevant keyword for the brand's category, tagged with topic, category, sub-category, and monthly search volume history.</dd>
+            <dt>What it's for</dt><dd>Turns a flat list of thousands of keywords into meaningful groups — Brand, Competitor, Recipe, and so on.</dd>
+          </dl>
+        </div>
+        <div class="export-card optional">
+          <div class="ehead"><h4>GA4 Conversions</h4><span class="tag opt">Optional</span></div>
+          <dl>
+            <dt>Where it comes from</dt><dd>Google Analytics 4, filtered to the brand's specific conversion events (e.g. "click to buy," store-locator clicks), exported per landing page.</dd>
+            <dt>What's in it</dt><dd>How many of those conversion events happened on each page.</dd>
+            <dt>What it's for</dt><dd>Connects organic traffic to actual outcomes, not just clicks. Missing it just leaves conversion numbers blank.</dd>
+          </dl>
+        </div>
+        <div class="export-card optional">
+          <div class="ehead"><h4>GA4 Ads Sessions</h4><span class="tag opt">Optional</span></div>
+          <dl>
+            <dt>Where it comes from</dt><dd>Google Analytics 4, filtered to sessions that came from Google Ads specifically — session count and conversions per landing page.</dd>
+            <dt>What's in it</dt><dd>Enough detail to calculate a real paid-conversion number per keyword, instead of a rough estimate.</dd>
+            <dt>What it's for</dt><dd>Two specific columns depend on this alone. Missing it leaves just those two waiting — nothing else is affected.</dd>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>How the sources actually combine</h2>
+      <p class="lede">This is the part that's easy to get wrong intuitively: the six sources don't all merge the same way. Two of them merge directly; two get matched on afterward; and the conversion data attaches through a completely different path — the page it happened on, not the keyword itself.</p>
       <figure>
         <div class="diagram-wrap">
-<svg viewBox="0 0 880 760" role="img" aria-label="Pipeline flow: four required sources and two optional sources feed a merge and match process that builds a unified keyword spine, which is written to the Masterlist, followed by optional post-write enrichment.">
+<svg viewBox="0 0 860 640" role="img" aria-label="Search Console and Google Ads combine first into one master keyword list. SE Ranking and Keyword Study then get matched onto that list by best-guess similarity, with uncertain matches set aside for a human to confirm. GA4 conversions attach last, connected by the page URL rather than the keyword text.">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
     </marker>
-    <marker id="arrowMuted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <marker id="arrow2Muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)" />
     </marker>
-    <marker id="arrowWarn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <marker id="arrow2Warn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="var(--warn)" />
     </marker>
   </defs>
 
-  <!-- Stage labels -->
-  <text x="10" y="18" class="sub">STEP 1 — READ &amp; NORMALIZE SOURCES</text>
+  <text x="10" y="18" class="sub2">STEP 1 — THE TWO SOURCES THAT MERGE DIRECTLY</text>
+  <rect class="box-required" x="0"   y="30" width="220" height="54" rx="7"/>
+  <text x="110" y="52" class="lbl" text-anchor="middle">Search Console</text>
+  <text x="110" y="68" class="sub2" text-anchor="middle">organic clicks by query</text>
 
-  <!-- Source boxes -->
-  <rect class="box-required" x="0"   y="30" width="130" height="56" rx="7"/>
-  <text x="65" y="54" class="lbl" text-anchor="middle">GSC Export</text>
-  <text x="65" y="70" class="sub" text-anchor="middle">organic clicks/pos</text>
+  <rect class="box-required" x="250" y="30" width="220" height="54" rx="7"/>
+  <text x="360" y="52" class="lbl" text-anchor="middle">Google Ads terms</text>
+  <text x="360" y="68" class="sub2" text-anchor="middle">paid clicks by search term</text>
 
-  <rect class="box-required" x="150" y="30" width="130" height="56" rx="7"/>
-  <text x="215" y="54" class="lbl" text-anchor="middle">SQR Report</text>
-  <text x="215" y="70" class="sub" text-anchor="middle">paid clicks/cost</text>
+  <text x="10" y="130" class="sub2">— they're the only two measured in the same unit: real clicks on real queries —</text>
 
-  <rect class="box-required" x="300" y="30" width="130" height="56" rx="7"/>
-  <text x="365" y="54" class="lbl" text-anchor="middle">SE Ranking</text>
-  <text x="365" y="70" class="sub" text-anchor="middle">position/vol/CPC</text>
+  <line x1="110" y1="84" x2="150" y2="164" marker-end="url(#arrow2)"/>
+  <line x1="360" y1="84" x2="290" y2="164" marker-end="url(#arrow2)"/>
 
-  <rect class="box-required" x="450" y="30" width="130" height="56" rx="7"/>
-  <text x="515" y="54" class="lbl" text-anchor="middle">Keyword Study</text>
-  <text x="515" y="70" class="sub" text-anchor="middle">taxonomy/volume</text>
+  <rect class="box-required" x="70" y="164" width="300" height="54" rx="7"/>
+  <text x="220" y="186" class="lbl" text-anchor="middle">Combined into one list</text>
+  <text x="220" y="202" class="sub2" text-anchor="middle">every query with real clicks, either side</text>
 
-  <rect class="box-optional" x="600" y="30" width="130" height="56" rx="7"/>
-  <text x="665" y="54" class="lbl" text-anchor="middle">GA4 Conversions</text>
-  <text x="665" y="70" class="sub" text-anchor="middle">optional</text>
+  <line x1="220" y1="218" x2="220" y2="256" marker-end="url(#arrow2)"/>
 
-  <rect class="box-optional" x="750" y="30" width="130" height="56" rx="7"/>
-  <text x="815" y="54" class="lbl" text-anchor="middle">GA4 Ads Sessions</text>
-  <text x="815" y="70" class="sub" text-anchor="middle">optional</text>
+  <rect class="spine" x="10" y="256" width="840" height="54" rx="8"/>
+  <text x="430" y="280" class="lbl" text-anchor="middle">THE MASTER KEYWORD LIST</text>
+  <text x="430" y="296" class="sub2" text-anchor="middle">everything below attaches to this — not to each other</text>
 
-  <text x="10" y="122" class="sub">STEP 2 — MERGE THE CLICK SOURCES INTO ONE SPINE</text>
+  <text x="480" y="342" class="sub2">STEP 2 — THE TWO SOURCES THAT GET MATCHED ON</text>
+  <rect class="box-required" x="480" y="354" width="200" height="54" rx="7"/>
+  <text x="580" y="376" class="lbl" text-anchor="middle">SE Ranking</text>
+  <text x="580" y="392" class="sub2" text-anchor="middle">position, volume, CPC</text>
 
-  <!-- Merge box -->
-  <rect class="box-required" x="30" y="134" width="220" height="54" rx="7"/>
-  <text x="140" y="156" class="lbl" text-anchor="middle">Merge GSC + SQR</text>
-  <text x="140" y="172" class="sub" text-anchor="middle">full outer join on keyword text</text>
+  <rect class="box-required" x="690" y="354" width="170" height="54" rx="7"/>
+  <text x="775" y="376" class="lbl" text-anchor="middle">Keyword Study</text>
+  <text x="775" y="392" class="sub2" text-anchor="middle">category, taxonomy</text>
 
-  <line x1="65" y1="86" x2="100" y2="134" marker-end="url(#arrow)"/>
-  <line x1="215" y1="86" x2="185" y2="134" marker-end="url(#arrow)"/>
+  <line x1="580" y1="310" x2="580" y2="354" marker-end="url(#arrow2)"/>
+  <text x="593" y="335" class="arrlbl">best match</text>
+  <line x1="775" y1="310" x2="775" y2="354" marker-end="url(#arrow2)"/>
+  <text x="788" y="335" class="arrlbl">best match</text>
 
-  <!-- SE Ranking + KS pass straight down to spine -->
-  <line x1="365" y1="86" x2="365" y2="270" marker-end="url(#arrow)"/>
-  <text x="378" y="180" class="arrlbl">match ≥ 0.60</text>
+  <text x="480" y="432" class="sub2">these two don't share the exact keyword text, so Claude fuzzy-matches each one</text>
+  <text x="480" y="446" class="sub2">to its closest match — a confident match writes automatically, an uncertain</text>
+  <text x="480" y="460" class="sub2">one waits for a person, shown below.</text>
 
-  <line x1="515" y1="86" x2="515" y2="270" marker-end="url(#arrow)"/>
-  <text x="528" y="180" class="arrlbl">match ≥ 0.65</text>
+  <line x1="775" y1="408" x2="640" y2="474" class="arrow-human" marker-end="url(#arrow2Warn)"/>
+  <rect class="box-human" x="480" y="474" width="220" height="60" rx="7"/>
+  <text x="590" y="496" class="lbl" text-anchor="middle">Uncertain matches</text>
+  <text x="590" y="512" class="sub2" text-anchor="middle">set aside for a person to confirm,</text>
+  <text x="590" y="526" class="sub2" text-anchor="middle">never guessed silently</text>
 
-  <!-- KS borderline/unmatched human branch -->
-  <line x1="515" y1="150" x2="700" y2="205" class="arrow-human" marker-end="url(#arrowWarn)"/>
-  <rect class="box-human" x="700" y="205" width="180" height="70" rx="7"/>
-  <text x="790" y="228" class="lbl" text-anchor="middle">KW Review tab</text>
-  <text x="790" y="244" class="sub" text-anchor="middle">0.50–0.65 → approve match</text>
-  <text x="790" y="258" class="sub" text-anchor="middle">&lt; 0.50 → unmatched</text>
+  <text x="10" y="562" class="sub2">STEP 3 — CONVERSIONS ATTACH BY PAGE, NOT BY KEYWORD</text>
+  <rect class="box-optional" x="10" y="574" width="260" height="60" rx="7"/>
+  <text x="140" y="596" class="lbl" text-anchor="middle">GA4 Conversions (optional)</text>
+  <text x="140" y="612" class="sub2" text-anchor="middle">conversions per landing page</text>
 
-  <!-- GA4 conversions long bridge -->
-  <line x1="665" y1="86" x2="665" y2="460" class="arrow-optional" marker-end="url(#arrowMuted)"/>
-  <text x="678" y="270" class="arrlbl">bridged via SE Ranking URL,</text>
-  <text x="678" y="284" class="arrlbl">not by keyword</text>
-
-  <text x="10" y="256" class="sub">STEP 3 — THE UNIFIED KEYWORD SPINE</text>
-
-  <line x1="140" y1="188" x2="140" y2="270" marker-end="url(#arrow)"/>
-
-  <!-- Spine -->
-  <rect class="spine" x="10" y="270" width="860" height="60" rx="8"/>
-  <text x="440" y="296" class="lbl" text-anchor="middle">UNIFIED KEYWORD SPINE</text>
-  <text x="440" y="314" class="sub" text-anchor="middle">one row per keyword — everything else attaches here, not to each other</text>
-
-  <text x="10" y="366" class="sub">STEP 4 — WRITE TO MASTERLIST</text>
-
-  <line x1="440" y1="330" x2="440" y2="410" marker-end="url(#arrow)"/>
-
-  <rect class="box-required" x="250" y="410" width="380" height="56" rx="7"/>
-  <text x="440" y="434" class="lbl" text-anchor="middle">Write to Masterlist</text>
-  <text x="440" y="450" class="sub" text-anchor="middle">clears rows 2+, writes all merged rows</text>
-
-  <line x1="665" y1="460" x2="600" y2="410" class="arrow-optional" marker-end="url(#arrowMuted)"/>
-
-  <text x="10" y="512" class="sub">STEP 5 — POST-WRITE ENRICHMENT (runs after the main write)</text>
-
-  <line x1="360" y1="466" x2="290" y2="524" marker-end="url(#arrow)"/>
-  <rect class="box-required" x="120" y="524" width="290" height="60" rx="7"/>
-  <text x="265" y="548" class="lbl" text-anchor="middle">SE Ranking API backfill</text>
-  <text x="265" y="564" class="sub" text-anchor="middle">fills Average Search Volume gaps</text>
-
-  <line x1="520" y1="466" x2="590" y2="524" class="arrow-optional" marker-end="url(#arrowMuted)"/>
-  <rect class="box-optional" x="470" y="524" width="290" height="60" rx="7"/>
-  <text x="615" y="548" class="lbl" text-anchor="middle">SEM QV Attribution</text>
-  <text x="615" y="564" class="sub" text-anchor="middle">needs GA4 Ads Sessions — skips if absent</text>
-
-  <line x1="815" y1="86" x2="700" y2="524" class="arrow-optional" marker-end="url(#arrowMuted)"/>
-  <text x="700" y="640" class="arrlbl" text-anchor="middle">only these 2 of 58 columns</text>
-  <text x="700" y="654" class="arrlbl" text-anchor="middle">depend on this export</text>
-
-  <line x1="265" y1="584" x2="380" y2="640" marker-end="url(#arrow)"/>
-  <line x1="615" y1="584" x2="500" y2="640" class="arrow-optional" marker-end="url(#arrowMuted)"/>
-  <rect class="box-required" x="330" y="640" width="220" height="54" rx="7"/>
-  <text x="440" y="662" class="lbl" text-anchor="middle">Finished Masterlist</text>
-  <text x="440" y="678" class="sub" text-anchor="middle">ready for build_dashboard.py</text>
+  <line x1="580" y1="408" x2="290" y2="600" class="arrow-optional" marker-end="url(#arrow2Muted)"/>
+  <text x="380" y="480" class="arrlbl" text-anchor="middle">SE Ranking already told us which page</text>
+  <text x="380" y="494" class="arrlbl" text-anchor="middle">each keyword ranks for — conversions</text>
+  <text x="380" y="508" class="arrlbl" text-anchor="middle">ride along that link, not the keyword itself</text>
 </svg>
         </div>
-        <figcaption>Solid boxes are required — the pipeline hard-stops without them. Dashed boxes are optional and only affect the handful of columns they feed. The KW Review branch is the one place a human decision sits inside an otherwise automated run.</figcaption>
+        <figcaption>Search Console and Google Ads merge first — that combined list is the backbone. SE Ranking and Keyword Study attach to it by best-guess matching. GA4 conversions attach differently again: by the page the keyword ranks for, not by the keyword text itself.</figcaption>
       </figure>
     </section>
 
     <section>
-      <h2>Why some rows need a human — the match-confidence line</h2>
-      <figure>
-        <div class="diagram-wrap">
-<svg viewBox="0 0 640 130" role="img" aria-label="A similarity score from 0 to 1: below 0.50 is unmatched, 0.50 to 0.65 is borderline and needs human review, above 0.65 is auto-matched by the pipeline.">
-  <line x1="30" y1="70" x2="610" y2="70" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <line x1="30" y1="62" x2="30" y2="78" stroke="currentColor" stroke-width="1.5"/>
-  <line x1="266" y1="62" x2="266" y2="78" stroke="var(--warn)" stroke-width="2"/>
-  <line x1="380" y1="62" x2="380" y2="78" stroke="var(--accent)" stroke-width="2"/>
-  <text x="30" y="96" class="sub" text-anchor="middle">0.0</text>
-  <text x="266" y="96" class="sub" text-anchor="middle" fill="var(--warn)">0.50</text>
-  <text x="380" y="96" class="sub" text-anchor="middle" fill="var(--accent)">0.65</text>
-  <text x="610" y="96" class="sub" text-anchor="middle">1.0</text>
-
-  <text x="145" y="40" class="lbl" text-anchor="middle" fill="var(--muted)">Unmatched</text>
-  <text x="145" y="118" class="sub" text-anchor="middle">no taxonomy written</text>
-
-  <text x="323" y="40" class="lbl" text-anchor="middle" fill="var(--warn)">Borderline</text>
-  <text x="323" y="118" class="sub" text-anchor="middle">→ KW Review tab, needs a person</text>
-
-  <text x="495" y="40" class="lbl" text-anchor="middle" fill="var(--accent)">Auto-matched</text>
-  <text x="495" y="118" class="sub" text-anchor="middle">written straight to the Masterlist</text>
-</svg>
-        </div>
-        <figcaption>Every Keyword Study row gets a similarity score against the keyword spine. Only the top band writes automatically — this is the only decision point in the whole build that isn't fully automated.</figcaption>
-      </figure>
+      <h2>How the process actually flows</h2>
+      <div class="journey">
+        <div class="jstep"><div class="dot you">1</div><div class="label">You gather the exports</div><div class="sub">Search Console, Ads, SE Ranking, Keyword Study</div></div>
+        <div class="jstep"><div class="dot">2</div><div class="label">You ask Claude to build it</div><div class="sub">one sentence — see prompts below</div></div>
+        <div class="jstep"><div class="dot">3</div><div class="label">Claude combines everything</div><div class="sub">matches all sources onto one keyword list</div></div>
+        <div class="jstep"><div class="dot">4</div><div class="label">Claude writes the result</div><div class="sub">into the brand's Masterlist sheet</div></div>
+        <div class="jstep"><div class="dot you">5</div><div class="label">You review it</div><div class="sub">spot-check a few rows, look for gaps</div></div>
+      </div>
+      <p style="font-size: 13.5px; color: var(--muted);">Steps 3–4 usually take a few minutes and need no input from you. Some keywords won't confidently match anything — those get set aside for you to approve rather than guessed at.</p>
     </section>
 
     <section>
-      <h2>Which export does what</h2>
+      <h2>Reviewing uncertain matches</h2>
+      <p style="font-size: 14px;">Every Masterlist has a companion review tab in the same Google Sheet for keywords Claude wasn't confident enough to match automatically. Here's what to actually do with it:</p>
+      <div class="steps">
+        <div class="step"><div class="num">1</div><div class="body"><h4>Open the review tab</h4><p>It sits in the same spreadsheet as the Masterlist, usually named something like "KW Review."</p></div></div>
+        <div class="step"><div class="num">2</div><div class="body"><h4>Look at the suggested match</h4><p>Each row shows the keyword, Claude's best guess at what it matches, and a similarity score — the closer to 1, the more confident the guess.</p></div></div>
+        <div class="step"><div class="num">3</div><div class="body"><h4>Approve, correct, or skip</h4><p>If the suggestion looks right, mark it approved. If it's close but wrong, you can write in the correct match yourself. If neither, just leave it — it stays out of the Masterlist rather than getting a wrong answer.</p></div></div>
+        <div class="step"><div class="num">4</div><div class="body"><h4>Ask Claude to pick up your approvals</h4><p>Once you've gone through the tab, say so — Claude re-reads it and writes the approved rows into the Masterlist.</p></div></div>
+      </div>
+      <p style="font-size: 13px; color: var(--muted);">This step is optional and can happen any time after the first build — it's not a blocker to using the rest of the Masterlist in the meantime.</p>
+    </section>
+
+    <section>
+      <h2>A worked example</h2>
+      <p style="font-size: 14px;">Say you're setting up a coffee-creamer brand for the first time, comparing Q2 2026 against Q1 2026:</p>
+      <div class="steps">
+        <div class="step"><div class="num">1</div><div class="body"><h4>You pull the four required exports</h4><p>Search Console and Google Ads reports covering Jan–Jun 2026, an SE Ranking export from this month, and the brand's existing Keyword Study sheet.</p></div></div>
+        <div class="step"><div class="num">2</div><div class="body"><h4>You tell Claude what you have</h4><p>"Set up OneSearch for [Brand] — Q2 2026 vs. Q1 2026. Here's the data: [links]." Claude checks each one and flags anything missing before proceeding.</p></div></div>
+        <div class="step"><div class="num">3</div><div class="body"><h4>Claude builds it</h4><p>A few minutes later, you have a Masterlist with a few thousand rows — most keywords automatically categorized, a smaller set waiting in the review tab.</p></div></div>
+        <div class="step"><div class="num">4</div><div class="body"><h4>You spot-check it</h4><p>The brand's own name shows real clicks in the right columns, a well-known flavor keyword shows up with a sensible category — it passes the smell test.</p></div></div>
+        <div class="step"><div class="num">5</div><div class="body"><h4>Later, more data arrives</h4><p>The GA4 Ads export finally comes through. You ask Claude to rebuild — the two conversion-related columns that were waiting now fill in, nothing else changes.</p></div></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Frequently asked</h2>
+      <div class="prompts">
+        <div class="prompt-card"><div class="situation">Do I need to know how to code?</div><div class="why">No. Everything here is a plain-English request to Claude — the prompt cards below are close to word-for-word what you'd actually type.</div></div>
+        <div class="prompt-card"><div class="situation">How often should I rebuild a brand's Masterlist?</div><div class="why">Whenever meaningful new data comes in, or on whatever reporting cadence you're using — quarterly is typical. Rebuilding is quick and always safe.</div></div>
+        <div class="prompt-card"><div class="situation">What if I don't have access to the Google Sheets?</div><div class="why">Ask whoever manages the brand's Google Workspace access to add you — Claude can't open anything you can't.</div></div>
+        <div class="prompt-card"><div class="situation">Can two people rebuild the same brand at the same time?</div><div class="why">Don't — rebuilding clears and rewrites the whole sheet, so a second run mid-way through the first will conflict.</div></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>What's required vs. nice-to-have</h2>
+      <p style="font-size: 14px;">Don't wait on everything before starting. Two of the six possible data sources are genuinely optional — missing them only affects a couple of columns, not the whole Masterlist.</p>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Export</th><th>Gives you</th><th>Feeds</th></tr></thead>
+          <thead><tr><th>Source</th><th>Status</th><th>If it's missing</th></tr></thead>
           <tbody>
-            <tr><td>Search Console (GSC)</td><td>Organic clicks, impressions, position, CTR</td><td>SEO columns</td></tr>
-            <tr><td>Google Ads Search Query Report (SQR)</td><td>Paid clicks, cost, impressions</td><td>SEM columns</td></tr>
-            <tr><td>SE Ranking</td><td>Market position, search volume, CPC, intent</td><td>Position, Average Search Volume, CPC, Purchase intent</td></tr>
-            <tr><td>Keyword Study</td><td>Topic/category taxonomy, monthly volume</td><td>Taxonomy columns, Volume columns</td></tr>
-            <tr><td>GA4 (checkout + offline store)</td><td>Conversion events per landing page</td><td>Conversions columns (SEO)</td></tr>
-            <tr><td>GA4 Ads Sessions</td><td>Session-level Google Ads data</td><td>Conversions SEM + SEM Recommendation</td></tr>
+            <tr><td>Search Console, Ads report, SE Ranking, Keyword Study</td><td><b>Required</b></td><td>Claude can't proceed without these — ask for them first</td></tr>
+            <tr><td>GA4 conversions</td><td>Optional</td><td>Conversion numbers stay blank; everything else is unaffected</td></tr>
+            <tr><td>GA4 Ads sessions</td><td>Optional</td><td>Two specific columns wait — the rest of the Masterlist is unaffected and considered done</td></tr>
           </tbody>
         </table>
       </div>
     </section>
 
     <section>
-      <h2>Required vs. skippable</h2>
-      <div class="callout">
-        <span class="mark">✓</span>
-        <p><b>This is Silk's exact situation right now:</b> the GA4 Ads Sessions export isn't in yet, but 56 of 58 columns are already finished — only <code>Conversions SEM</code> and <code>SEM Recommendation</code> are waiting on it.</p>
-      </div>
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>If missing…</th><th>Source</th><th>What happens</th></tr></thead>
-          <tbody>
-            <tr><td><span class="badge auto">🤖 required</span></td><td>GSC, SQR, SE Ranking, Keyword Study</td><td>Pipeline exits immediately with an error — these are load-bearing</td></tr>
-            <tr><td><span class="badge opt">optional</span></td><td>GA4 Checkout / Offline Store</td><td>Conversion columns stay blank; everything else is unaffected</td></tr>
-            <tr><td><span class="badge opt">optional</span></td><td>GA4 Ads Sessions</td><td>SEM QV + SEM Recommendation are skipped entirely, cleanly</td></tr>
-            <tr><td><span class="badge opt">optional</span></td><td>Quality Report</td><td>Not consumed by the pipeline at all — registering it does nothing yet</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section>
-      <h2>Hardcoded vs. config-driven</h2>
-      <p style="font-size: 14px; color: var(--muted);">Rule of thumb: <b>blank column or data in the wrong period → check <code>config.json</code> first.</b> Still wrong after that → it's a code question, not a data question.</p>
-      <div class="split">
-        <div class="split-col cfg">
-          <div class="k">✏️ config.json — edit it yourself</div>
-          <ul>
-            <li><b>Period labels</b> — <code>p1_label</code> / <code>p2_label</code>, GSC date prefixes</li>
-            <li><b>Taxonomy dimension names</b> — what AL–AY are actually called for this brand</li>
-            <li><b>Competitor blocklist</b>, coverage targets</li>
-            <li><b>Which sheet tabs</b> each export/Masterlist lives in</li>
-          </ul>
-        </div>
-        <div class="split-col code">
-          <div class="k">🔧 code — ask Claude</div>
-          <ul>
-            <li>Match-confidence thresholds (0.50 / 0.60 / 0.65)</li>
-            <li>Adding a genuinely new data source to the pipeline</li>
-            <li>The dashboard's HTML/CSS template itself</li>
-            <li>Anything in a file marked <b>deprecated</b> — don't run these, ask instead</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <h2>Before you run it</h2>
+      <h2>What to look for when it's done</h2>
       <div class="checklist">
-        <div class="check-item"><span class="box"></span><span>Every required export is registered under the brand's own tab in the source-config sheet — not a shared tab with other brands</span></div>
-        <div class="check-item"><span class="box"></span><span>The Masterlist's header row period labels match <code>config.json</code>'s <code>p1_label</code>/<code>p2_label</code> exactly</span></div>
-        <div class="check-item"><span class="box"></span><span>The Keyword Study export has the columns the pipeline expects (Keyword, TOPIC/CATEGORY, monthly <code>Searches: &lt;Month&gt; &lt;Year&gt;</code> columns)</span></div>
-        <div class="check-item"><span class="box"></span><span>The Ads search-term report covers both comparison periods (or is merged into one if it was pulled as two separate exports)</span></div>
+        <div class="check-item"><span class="box"></span><span>Row count looks reasonable for the brand's size — Claude will tell you the number when it finishes</span></div>
+        <div class="check-item"><span class="box"></span><span>Spot-check 5–10 rows: do the click numbers look plausible, is the right quarter's data in the right column?</span></div>
+        <div class="check-item"><span class="box"></span><span>Don't expect every keyword to have a category/topic filled in immediately — a portion always needs manual review, and that's normal</span></div>
+        <div class="check-item"><span class="box"></span><span>If a whole column looks empty, ask Claude why before assuming something's broken — it's almost always a missing export or a config mismatch, and Claude can tell you which</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>What to say to Claude</h2>
+      <div class="prompts">
+        <div class="prompt-card">
+          <div class="situation">Starting a brand-new brand</div>
+          <div class="say">"Set up OneSearch for [Brand] — comparing [Q2 2026] vs. [Q1 2026]. Here's the Search Console, Ads, SE Ranking, and Keyword Study data: [links]."</div>
+          <div class="why">Give the brand name, the two periods, and links to whatever exports you already have — Claude will tell you what's still missing.</div>
+        </div>
+        <div class="prompt-card">
+          <div class="situation">Checking if you're ready to start</div>
+          <div class="say">"Is [Brand] ready to build a Masterlist? What's missing?"</div>
+          <div class="why">Claude checks what's registered and gives you a clear yes/no plus a punch list — better than guessing.</div>
+        </div>
+        <div class="prompt-card">
+          <div class="situation">Refreshing an existing brand</div>
+          <div class="say">"Rebuild the Masterlist for [Brand] — we've got fresh [Ads / SE Ranking / GA4] data now."</div>
+          <div class="why">Rebuilding is cheap and safe — it always reads the newest data and overwrites the old rows.</div>
+        </div>
+        <div class="prompt-card">
+          <div class="situation">Something looks off</div>
+          <div class="say">"The [CATEGORY] column is empty for most rows — is that expected, or is something broken?"</div>
+          <div class="why">Name the specific column or number that looks wrong. Claude can trace exactly which source or step it came from.</div>
+        </div>
+        <div class="prompt-card">
+          <div class="situation">This brand doesn't fit the default categories</div>
+          <div class="say">"This brand doesn't sell yogurt — can we set up categories that actually match what they sell?"</div>
+          <div class="why">The category/tag system is customizable per brand — it just needs to be told what the right categories are.</div>
+        </div>
       </div>
     </section>
 
@@ -396,108 +460,167 @@
   <div class="tabpanel" id="panel-dashboard">
 
     <section>
-      <h2>What it is</h2>
-      <p class="lede">The dashboard is a static HTML report built <b>from</b> a finished Masterlist — it never touches raw source data. It's the client-facing deliverable: an interactive table, territory breakdowns, and coverage stats, all baked into one file.</p>
+      <h2>What this is</h2>
+      <p class="lede">The dashboard is the shareable, client-facing report — an interactive page built <b>from</b> a finished Masterlist. It never looks at the raw exports directly, so it's only ever as good as the Masterlist behind it.</p>
     </section>
 
     <section>
-      <h2>The full sequence</h2>
+      <h2>What's actually on it</h2>
+      <p style="font-size: 14px;">One file, four things to know how to read:</p>
+      <div class="export-grid">
+        <div class="export-card">
+          <div class="ehead"><h4>The keyword table</h4></div>
+          <dl><dd>Every row from the Masterlist, sortable and filterable — this is the detail view for anyone who wants to dig into a specific keyword or category.</dd></dl>
+        </div>
+        <div class="export-card">
+          <div class="ehead"><h4>Coverage stats</h4></div>
+          <dl><dd>The headline numbers — how much of total search demand is being captured, overall and broken out by category, for both time periods so you can see the trend.</dd></dl>
+        </div>
+        <div class="export-card">
+          <div class="ehead"><h4>Territory Deep Dive</h4></div>
+          <dl><dd>Performance grouped by category (Brand, Competitor, Recipe, etc.) — this is usually where the real story is, since a single overall number hides which categories are actually driving results.</dd></dl>
+        </div>
+        <div class="export-card">
+          <div class="ehead"><h4>Recommendations</h4></div>
+          <dl><dd>Auto-generated notes on what to prioritize next, based on the coverage and spend patterns in the data — a starting point for discussion, not a final verdict.</dd></dl>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>What you need before you start</h2>
+      <div class="checklist">
+        <div class="check-item"><span class="box"></span><span>A Masterlist that's already been through a <b>full</b> build for this brand — not a small test run</span></div>
+        <div class="check-item"><span class="box"></span><span>A sense of who's going to see this — internal review, or a client? That changes how much you should double-check first</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>How the process actually flows</h2>
+      <div class="journey">
+        <div class="jstep"><div class="dot you">1</div><div class="label">You ask Claude to build it</div><div class="sub">one sentence — see prompts below</div></div>
+        <div class="jstep"><div class="dot">2</div><div class="label">Claude checks the Masterlist</div><div class="sub">catches obvious problems before building</div></div>
+        <div class="jstep"><div class="dot">3</div><div class="label">Claude builds the report</div><div class="sub">a single self-contained HTML file</div></div>
+        <div class="jstep"><div class="dot you">4</div><div class="label">You open and review it</div><div class="sub">before sharing it onward</div></div>
+      </div>
+      <div class="callout">
+        <span class="mark">!</span>
+        <p>If the check in step 2 finds something wrong, Claude stops rather than building on top of bad data. That's a decision point for you — fix the underlying data, or explicitly tell Claude to proceed anyway.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>What actually happens inside "Claude builds the report"</h2>
+      <p class="lede">Step 3 above isn't one action — it's a fixed sequence, and the only real decision point in it is the validation check at the very start.</p>
       <figure>
         <div class="diagram-wrap">
-<svg viewBox="0 0 780 500" role="img" aria-label="The Masterlist is validated; if validation fails the process stops unless a human explicitly skips it; if it passes, the HTML is built in a fixed sequence and optionally finalized by baking in written recommendations.">
+<svg viewBox="0 0 780 500" role="img" aria-label="The Masterlist is validated; if validation fails the process stops unless a human explicitly proceeds anyway; if it passes, the report is assembled in a fixed sequence and optionally finalized by baking in written recommendations.">
+  <defs>
+    <marker id="arrow3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+    </marker>
+    <marker id="arrow3Muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)" />
+    </marker>
+    <marker id="arrow3Warn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--warn)" />
+    </marker>
+  </defs>
+
   <rect class="box-required" x="300" y="10" width="180" height="54" rx="7"/>
   <text x="390" y="32" class="lbl" text-anchor="middle">Finished Masterlist</text>
-  <text x="390" y="48" class="sub" text-anchor="middle">input, not raw sources</text>
+  <text x="390" y="48" class="sub2" text-anchor="middle">the input — nothing raw is re-read</text>
 
-  <line x1="390" y1="64" x2="390" y2="104" marker-end="url(#arrow)"/>
+  <line x1="390" y1="64" x2="390" y2="104" marker-end="url(#arrow3)"/>
 
   <rect class="box-required" x="290" y="104" width="200" height="54" rx="7"/>
-  <text x="390" y="126" class="lbl" text-anchor="middle">Validate</text>
-  <text x="390" y="142" class="sub" text-anchor="middle">completeness &amp; sanity checks</text>
+  <text x="390" y="126" class="lbl" text-anchor="middle">Check the data</text>
+  <text x="390" y="142" class="sub2" text-anchor="middle">completeness &amp; sanity checks</text>
 
-  <line x1="330" y1="158" x2="200" y2="210" class="arrow-human" marker-end="url(#arrowWarn)"/>
-  <text x="220" y="185" class="arrlbl">fails</text>
+  <line x1="330" y1="158" x2="200" y2="210" class="arrow-human" marker-end="url(#arrow3Warn)"/>
+  <text x="220" y="185" class="arrlbl">finds a problem</text>
   <rect class="box-human" x="60" y="210" width="280" height="66" rx="7"/>
-  <text x="200" y="234" class="lbl" text-anchor="middle">Hard stop</text>
-  <text x="200" y="250" class="sub" text-anchor="middle">a human decides: fix the data, or</text>
-  <text x="200" y="264" class="sub" text-anchor="middle">explicitly pass --skip-validation</text>
+  <text x="200" y="234" class="lbl" text-anchor="middle">Stops here</text>
+  <text x="200" y="250" class="sub2" text-anchor="middle">a person decides: fix the data, or</text>
+  <text x="200" y="264" class="sub2" text-anchor="middle">explicitly say "build it anyway"</text>
 
-  <line x1="450" y1="158" x2="560" y2="210" marker-end="url(#arrow)"/>
-  <text x="545" y="185" class="arrlbl">passes</text>
+  <line x1="450" y1="158" x2="560" y2="210" marker-end="url(#arrow3)"/>
+  <text x="545" y="185" class="arrlbl">looks fine</text>
 
   <rect class="box-required" x="420" y="210" width="280" height="90" rx="7"/>
-  <text x="560" y="232" class="lbl" text-anchor="middle">Build HTML (14 steps)</text>
-  <text x="560" y="250" class="sub" text-anchor="middle">read rows → build DATA/TAGS →</text>
-  <text x="560" y="264" class="sub" text-anchor="middle">territory stats → inject into template →</text>
-  <text x="560" y="278" class="sub" text-anchor="middle">brand colors/labels → recommendations panel</text>
-  <text x="560" y="292" class="sub" text-anchor="middle">→ write output file</text>
+  <text x="560" y="232" class="lbl" text-anchor="middle">Assemble the report</text>
+  <text x="560" y="250" class="sub2" text-anchor="middle">group keywords into categories,</text>
+  <text x="560" y="264" class="sub2" text-anchor="middle">compute coverage stats, apply the</text>
+  <text x="560" y="278" class="sub2" text-anchor="middle">brand's colors and labels, build the</text>
+  <text x="560" y="292" class="sub2" text-anchor="middle">interactive sections</text>
 
-  <line x1="560" y1="300" x2="560" y2="340" marker-end="url(#arrow)"/>
+  <line x1="560" y1="300" x2="560" y2="340" marker-end="url(#arrow3)"/>
 
   <rect class="box-optional" x="420" y="340" width="280" height="60" rx="7"/>
-  <text x="560" y="364" class="lbl" text-anchor="middle">--finalize (optional)</text>
-  <text x="560" y="380" class="sub" text-anchor="middle">bakes content.json in — no external file needed</text>
+  <text x="560" y="364" class="lbl" text-anchor="middle">Finalize (optional)</text>
+  <text x="560" y="380" class="sub2" text-anchor="middle">bakes written recommendations in permanently</text>
 
-  <line x1="560" y1="400" x2="560" y2="440" marker-end="url(#arrow)"/>
-  <line x1="200" y1="276" x2="200" y2="440" class="arrow-optional" marker-end="url(#arrowMuted)"/>
+  <line x1="560" y1="400" x2="560" y2="440" marker-end="url(#arrow3)"/>
+  <line x1="200" y1="276" x2="200" y2="440" class="arrow-optional" marker-end="url(#arrow3Muted)"/>
   <text x="150" y="360" class="arrlbl" text-anchor="middle">once fixed,</text>
-  <text x="150" y="374" class="arrlbl" text-anchor="middle">re-run from here</text>
+  <text x="150" y="374" class="arrlbl" text-anchor="middle">start over from here</text>
 
   <rect class="spine" x="180" y="440" width="440" height="54" rx="8"/>
-  <text x="400" y="462" class="lbl" text-anchor="middle">Dashboard HTML file</text>
-  <text x="400" y="478" class="sub" text-anchor="middle">dashboards/&lt;brand&gt;/&lt;brand&gt;_onesearch_dashboard.html</text>
+  <text x="400" y="462" class="lbl" text-anchor="middle">One finished dashboard file</text>
+  <text x="400" y="478" class="sub2" text-anchor="middle">self-contained — safe to open, safe to share</text>
 </svg>
         </div>
-        <figcaption>Validation is the one branch point — everything before and after it runs automatically. Whether to skip a failed validation is a human call, not a default.</figcaption>
+        <figcaption>Checking the data is the only branch point — everything before and after it is fully automatic. Whether to build past a failed check is always a person's call, never a default.</figcaption>
       </figure>
     </section>
 
     <section>
-      <h2>Step by step</h2>
-      <div class="steps">
-        <div class="step"><div class="num">1</div><div class="body"><div class="title-row"><h4>Validate the Masterlist</h4><span class="badge human">skip is a human call</span></div><p>Reads the sheet fresh, runs completeness/sanity checks, hard-stops on blocking errors unless <code>--skip-validation</code> is passed deliberately.</p></div></div>
-        <div class="step"><div class="num">2</div><div class="body"><div class="title-row"><h4>Read + shape the data</h4><span class="badge auto">automatic</span></div><p>Rebuilds the per-keyword DATA array and the taxonomy TAGS from the Masterlist's AM–AY columns.</p></div></div>
-        <div class="step"><div class="num">3</div><div class="body"><div class="title-row"><h4>Compute territory stats</h4><span class="badge auto">automatic</span></div><p>Groups keywords by TOPIC/CATEGORY and aggregates coverage, clicks, and volume per territory.</p></div></div>
-        <div class="step"><div class="num">4</div><div class="body"><div class="title-row"><h4>Inject into the template</h4><span class="badge auto">automatic</span></div><p>Loads the static HTML shell, injects data, brand colors/labels, the Territory Deep Dive panel, and the Recommendations panel.</p></div></div>
-        <div class="step"><div class="num">5</div><div class="body"><div class="title-row"><h4>Write the file</h4><span class="badge auto">automatic</span></div><p>Outputs to <code>dashboards/&lt;brand&gt;/&lt;brand&gt;_onesearch_dashboard.html</code> — one self-contained file.</p></div></div>
-        <div class="step"><div class="num">6</div><div class="body"><div class="title-row"><h4>--finalize (optional)</h4><span class="badge opt">optional</span></div><p>Bakes <code>content.json</code> recommendations directly into the HTML so the file has no external dependency.</p></div></div>
-      </div>
-    </section>
-
-    <section>
-      <h2>Hardcoded vs. config-driven, here too</h2>
-      <div class="split">
-        <div class="split-col cfg">
-          <div class="k">✏️ config.json — edit it yourself</div>
-          <ul>
-            <li>Territory names, colors, coverage targets</li>
-            <li>Brand color/accent used throughout the dashboard</li>
-            <li>Which taxonomy tags appear in the glossary</li>
-          </ul>
-        </div>
-        <div class="split-col code">
-          <div class="k">🔧 code — ask Claude</div>
-          <ul>
-            <li>The dashboard's visual design/layout itself</li>
-            <li>What the Territory Deep Dive or Recommendations panel actually computes</li>
-            <li>Adding a new section type to the dashboard</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <h2>Is this ready to build?</h2>
+      <h2>What to look for when it's done</h2>
       <div class="checklist">
-        <div class="check-item"><span class="box"></span><span>The Masterlist has already been through a full <code>run_pipeline.py</code> run for this brand — not a <code>--max-rows</code> test</span></div>
-        <div class="check-item"><span class="box"></span><span>Validation passes, or a person has deliberately decided a specific gap (like missing taxonomy) is acceptable to skip past</span></div>
-        <div class="check-item"><span class="box"></span><span><code>brands/&lt;handle&gt;/config.json</code> has real brand colors set, not <code>"TBD"</code></span></div>
+        <div class="check-item"><span class="box"></span><span>Open the file and click through a few sections — does the brand's name, colors, and numbers look right?</span></div>
+        <div class="check-item"><span class="box"></span><span>If any conversion or paid-search number reads as <b>0</b>, ask whether that's a real zero or just data that hasn't come in yet — the two look identical in the table right now</span></div>
+        <div class="check-item"><span class="box"></span><span>Before sending it externally, ask Claude to confirm which data sources (if any) are still pending for this brand, so you know what caveats to give</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Frequently asked</h2>
+      <div class="prompts">
+        <div class="prompt-card"><div class="situation">Can I edit the dashboard after it's built?</div><div class="why">It's a static file, so manual edits won't survive a rebuild. If something needs to change permanently, that's a config or data fix, then rebuild.</div></div>
+        <div class="prompt-card"><div class="situation">Does it update automatically as new data comes in?</div><div class="why">No — it's a snapshot of the Masterlist at build time. Ask Claude to rebuild it whenever you want it refreshed.</div></div>
+        <div class="prompt-card"><div class="situation">Can I send this outside Digitad?</div><div class="why">Yes, it's a single self-contained file — but check what's still pending for that brand first, and caveat accordingly.</div></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>What to say to Claude</h2>
+      <div class="prompts">
+        <div class="prompt-card">
+          <div class="situation">Building it for the first time</div>
+          <div class="say">"Build the dashboard for [Brand]."</div>
+          <div class="why">That's it — Claude reads the finished Masterlist and does the rest.</div>
+        </div>
+        <div class="prompt-card">
+          <div class="situation">The build stopped with a warning</div>
+          <div class="say">"The dashboard build says validation failed — what's wrong, and is it safe to build anyway?"</div>
+          <div class="why">Let Claude explain what's missing before deciding whether to fix it first or proceed with a known gap.</div>
+        </div>
+        <div class="prompt-card">
+          <div class="situation">Deciding if it's ready to share</div>
+          <div class="say">"Is [Brand]'s dashboard ready to send to the client, or is something still pending?"</div>
+          <div class="why">Ask this explicitly before forwarding anything — don't assume "it built successfully" means "it's complete."</div>
+        </div>
+        <div class="prompt-card">
+          <div class="situation">New data just came in</div>
+          <div class="say">"We just got [Brand]'s missing Ads/conversion data — rebuild the Masterlist, then the dashboard."</div>
+          <div class="why">Both rebuilds are quick and safe to re-run any time new data lands.</div>
+        </div>
       </div>
     </section>
 
   </div>
 
-  <footer>Full reference: <code>one_search/README.md</code> · Field guide: <code>one_search/docs/onesearch_field_guide.html</code></footer>
+  <footer>Need the deeper technical reference instead? See <code>one_search/docs/onesearch_field_guide.html</code>.</footer>
 
 </div>
 
