@@ -396,7 +396,8 @@ def _run(brand_key: str, max_rows=None) -> None:
     # too would just be silently discarded, and misreports the pre-overwrite
     # "hit count" below. Only fall back to the proxy when GA4 Ads QV SEM isn't
     # configured, so the column isn't left completely blank.
-    has_qv_sem = bool(sheets_cfg.get('ga4_ads_file_id'))
+    _ga4_ads_id = sheets_cfg.get('ga4_ads_file_id')
+    has_qv_sem = bool(_ga4_ads_id) and str(_ga4_ads_id).strip().upper() != 'TBD'
     _distribute_conversions(checkout_map, f'Conversions SEO {p1_label}')
     if not has_qv_sem:
         _distribute_conversions(offline_map, f'Conversions SEM {p1_label}')
