@@ -44,10 +44,23 @@ def norm_ga4_rows(rows: list) -> dict:
             if path_col is None:
                 continue  # still in metadata rows
             if events_col is None:
-                print(f"  WARNING: GA4 export has a recognized path column ('{path_col}') "
-                      f"but no recognized events column (tried {_EVENTS_COL_CANDIDATES}). "
-                      f"All conversions from this source will be 0. "
-                      f"Header row keys: {list(row.keys())[:12]}", flush=True)
+                # Some GA4 exports name the events column after the specific event
+                # itself (e.g. 'mikmak_checkout') instead of a generic 'Key events'
+                # label. In every such export seen so far, that column is always
+                # the one immediately before 'Total revenue' — fall back to that
+                # position rather than silently returning zero conversions.
+                keys = list(row.keys())
+                if 'Total revenue' in keys:
+                    idx = keys.index('Total revenue')
+                    if idx > 0:
+                        events_col = keys[idx - 1]
+                        print(f"  GA4 export: events column resolved by position as "
+                              f"'{events_col}' (no generic 'Key events' label found)", flush=True)
+                if events_col is None:
+                    print(f"  WARNING: GA4 export has a recognized path column ('{path_col}') "
+                          f"but no recognized events column (tried {_EVENTS_COL_CANDIDATES}). "
+                          f"All conversions from this source will be 0. "
+                          f"Header row keys: {list(row.keys())[:12]}", flush=True)
 
         raw_path = str(row.get(path_col) or '').strip()
         # Strip query strings (?...) before normalizing — GA4 Ads export includes them

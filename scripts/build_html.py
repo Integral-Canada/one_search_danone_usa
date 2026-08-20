@@ -69,9 +69,19 @@ def _patch_module(brand_key: str, cfg: dict) -> None:
     _bh.MASTER_TAB  = sheets_cfg.get('master_tab', 'Listing')
     _bh.QS_SHEET_ID = sheets_cfg.get('qs_sheet_id', '')
     _bh.BRAND_NAME  = cfg.get('client_name', brand_key)
-    _bh.BRAND_COLOR = brand_cfg.get('color', '#004f79')
-    _bh.ACCENT_CLR  = brand_cfg.get('accent_color', '#1a7aad')
-    _bh.LIGHT_BG    = brand_cfg.get('light_bg', '#f0f6fb')
+    def _color_or_default(value, default):
+        # A brand's color fields are frequently left as the literal placeholder
+        # "TBD" until someone picks real brand colors. apply_brand() does a blind
+        # string substitution of these into the template's CSS, so an unfixed
+        # "TBD" becomes an invalid CSS value like "background: TBD" — silently
+        # dropped by the browser, breaking backgrounds and making white-on-color
+        # text invisible. Fall back to a neutral default instead.
+        v = str(value or '').strip()
+        return default if (not v or v.upper() == 'TBD') else v
+
+    _bh.BRAND_COLOR = _color_or_default(brand_cfg.get('color'), '#004f79')
+    _bh.ACCENT_CLR  = _color_or_default(brand_cfg.get('accent_color'), '#1a7aad')
+    _bh.LIGHT_BG    = _color_or_default(brand_cfg.get('light_bg'), '#f0f6fb')
     _bh.PERIOD_P1   = period_cfg.get('p1_label', 'Q1 2026')
     _bh.PERIOD_P4   = period_cfg.get('p2_label', 'Q4 2025')
     _bh.PERIOD      = period_cfg.get('display', f"{_bh.PERIOD_P1} vs {_bh.PERIOD_P4}")
