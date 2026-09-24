@@ -122,6 +122,14 @@ def _patch_module(brand_key: str, cfg: dict) -> None:
     _bh.CONV_LABEL_SEO = conv_label_cfg.get('seo', 'Qualified Visits (SEO)')
     _bh.CONV_LABEL_SEM = conv_label_cfg.get('sem', 'Qualified Visits (SEM)')
 
+    # Rename raw TOPICS values for display (e.g. a KS taxonomy label that reads oddly
+    # for this brand, like "EATING BETTER" for a coffee creamer). Applied once, at the
+    # point each row's TOPICS value first enters DATA/territory-stats/SQR output, so
+    # every downstream view (territory headers, dropdown filters, table cells) shows
+    # the renamed label consistently — the underlying KS sheet classification is
+    # untouched; this is purely cosmetic relabeling, not a reclassification.
+    _bh.TOPIC_LABELS = cfg.get('topic_labels', {})
+
     # ── Shared API helpers → use pipeline.utils ───────────────────────────────
     _bh.load_env   = load_env
     _bh.get_token  = get_token
@@ -174,6 +182,7 @@ def _patch_module(brand_key: str, cfg: dict) -> None:
             for idx, col in _bh.DATA_MAP:
                 val = row.get(col, '')
                 dr[idx] = _bh._s(val) if idx in _bh.STRING_INDICES else _bh._n(val)
+            dr[1]  = _bh.TOPIC_LABELS.get(dr[1], dr[1])
             dr[7]  = cov_p1
             dr[8]  = cov_p4
             dr[31] = _bh._n(row.get(spend_p1, 0)) if spend_p1 else 0
@@ -201,7 +210,7 @@ def _patch_module(brand_key: str, cfg: dict) -> None:
             'top_kws': [],
         })
         for row in rows:
-            topic = _bh._s(row.get('TOPICS', ''))
+            topic = _bh.TOPIC_LABELS.get(_bh._s(row.get('TOPICS', '')), _bh._s(row.get('TOPICS', '')))
             kw    = _bh._s(row.get('Keyword', ''))
             if not topic or not kw:
                 continue
@@ -261,11 +270,12 @@ def _patch_module(brand_key: str, cfg: dict) -> None:
             conv_q4= _bh._n(r.get(f'Conversions SEM {p4}', 0))
             ctr_q4 = _bh._n(r.get(f'CTR SEM {p4}', 0))
             cpa_q4 = cout_q4 / conv_q4 if conv_q4 > 0 else 0
+            topic = _bh.TOPIC_LABELS.get(_bh._s(r.get('TOPICS', '')), _bh._s(r.get('TOPICS', '')))
             sqr_rows.append([
-                kw, _bh._s(r.get('TOPICS', '')), '', '', '',
+                kw, topic, '', '', '',
                 impr_q1, sem_q1, cout_q1, 0, conv_q1, 0, ctr_q1, cpc_q1, cpa_q1,
                 impr_q4, sem_q4, cout_q4, 0, conv_q4, 0, ctr_q4, 0, cpa_q4,
-                _bh._s(r.get('TOPICS', '')), _bh._s(r.get('CATEGORY', '')),
+                topic, _bh._s(r.get('CATEGORY', '')),
             ])
         sqr_rows.sort(key=lambda x: x[6], reverse=True)
         lines = ['var SQR_ACTIVIA = [']

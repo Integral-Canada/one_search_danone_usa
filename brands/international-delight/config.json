@@ -40,6 +40,12 @@
     "ga4_ads_tab_p2": null
   },
 
+  "_topic_labels_comment": "Added 2026-09-24 at user request: the KS Pipeline Format sheet's own TOPIC column uses 'EATING BETTER'/'HEALTH' labels borrowed from Danone's yogurt/wellness-brand taxonomy vocabulary. Checked the actual keywords under each — HEALTH = lactose-intolerance queries ('best coffee creamer for lactose intolerance'), EATING BETTER = nutrition-facts lookups ('coffee creamer nutrition facts', 'international delight french vanilla creamer nutrition facts'). Both are real, on-brand search intent for a creamer brand; only the label wording read oddly, not the underlying classification. Renamed for display only — does not touch the KS sheet or reclassify any keyword.",
+  "topic_labels": {
+    "EATING BETTER": "Nutrition Info",
+    "HEALTH": "Dietary Needs"
+  },
+
   "conn_intent_exclusions": [
     "login", "website", "my account"
   ],

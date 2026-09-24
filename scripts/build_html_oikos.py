@@ -270,6 +270,8 @@ STRING_INDICES = {0, 1, 2, 3, 36}
 SPEND_P1 = ['Spent SEM Q1 2026', 'Dépense SEM Q1 2026', 'Spend SEM Q1 2026', 'Cost SEM Q1 2026']
 SPEND_P4 = ['Spent SEM Q4 2025', 'Dépense SEM Q4 2025', 'Spend SEM Q4 2025', 'Cost SEM Q4 2025']
 
+TOPIC_LABELS = {}  # raw TOPICS value -> display label override; set per-brand by build_html.py
+
 TAXONOMY_TAGS = [
     'Questions', 'Yogurt types', 'Taste', 'Packaging', 'Ingredient',
     'Brands', 'Retailer', 'Demography', 'Benefits', 'Testimonials',
@@ -1635,6 +1637,13 @@ def apply_brand(html):
         # OS_TOPIC_COLORS brand key — Activia had 'PRODUCTS' as dark red; keep structure
         ("'#B8001C'", f"'{BRAND_COLOR}'"),
     ]
+    # OS_TOPIC_COLORS keys are a static hardcoded object literal in the raw template
+    # ({'PRODUCTS':..,'HEALTH':..,'EATING BETTER':..,'RECIPES':..}), unrelated to any
+    # per-brand DATA_MAP field — but DATA/territory-stats/SQR output now carry the
+    # TOPIC_LABELS-renamed display label, so the color lookup needs the same keys or
+    # a renamed topic silently falls through to the default gray badge color.
+    for raw, renamed in TOPIC_LABELS.items():
+        subs.append((f"'{raw}':", f"'{renamed}':"))
     for old, new in subs:
         html = html.replace(old, new)
     return html
