@@ -35,7 +35,9 @@
     "qs_sheet_id": "TBD",
     "qs_sheet_tab": "TBD",
     "ga4_ads_file_id": "TBD",
-    "ga4_ads_tab": null
+    "ga4_ads_tab": null,
+    "ga4_ads_file_id_p2": "TBD",
+    "ga4_ads_tab_p2": null
   },
 
   "conn_intent_exclusions": [

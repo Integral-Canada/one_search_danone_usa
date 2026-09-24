@@ -311,6 +311,52 @@ def write_qv_sem(
     print(f"  Wrote {tag_written} SEM Recommendation tags → col {bf_letter}", flush=True)
 
 
+def write_qv_sem_period(
+    token: str,
+    master_id: str,
+    master_tab: str,
+    qv_sem_map: dict,
+    period_label: str,
+) -> None:
+    """Write QV SEM values for a single period's 'Conversions SEM {period_label}'
+    column only — no Brand SEM Recommendation tagging (that's a P1-only, current-
+    period decision; see tag_sem_recommendations docstring). Used for a
+    comparison-period (P2) GA4 Ads export, kept separate from write_qv_sem()
+    so a brand with only a P1 export configured never touches a P2 column.
+    """
+    col_name = f'Conversions SEM {period_label}'
+    print(f"\nWriting QV SEM ({period_label}) → Masterlist '{master_tab}'...", flush=True)
+
+    header_raw = sheets_get(token, master_id, f"'{master_tab}'!1:1")
+    if not header_raw:
+        raise RuntimeError(f"Masterlist '{master_tab}' returned empty header row")
+    headers = [str(h) for h in header_raw[0]]
+    try:
+        col_pos = headers.index(col_name) + 1  # 1-based
+    except ValueError:
+        raise RuntimeError(
+            f"Column '{col_name}' not found in Masterlist headers.\n"
+            f"Verify the masterlist was built with the correct period label.\n"
+            f"Headers (first 10): {headers[:10]}"
+        )
+    col_letter_ = col_letter(col_pos)
+
+    kw_raw = sheets_get(token, master_id, f"'{master_tab}'!B2:B")
+    all_keywords = [str(r[0]) if r else '' for r in kw_raw]
+    n_rows = len(all_keywords)
+
+    values = []
+    for kw in all_keywords:
+        qv = qv_sem_map.get(normalize(kw), '')
+        values.append([round(qv, 4) if qv else ''])
+
+    sheets_batch_update(token, master_id, [
+        (f"'{master_tab}'!{col_letter_}2:{col_letter_}{n_rows + 1}", values),
+    ])
+    qv_written = sum(1 for v in values if v[0])
+    print(f"  Wrote {qv_written} QV SEM values → col {col_letter_}", flush=True)
+
+
 # ── Main entry point ──────────────────────────────────────────────────────────
 
 def run_sem_qv(token: str, cfg: dict) -> None:
@@ -318,6 +364,16 @@ def run_sem_qv(token: str, cfg: dict) -> None:
 
     cfg: merged brand config dict (from utils.load_brand_config).
     Skips gracefully if ga4_ads_file_id is null/missing in config.
+
+    P1 (current period) drives both the QV SEM numbers AND the Brand SEM
+    Recommendation tag (col BF) — that tag is a forward-looking campaign
+    decision, not a trend, so it stays P1-only even when P2 is configured.
+
+    P2 (comparison period) is optional and independent: if
+    ga4_ads_file_id_p2 is configured, its GA4 Ads export is read and written
+    into 'Conversions SEM {p2_label}' the same way, so the SEM side of the
+    dashboard compares two real periods instead of one real + one proxy.
+    Skips gracefully — same as P1 — if not configured.
     """
     sheets_cfg  = cfg.get('sheets', {})
     master_id   = sheets_cfg.get('master_id')
@@ -325,6 +381,10 @@ def run_sem_qv(token: str, cfg: dict) -> None:
     ga4_file_id = sheets_cfg.get('ga4_ads_file_id')
     ga4_tab     = sheets_cfg.get('ga4_ads_tab')
     p1_label    = cfg.get('period', {}).get('p1_label', 'Q1 2026')
+
+    ga4_file_id_p2 = sheets_cfg.get('ga4_ads_file_id_p2')
+    ga4_tab_p2     = sheets_cfg.get('ga4_ads_tab_p2')
+    p2_label       = cfg.get('period', {}).get('p2_label', 'Q4 2025')
 
     sem_qv_cfg       = cfg.get('sem_qv', {})
     seo_cov_threshold = float(cfg.get('sem_qv', {}).get(
@@ -334,7 +394,10 @@ def run_sem_qv(token: str, cfg: dict) -> None:
     seo_pos_threshold = int(sem_qv_cfg.get('seo_pos_threshold', 5))
     competitor_blocklist = set(sem_qv_cfg.get('competitor_blocklist', []))
 
-    if not ga4_file_id or str(ga4_file_id).strip().upper() == 'TBD':
+    has_p1 = bool(ga4_file_id) and str(ga4_file_id).strip().upper() != 'TBD'
+    has_p2 = bool(ga4_file_id_p2) and str(ga4_file_id_p2).strip().upper() != 'TBD'
+
+    if not has_p1 and not has_p2:
         print("  SEM QV: GA4 Ads file ID not configured — skipping QV SEM calculation.\n"
               "  Add 'ga4_ads_file_id' to brands/[handle]/config.json to enable.",
               flush=True)
@@ -342,33 +405,45 @@ def run_sem_qv(token: str, cfg: dict) -> None:
 
     print("\n── SEM QV Attribution ──────────────────────────────────────────", flush=True)
 
-    # Step 1: Read GA4 Ads export
-    ga4_rows = read_ga4_ads(token, ga4_file_id, ga4_tab)
+    if has_p1:
+        # Step 1: Read GA4 Ads export
+        ga4_rows = read_ga4_ads(token, ga4_file_id, ga4_tab)
 
-    # Step 2: Calculate QV SEM
-    qv_sem_map = calculate_qv_sem(ga4_rows)
+        # Step 2: Calculate QV SEM
+        qv_sem_map = calculate_qv_sem(ga4_rows)
 
-    # Step 3: Read Masterlist for tagging
-    print("  Reading Masterlist for Brand SEM tagging...", flush=True)
-    raw = sheets_get(token, master_id, f"'{master_tab}'!A1:BF")
-    if not raw:
-        raise RuntimeError(f"Masterlist '{master_tab}' is empty — run the main pipeline first")
+        # Step 3: Read Masterlist for tagging
+        print("  Reading Masterlist for Brand SEM tagging...", flush=True)
+        raw = sheets_get(token, master_id, f"'{master_tab}'!A1:BF")
+        if not raw:
+            raise RuntimeError(f"Masterlist '{master_tab}' is empty — run the main pipeline first")
 
-    headers = [str(h) for h in raw[0]]
-    masterlist_rows = []
-    for row in raw[1:]:
-        d = {headers[i]: (row[i] if i < len(row) else '') for i in range(len(headers))}
-        masterlist_rows.append(d)
+        headers = [str(h) for h in raw[0]]
+        masterlist_rows = []
+        for row in raw[1:]:
+            d = {headers[i]: (row[i] if i < len(row) else '') for i in range(len(headers))}
+            masterlist_rows.append(d)
 
-    # Step 4: Tag Brand SEM recommendations
-    sem_reco = tag_sem_recommendations(
-        masterlist_rows, qv_sem_map,
-        seo_cov_threshold=seo_cov_threshold,
-        seo_pos_threshold=seo_pos_threshold,
-        competitor_blocklist=competitor_blocklist,
-        p1_label=p1_label,
-    )
+        # Step 4: Tag Brand SEM recommendations (P1 only — see docstring)
+        sem_reco = tag_sem_recommendations(
+            masterlist_rows, qv_sem_map,
+            seo_cov_threshold=seo_cov_threshold,
+            seo_pos_threshold=seo_pos_threshold,
+            competitor_blocklist=competitor_blocklist,
+            p1_label=p1_label,
+        )
 
-    # Step 5: Write results
-    write_qv_sem(token, master_id, master_tab, qv_sem_map, sem_reco, p1_label=p1_label)
+        # Step 5: Write results
+        write_qv_sem(token, master_id, master_tab, qv_sem_map, sem_reco, p1_label=p1_label)
+    else:
+        print("  SEM QV (P1): GA4 Ads file ID not configured — skipping.", flush=True)
+
+    if has_p2:
+        ga4_rows_p2 = read_ga4_ads(token, ga4_file_id_p2, ga4_tab_p2)
+        qv_sem_map_p2 = calculate_qv_sem(ga4_rows_p2)
+        write_qv_sem_period(token, master_id, master_tab, qv_sem_map_p2, period_label=p2_label)
+    else:
+        print("  SEM QV (P2): GA4 Ads file ID not configured — leaving "
+              f"'Conversions SEM {p2_label}' to its proxy/existing value.", flush=True)
+
     print("── SEM QV complete ─────────────────────────────────────────────\n", flush=True)

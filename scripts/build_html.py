@@ -111,6 +111,17 @@ def _patch_module(brand_key: str, cfg: dict) -> None:
     ga4_ads_id = sheets_cfg.get('ga4_ads_file_id')
     _bh.SEM_CONV_MEASURED = bool(ga4_ads_id) and str(ga4_ads_id).strip().upper() != 'TBD'
 
+    # Conversion-column labels: brand-neutral, vendor-agnostic terms ("Qualified
+    # Visits") rather than hardcoded "MikMak Checkout" / "MikMak Offline Store" —
+    # not every brand necessarily uses MikMak, and once sem_qv.py starts writing
+    # real GA4 Ads QV attribution into the SEM column (SEM_CONV_MEASURED=True),
+    # calling that number "MikMak Offline Store" is actively wrong, not just
+    # imprecise. See defaults.json's conversion_label for the brand-overridable
+    # defaults.
+    conv_label_cfg   = cfg.get('conversion_label', defaults.get('conversion_label', {}))
+    _bh.CONV_LABEL_SEO = conv_label_cfg.get('seo', 'Qualified Visits (SEO)')
+    _bh.CONV_LABEL_SEM = conv_label_cfg.get('sem', 'Qualified Visits (SEM)')
+
     # ── Shared API helpers → use pipeline.utils ───────────────────────────────
     _bh.load_env   = load_env
     _bh.get_token  = get_token

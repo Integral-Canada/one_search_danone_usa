@@ -30,6 +30,12 @@ PERIOD_P1   = 'Q1 2026'
 PERIOD_P4   = 'Q4 2025'
 SEM_CONV_MEASURED = True  # False when this brand has no GA4 Ads Sessions export configured —
                           # in that case Conversions SEM is unmeasured, not a real zero.
+CONV_LABEL_SEO = 'Qualified Visits (SEO)'  # brand-neutral label for the Conversions SEO
+CONV_LABEL_SEM = 'Qualified Visits (SEM)'  # column — overridden per-brand from config.json's
+                          # (or defaults.json's) conversion_label. Deliberately not "MikMak
+                          # Checkout" / "MikMak Offline Store" — not every brand uses MikMak,
+                          # and once sem_qv.py owns Conversions SEM with real GA4 Ads QV
+                          # attribution, "Offline Store" would be an outright wrong label.
 TERRITORY_COLORS = [
     '#1565c0', '#2e7d32', '#e65100', '#6a1b9a',
     '#0277bd', '#558b2f', '#c62828', '#4527a0',
@@ -797,7 +803,7 @@ def _q1_seo_bullets(topic, s):
         sign = '+' if dp >= 0 else ''
         items.append(f'OneSearch coverage: {_fmt_pct(cov)} ({sign}{dp:.1f}pp vs {PERIOD_P4})')
     if s['conv_seo_q1'] > 0:
-        items.append(f'{s["conv_seo_q1"]:.0f} MikMak Checkout conversions in {PERIOD_P1}')
+        items.append(f'{s["conv_seo_q1"]:.0f} {CONV_LABEL_SEO} in {PERIOD_P1}')
     top_seo = sorted(s['top_kws'], key=lambda x: x['seo_q1'], reverse=True)
     if top_seo and top_seo[0]['seo_q1'] > 0:
         kd = top_seo[0]
@@ -823,7 +829,7 @@ def _q1_sem_bullets(topic, s):
     if not SEM_CONV_MEASURED:
         items.append('SEM conversions not yet measured — Google Ads Sessions export pending for this brand')
     elif s['conv_sem_q1'] > 0:
-        items.append(f'{s["conv_sem_q1"]:.0f} MikMak Click Offline Store conversions in {PERIOD_P1}')
+        items.append(f'{s["conv_sem_q1"]:.0f} {CONV_LABEL_SEM} in {PERIOD_P1}')
     top_sem = sorted(s['top_kws'], key=lambda x: x['sem_q1'], reverse=True)
     if top_sem and top_sem[0]['sem_q1'] > 0:
         kd = top_sem[0]
@@ -1141,8 +1147,6 @@ def build_territory_panel(territory_stats):
         slug  = _slug(topic)
         cov_q1 = _cov(s['os_clicks_q1'], s['avg_volume'])
         cov_q4 = _cov(s['os_clicks_q4'], s['avg_volume'])
-        total_conv_q1 = s['conv_seo_q1'] + s['conv_sem_q1']
-        total_conv_q4 = s['conv_seo_q4'] + s['conv_sem_q4']
 
         top_rows = ''
         for kd in s['top_kws']:
@@ -1183,7 +1187,8 @@ def build_territory_panel(territory_stats):
         seo_evo  = _delta_pct(s['seo_clicks_q4'], s['seo_clicks_q1'])
         sem_evo  = _delta_pct(s['sem_clicks_q4'], s['sem_clicks_q1'])
         cov_evo  = _delta_pp(cov_q4, cov_q1)
-        conv_evo = _delta_pct(total_conv_q4, total_conv_q1)
+        conv_seo_evo = _delta_pct(s['conv_seo_q4'], s['conv_seo_q1'])
+        conv_sem_evo = _delta_pct(s['conv_sem_q4'], s['conv_sem_q1'])
 
         def _perf_row(label, q4, q1, evo, indent=False, fmt=_fmt_num):
             pad = '&nbsp;&nbsp;&nbsp;' if indent else ''
@@ -1239,7 +1244,8 @@ def build_territory_panel(territory_stats):
         {_perf_row('SEO Clicks',       s['seo_clicks_q4'],  s['seo_clicks_q1'],  seo_evo,  indent=True)}
         {_perf_row('SEM Clicks',       s['sem_clicks_q4'],  s['sem_clicks_q1'],  sem_evo,  indent=True)}
         {_perf_row('OS Coverage',      _fmt_cov(cov_q4),    _fmt_cov(cov_q1),    cov_evo, indent=False)}
-        {_perf_row('MikMak Checkout',  total_conv_q4,       total_conv_q1,       conv_evo)}
+        {_perf_row(CONV_LABEL_SEO,     s['conv_seo_q4'],    s['conv_seo_q1'],    conv_seo_evo)}
+        {_perf_row(CONV_LABEL_SEM,     s['conv_sem_q4'],    s['conv_sem_q1'],    conv_sem_evo)}
       </tbody>
     </table>
   </div>
@@ -1712,10 +1718,13 @@ def patch_onesearch_js(html):
         ("const _SEO_SEM_FORCE = new Set(['Danone - Pure Brand','Danone - Probiotics','Probiotic yogurt']);",
          "const _SEO_SEM_FORCE = new Set(['Brand']);"),
 
-        # Split single "Conversions (QV)" KPI column into MikMak Checkout + MM Offline Store
+        # Split single "Conversions (QV)" KPI column into the two conversion
+        # sub-metrics. Labels come from CONV_LABEL_SEO/CONV_LABEL_SEM (brand
+        # config's conversion_label) rather than being hardcoded here — see
+        # the module-level comment on those globals for why.
         # Header
         ('<th>Conversions (QV)</th>',
-         '<th>MM Checkout</th><th>MM Offline Store</th>'),
+         f'<th>{CONV_LABEL_SEO}</th><th>{CONV_LABEL_SEM}</th>'),
 
         # OS row: show seoCaC (checkout) + semCaC (offline) in two separate cells
         ('<td class="kpi-cell"><span class="kv" id="k-os-ca">—</span><span class="ke" id="k-os-ca-e"></span></td>',

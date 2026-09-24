@@ -445,24 +445,30 @@ def _run(brand_key: str, max_rows=None) -> None:
                 if seo:
                     merged_rows[i][conv_col] = round(seo / total_seo * page_events, 4)
 
-    # Column ownership: Conversions SEM P1 (col AC) is exclusively owned by
-    # sem_qv.run_sem_qv() (Thomas's QV-SEM LP-attribution methodology) whenever
-    # GA4 Ads data is configured for this brand — it overwrites this column
-    # unconditionally later in this run. Writing the offline-store proxy here
-    # too would just be silently discarded, and misreports the pre-overwrite
-    # "hit count" below. Only fall back to the proxy when GA4 Ads QV SEM isn't
-    # configured, so the column isn't left completely blank.
-    _ga4_ads_id = sheets_cfg.get('ga4_ads_file_id')
-    has_qv_sem = bool(_ga4_ads_id) and str(_ga4_ads_id).strip().upper() != 'TBD'
+    # Column ownership: Conversions SEM P1/P2 are exclusively owned by
+    # sem_qv.run_sem_qv() (Thomas's QV-SEM LP-attribution methodology) for
+    # whichever period has GA4 Ads data configured for this brand — it
+    # overwrites those columns unconditionally later in this run. Writing the
+    # offline-store proxy here too would just be silently discarded, and
+    # misreports the pre-overwrite "hit count" below. Only fall back to the
+    # proxy for a period when GA4 Ads QV SEM isn't configured for it, so the
+    # column isn't left completely blank.
+    _ga4_ads_id    = sheets_cfg.get('ga4_ads_file_id')
+    _ga4_ads_id_p2 = sheets_cfg.get('ga4_ads_file_id_p2')
+    has_qv_sem    = bool(_ga4_ads_id)    and str(_ga4_ads_id).strip().upper()    != 'TBD'
+    has_qv_sem_p2 = bool(_ga4_ads_id_p2) and str(_ga4_ads_id_p2).strip().upper() != 'TBD'
     _distribute_conversions(checkout_map, f'Conversions SEO {p1_label}')
     if not has_qv_sem:
         _distribute_conversions(offline_map, f'Conversions SEM {p1_label}')
     _distribute_conversions(checkout_q4_map, f'Conversions SEO {p2_label}')
-    _distribute_conversions(offline_q4_map, f'Conversions SEM {p2_label}')
+    if not has_qv_sem_p2:
+        _distribute_conversions(offline_q4_map, f'Conversions SEM {p2_label}')
 
     conv_seo = sum(1 for r in merged_rows if r.get(f'Conversions SEO {p1_label}'))
     sem_p1_note = 'owned by sem_qv.py (written below)' if has_qv_sem else 'SEM proxy (no GA4 Ads configured)'
-    print(f'  Conversion hits — SEO: {conv_seo}  |  Conversions SEM P1: {sem_p1_note}', flush=True)
+    sem_p2_note = 'owned by sem_qv.py (written below)' if has_qv_sem_p2 else 'SEM proxy (no GA4 Ads configured)'
+    print(f'  Conversion hits — SEO: {conv_seo}  |  Conversions SEM P1: {sem_p1_note}  |  '
+          f'Conversions SEM P2: {sem_p2_note}', flush=True)
 
     # ── Build row values aligned to Masterlist headers ────────────────────────
     print('\nReading Masterlist headers…', flush=True)
