@@ -7875,7 +7875,7 @@ function renderSQR(){
       +'<td>'+r[2]+'</td>'
       +'<td style="color:#888;font-size:11px;">'+r[3]+'</td>'
       +'<td class="num">'+fmt(volC)+'</td>'
-      +evoCell(evo(volC,volP))
+      +evoCell(volC===volP?null:evo(volC,volP))
       +'<td class="num">'+fmt(seoC)+'</td>'
       +evoCell(evo(seoC,seoP))
       +'<td class="num">'+fmt(semC)+'</td>'

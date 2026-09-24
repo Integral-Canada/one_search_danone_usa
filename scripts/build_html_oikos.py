@@ -1894,6 +1894,17 @@ def patch_onesearch_js(html):
             "    const covOS=volC>0?(seoC+semC)/volC:0;"
         ),
 
+        # SQR Detail by Keyword — Search Demand Evo: when volC===volP the two periods
+        # are NOT a real "0% change" — they're either both the enrich_volumes() avg*3
+        # proxy (written identically into both period columns whenever SE Ranking only
+        # gave an average, not real per-quarter data) or both hit the _avgVol JS fallback
+        # above. Either way there is no genuine trend data, so show "—" (the table's
+        # existing no-data convention, via evoCell(null)) instead of a fabricated ▲0.0%.
+        (
+            "      +evoCell(evo(volC,volP))",
+            "      +evoCell(volC===volP?null:evo(volC,volP))"
+        ),
+
         # SQR Insight cards: add JSON commentary box to Wasted Budget card
         (
             "+'<div style=\"margin-top:8px;font-size:10px;color:#888;line-height:1.5;\"><strong>Top wasted terms:</strong> '+ltTop+'</div>'\n"
