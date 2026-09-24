@@ -639,6 +639,13 @@ def _run(brand_key: str, max_rows=None) -> None:
         anthropic_key = env.get('ANTHROPIC_API_KEY', '')
         if anthropic_key:
             print('\nRunning Claude taxonomy enrichment…', flush=True)
+            # Google's access token is short-lived (~1hr) and was fetched once at
+            # the very start of this run. Taxonomy enrichment can take 30-60+
+            # minutes on a large keyword set (real incident: a Silk run's token
+            # expired mid-write, failing all ~300 write batches with HTTP 401 and
+            # silently discarding a completed classification pass). Refresh right
+            # before this step so a long run doesn't inherit a near-dead token.
+            token = get_token(env)
             try:
                 enrich_taxonomy(token, master_id, master_tab, anthropic_key, cfg=cfg)
             except Exception as exc:
@@ -647,6 +654,7 @@ def _run(brand_key: str, max_rows=None) -> None:
             print('\nANTHROPIC_API_KEY not set — skipping taxonomy enrichment', flush=True)
 
     # ── SEM QV attribution (final pipeline step) ──────────────────────────────
+    token = get_token(env)  # same reasoning — refresh before the final long step
     run_sem_qv(token, cfg)
 
     # ── Validation summary ────────────────────────────────────────────────────
