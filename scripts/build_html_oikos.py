@@ -1079,7 +1079,7 @@ def build_territory_panel(territory_stats):
 
 <!-- Executive summary — single US-level narrative -->
 <div style="background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:20px 24px;margin:0 24px 20px;border-left:4px solid {BRAND_COLOR};">
-  <h2 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:{BRAND_COLOR};margin:0 0 14px;">Executive Summary — {H(BRAND_NAME)} US ({PERIOD})</h2>
+  <h2 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:{BRAND_COLOR};margin:0 0 14px;">Executive Summary — {H(BRAND_NAME)} ({PERIOD})</h2>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
     <div>
       <div style="font-size:9px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">AI Draft — US aggregate signals</div>
@@ -1249,6 +1249,13 @@ def build_territory_panel(territory_stats):
       </tbody>
     </table>
   </div>
+  <!-- Territory action cards (SEO + SEM × Q1 + Q2) -->
+  <div style="padding:0 20px 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+    {card_q1_seo}
+    {card_q1_sem}
+    {card_q2_seo}
+    {card_q2_sem}
+  </div>
   <!-- Top Keywords -->
   <div style="padding:0 20px 12px;">
     <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#666;margin-bottom:6px;">Top Keywords by OS Clicks — {PERIOD_P1}</div>
@@ -1273,7 +1280,11 @@ def build_territory_panel(territory_stats):
     return '\n'.join(parts)
 
 
-_JSON_EXPORT_CSS = f'''<style>
+def _json_export_css():
+    # Deliberately a function, not a module-level constant: it must be evaluated
+    # AFTER _patch_module() overrides BRAND_COLOR/LIGHT_BG for this brand, not
+    # once at import time with the Oikos module defaults baked in.
+    return f'''<style>
 /* Commentary toolbar — bottom-right so it never overlaps the dashboard header */
 #commentary-toolbar{{position:fixed;bottom:20px;right:20px;z-index:99999;background:rgba(255,255,255,.97);border:1px solid #ddd;border-radius:8px;padding:6px 12px;display:flex;align-items:center;gap:8px;box-shadow:0 2px 12px rgba(0,0,0,.15);font-family:-apple-system,sans-serif;font-size:11px;}}
 #commentary-toolbar button,#commentary-toolbar label{{cursor:pointer;padding:4px 10px;border-radius:5px;font-size:11px;font-weight:600;border:none;background:{BRAND_COLOR};color:#fff;display:inline-flex;align-items:center;gap:3px;}}
@@ -1301,7 +1312,10 @@ _JSON_EXPORT_HTML = '''<div id="commentary-toolbar">
   <label class="imp-btn">&#8593; Import<input type="file" accept=".json" onchange="importCommentary(event)"></label>
 </div>'''
 
-_JSON_EXPORT_JS = f'''<script>
+def _json_export_js():
+    # Same reasoning as _json_export_css(): must read BRAND_NAME/PERIOD/ACCENT_CLR
+    # after per-brand patching, not at module-import time.
+    return f'''<script>
 (function(){{
   /* Commentary store — keyed by data-field-id.
      Uses an in-memory object so export works regardless of tab visibility
@@ -1471,7 +1485,7 @@ def inject_reco_filter(html):
         '<div class="section-title">Detailed SEO / SEM Recommendations by Sub-Category</div>\n'
         '<div style="display:flex;align-items:center;gap:8px;padding:10px 24px 4px;background:#f4f4f4;border-bottom:1px solid #e0e0e0;">\n'
         '  <span style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-right:4px;">Show:</span>\n'
-        '  <button class="reco-filter-btn" data-mode="active" onclick="filterRecoTable(this)" style="font-size:11px;padding:4px 14px;border:1px solid #1a7aad;border-radius:20px;background:#1a7aad;color:#fff;cursor:pointer;font-weight:600;">Active</button>\n'
+        f'  <button class="reco-filter-btn" data-mode="active" onclick="filterRecoTable(this)" style="font-size:11px;padding:4px 14px;border:1px solid {ACCENT_CLR};border-radius:20px;background:{ACCENT_CLR};color:#fff;cursor:pointer;font-weight:600;">Active</button>\n'
         '  <button class="reco-filter-btn" data-mode="long-term" onclick="filterRecoTable(this)" style="font-size:11px;padding:4px 14px;border:1px solid #78909c;border-radius:20px;background:#fff;color:#78909c;cursor:pointer;font-weight:600;">Long-term</button>\n'
         '  <button class="reco-filter-btn" data-mode="all" onclick="filterRecoTable(this)" style="font-size:11px;padding:4px 14px;border:1px solid #bbb;border-radius:20px;background:#fff;color:#888;cursor:pointer;font-weight:600;">All</button>\n'
         '  <span id="reco-row-count" style="font-size:10px;color:#aaa;margin-left:6px;"></span>\n'
@@ -1489,11 +1503,11 @@ def inject_reco_filter(html):
 
 
 def inject_export_ui(html):
-    html = html.replace('</head>', _JSON_EXPORT_CSS + '\n</head>', 1)
+    html = html.replace('</head>', _json_export_css() + '\n</head>', 1)
     body_pos = html.find('<body')
     body_end  = html.find('>', body_pos) + 1
     html = html[:body_end] + '\n' + _JSON_EXPORT_HTML + html[body_end:]
-    html += '\n' + _JSON_EXPORT_JS
+    html += '\n' + _json_export_js()
     return html
 
 
@@ -1595,7 +1609,11 @@ def apply_brand(html):
         # Header / subtitle text
         ('Activia Canada', BRAND_NAME),
         ('ACTIVIA CA', BRAND_NAME.upper()),
-        ('Activia', 'Oikos'),
+        ('Activia', BRAND_NAME),
+        # Stale reference-template period text (the raw template is a real,
+        # already-built Activia CA dashboard, not a blank placeholder — its
+        # period string is baked into several text nodes verbatim).
+        ('Q1 2026 vs Q4 2025', PERIOD),
         # Section title color (deep red → deep teal)
         ('#8b0000', BRAND_COLOR),
         # Accent red → accent blue
@@ -1803,7 +1821,7 @@ def patch_onesearch_js(html):
             "      +' data-field-id=\"'+_recoFid+'\"'\n"
             "      +' data-placeholder=\"Add analyst notes (JSON or plain text)\\u2026\"'\n"
             "      +' style=\"min-height:36px;font-size:10px;line-height:1.5;color:#e0e0e0;border:1px dashed #555;border-radius:4px;padding:5px 7px;background:#3a3a3a;outline:none;margin-top:6px;font-family:monospace;white-space:pre-wrap;\"'\n"
-            "      +' onfocus=\"this.style.borderColor=\\'#1a7aad\\';this.style.background=\\'#fff\\';\"'\n"
+            f"      +' onfocus=\"this.style.borderColor=\\'{ACCENT_CLR}\\';this.style.background=\\'#fff\\';\"'\n"
             "      +' onblur=\"this.style.borderColor=\\'#555\\';this.style.background=\\'#3a3a3a\\';\"'\n"
             "      +'></div>'\n"
             "      +'</td>'\n"
@@ -1885,7 +1903,7 @@ def patch_onesearch_js(html):
             "    +' data-field-id=\"sqr-insights-wasted\"'\n"
             "    +' data-placeholder=\"Add analyst notes\\u2026\"'\n"
             "    +' style=\"min-height:36px;font-size:10px;line-height:1.5;color:#e0e0e0;border:1px dashed #555;border-radius:4px;padding:5px 7px;background:#3a3a3a;outline:none;margin-top:8px;font-family:monospace;white-space:pre-wrap;\"'\n"
-            "    +' onfocus=\"this.style.borderColor=\\'#1a7aad\\';this.style.background=\\'#fff\\';\"'\n"
+            f"    +' onfocus=\"this.style.borderColor=\\'{ACCENT_CLR}\\';this.style.background=\\'#fff\\';\"'\n"
             "    +' onblur=\"this.style.borderColor=\\'#c0cfe0\\';this.style.background=\\'#f8f9fb\\';\"'\n"
             "    +'></div>'\n"
             "    +'</div></div>';"
@@ -1900,7 +1918,7 @@ def patch_onesearch_js(html):
             "    +' data-field-id=\"sqr-insights-regression\"'\n"
             "    +' data-placeholder=\"Add analyst notes\\u2026\"'\n"
             "    +' style=\"min-height:36px;font-size:10px;line-height:1.5;color:#e0e0e0;border:1px dashed #555;border-radius:4px;padding:5px 7px;background:#3a3a3a;outline:none;margin-top:8px;font-family:monospace;white-space:pre-wrap;\"'\n"
-            "    +' onfocus=\"this.style.borderColor=\\'#1a7aad\\';this.style.background=\\'#fff\\';\"'\n"
+            f"    +' onfocus=\"this.style.borderColor=\\'{ACCENT_CLR}\\';this.style.background=\\'#fff\\';\"'\n"
             "    +' onblur=\"this.style.borderColor=\\'#c0cfe0\\';this.style.background=\\'#f8f9fb\\';\"'\n"
             "    +'></div>'\n"
             "    +'</div></div>';"
@@ -1915,7 +1933,7 @@ def patch_onesearch_js(html):
             "    +' data-field-id=\"sqr-insights-rising\"'\n"
             "    +' data-placeholder=\"Add analyst notes\\u2026\"'\n"
             "    +' style=\"min-height:36px;font-size:10px;line-height:1.5;color:#e0e0e0;border:1px dashed #555;border-radius:4px;padding:5px 7px;background:#3a3a3a;outline:none;margin-top:8px;font-family:monospace;white-space:pre-wrap;\"'\n"
-            "    +' onfocus=\"this.style.borderColor=\\'#1a7aad\\';this.style.background=\\'#fff\\';\"'\n"
+            f"    +' onfocus=\"this.style.borderColor=\\'{ACCENT_CLR}\\';this.style.background=\\'#fff\\';\"'\n"
             "    +' onblur=\"this.style.borderColor=\\'#c0cfe0\\';this.style.background=\\'#f8f9fb\\';\"'\n"
             "    +'></div>'\n"
             "    +'</div></div>';"
