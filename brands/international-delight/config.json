@@ -58,6 +58,17 @@
   ],
 
   "_competitors_comment": "Added 2026-08-20, updated 2026-08-20 against the registry's 'COMPETITORS' row (16-h0rmI.../INTERNATIONAL DELIGHT row 16: 'chobani|coffee mate|nestle|nestlé|nutpods|chobani|malk|splanda|satarbucks|dunkin|silk'). Competitor-name presence in a keyword overrides whatever TOPICS/CATEGORY it already has — see pipeline/classify.py. Two terms from that row were deliberately NOT added, and need a human call, not an automatic one: (1) 'dunkin' — Dunkin' Creamers is a Danone-owned sibling brand (see shared/brand-guidelines/dunkincreamers.md), not an external competitor; tagging it COMPETITOR would misclassify internal-portfolio overlap as market competition. (2) 'splanda' — almost certainly a typo for Splenda, a sweetener/ingredient brand, not a competing creamer; likely belongs under an Ingredient taxonomy tag instead, not COMPETITOR. 'nestle'/'nestlé' folded into Coffee Mate's patterns since Coffee Mate is Nestlé-owned and the two terms co-occur in the same creamer-competitor queries. This list is still almost certainly incomplete; add any competitor product line as its own entry (not just the parent company) as they turn up.",
+  "_taxonomy_prompt_comment": "Added 2026-09-24 for scripts/classify_ks_taxonomy.py — reuses the 5 categories already present in ~33% of this brand's real KS data (PRODUCTS, COMPETITOR, RECIPE, HEALTH, EATING BETTER) so newly-classified blank rows stay consistent with the existing convention, rather than introducing a new BRAND/PRODUCT split. This means SEM Recommendation tagging (which requires TOPICS=='BRAND') stays a no-op for this brand even after classification runs — a deliberate scope choice to avoid silently reclassifying already-curated rows; revisit as a separate decision if BRAND-tier SEM tagging is wanted here too.",
+  "taxonomy_prompt": {
+    "brand_context": "International Delight, a coffee creamer brand (flavored creamers, cold foam creamers, non-dairy options)",
+    "topics": ["PRODUCTS", "COMPETITOR", "RECIPE", "HEALTH", "EATING BETTER"]
+  },
+
+  "_sem_qv_comment": "competitor_blocklist added 2026-09-24, reused from this file's own curated competitors[].patterns (not the raw registry COMPETITORS blob in the comment above, which still has uncurated noise like 'splanda'/'dunkin' deliberately excluded there) — sem_qv.py's tag_sem_recommendations() checks this via exact normalized-keyword membership, not substring matching, so it only guards a BRAND-mistagged row whose entire keyword text is one of these terms. Currently a no-op in practice since TOPICS never equals 'BRAND' for this brand yet (see the KS taxonomy classification work referenced in project memory) — wired up now so it's active the moment that's fixed, not a second manual step later.",
+  "sem_qv": {
+    "competitor_blocklist": ["coffee mate", "coffeemate", "nestle", "nestlé", "natural bliss", "starbucks", "chobani", "nutpod", "malk", "silk"]
+  },
+
   "competitors": [
     {"name": "Coffee Mate", "patterns": ["coffee mate", "coffeemate", "nestle", "nestlé"]},
     {"name": "Natural Bliss", "patterns": ["natural bliss"]},
