@@ -1,5 +1,5 @@
 {
-  "_comment": "Period updated to Q2 2026 vs Q1 2026 (2026-08-18) to match the live source exports. brand.color and brand.accent_color were sampled 2026-08-20 from a screenshot of internationaldelight.com's Cold Foam Creamer page (blue headline + gold bottle cap — two genuinely distinct colors, unlike Silk's single-color crop). light_bg sampled as the page's plain white background. Quality Report sheet and GA4 Google Ads Sessions export (SEM QV) remain TBD — intentionally left unset rather than guessed. See one_search/docs/export_requirements_international_delight.md.",
+  "_comment": "Period updated to Q2 2026 vs Q1 2026 (2026-08-18) to match the live source exports. brand.color and brand.accent_color were sampled 2026-08-20 from a screenshot of internationaldelight.com's Cold Foam Creamer page (blue headline + gold bottle cap — two genuinely distinct colors, unlike Silk's single-color crop). light_bg sampled as the page's plain white background. Quality Report sheet remains TBD. ga4_ads_file_id set 2026-09-23 — a GA4 'Compare' Explore export (both Q2 2026 and Q1 2026 in one file, verified against its Grand total row: Key events sum to an exact match for both periods). pipeline/sem_qv.py auto-detects this shape and reads both periods from it, so ga4_ads_file_id_p2 is left TBD. See one_search/docs/export_requirements_international_delight.md.",
 
   "client_name": "International Delight USA",
   "client_handle": "international-delight",
@@ -34,8 +34,8 @@
     "master_tab": "Listing",
     "qs_sheet_id": "TBD",
     "qs_sheet_tab": "TBD",
-    "ga4_ads_file_id": "TBD",
-    "ga4_ads_tab": null,
+    "ga4_ads_file_id": "1o88hFCUXlJPO3h1BXSnYLBoZIIGd5pxDNpCduPbtPNA",
+    "ga4_ads_tab": "ID_GOOGLE_ADS_EXPORT",
     "ga4_ads_file_id_p2": "TBD",
     "ga4_ads_tab_p2": null
   },
