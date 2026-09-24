@@ -36,32 +36,45 @@ _QV_COL_PATTERNS   = ['nements cl', 'key events', '\xe9v\xe9nements']  # handles
 
 
 def _find_col(headers: list, patterns: list, exclude: set = None):
-    """First header (in pattern-priority order) containing one of `patterns`.
+    """Header (in pattern-priority order) matching one of `patterns`.
 
-    `exclude` skips column indices already claimed by another target — needed
-    because a bare 'query' pattern for the keyword column can otherwise match
-    a landing-page header first. GA4's English export names the landing-page
-    column 'Landing page + query string' (referring to the URL's query
-    string) and the real search-query column 'Session Google Ads query' — a
-    real collision seen against Silk/International Delight's live exports,
-    where the LP column happens to sit before the query column, so the old
-    unconditional first-match logic silently resolved BOTH the keyword and
-    landing-page columns to the same (LP) index, collapsing every keyword
-    sharing a landing page into one bucket. Oikos's French export (query
-    column before the LP column, 'Requête...' vs 'Page de destination...')
-    never hit this because pattern order + column order happened to agree.
-    Resolving the landing-page column first (its patterns are specific
-    phrases, not single common words, so they don't have this ambiguity) and
-    excluding it here fixes both cases without depending on column order.
+    Tries an EXACT (case-insensitive, whitespace-trimmed) match first, and
+    only falls back to a substring match if no pattern is an exact match to
+    any header. This isn't just belt-and-suspenders: a bare substring
+    pattern like 'sessions' or 'query' will happily match a LONGER header
+    that merely contains that word — 'Landing page + query string' contains
+    'query' just as much as the real query column, 'Session Google Ads
+    query', does; a GA4 export can equally have 'Sessions' alongside
+    'Sessions avec engagement' or 'Sessions avec engagement par utilisateur
+    actif', all three containing 'sessions'. Preferring an exact match means
+    'sessions' only ever matches a column literally named "Sessions", never
+    a same-family variant — regardless of which one happens to come first
+    in column order. (The first case above was a real, confirmed bug against
+    Silk/International Delight's live exports — the second is the same class
+    of risk, not yet triggered because Oikos's real header order happens to
+    put plain 'Sessions' first, exactly how the first bug went unnoticed
+    until column order stopped being on its side.)
+
+    `exclude` additionally skips column indices already claimed by another
+    target, so two DIFFERENT target columns (e.g. keyword vs. landing page)
+    can never resolve to the same index even if some future header makes an
+    exact match ambiguous too.
     """
     exclude = exclude or set()
-    for p in patterns:
-        for i, h in enumerate(headers):
-            if i in exclude:
-                continue
-            if p.lower() in str(h).lower():
-                return i
-    return None
+
+    def _search(match_fn):
+        for p in patterns:
+            for i, h in enumerate(headers):
+                if i in exclude:
+                    continue
+                if match_fn(p, str(h)):
+                    return i
+        return None
+
+    exact = _search(lambda p, h: p.strip().lower() == h.strip().lower())
+    if exact is not None:
+        return exact
+    return _search(lambda p, h: p.lower() in h.lower())
 
 
 def _resolve_tab(token: str, file_id: str, explicit_tab) -> str:
@@ -124,6 +137,8 @@ def read_ga4_ads(token: str, file_id: str, tab=None) -> list:
             f"GA4 Ads export: could not find columns {missing}.\n"
             f"Headers found: {headers}"
         )
+    print(f"  Resolved columns — keyword: {headers[col_kw]!r}, landing_page: {headers[col_lp]!r}, "
+          f"sessions: {headers[col_ses]!r}, key_events: {headers[col_qv]!r}", flush=True)
 
     rows = []
     for row in raw[header_idx + 1:]:
@@ -236,6 +251,9 @@ def read_ga4_ads_compare(token: str, file_id: str, tab=None) -> tuple:
             f"GA4 Ads Compare export: could not find columns {missing}.\n"
             f"Headers found: {headers}"
         )
+    print(f"  Resolved columns — keyword: {headers[col_kw]!r}, landing_page: {headers[col_lp]!r}, "
+          f"date_comparison: {headers[col_cmp]!r}, sessions: {headers[col_ses]!r}, "
+          f"key_events: {headers[col_qv]!r}", flush=True)
 
     rows_a, rows_b = [], []
     labels: list = []
@@ -268,6 +286,14 @@ def read_ga4_ads_compare(token: str, file_id: str, tab=None) -> tuple:
 
         if cmp_label not in labels:
             labels.append(cmp_label)
+            if len(labels) > 2:
+                raise RuntimeError(
+                    f"GA4 Ads Compare export: found a 3rd distinct date-range label "
+                    f"{cmp_label!r} (expected exactly 2: {labels[:2]!r}) — a row's date "
+                    f"range didn't match either known period, which would otherwise "
+                    f"silently fold into period 2. Check for inconsistent date formatting "
+                    f"in the export."
+                )
         bucket = rows_a if labels.index(cmp_label) == 0 else rows_b
         bucket.append({'keyword': last_kw, 'lp': lp, 'sessions': ses, 'key_events': qv})
 
