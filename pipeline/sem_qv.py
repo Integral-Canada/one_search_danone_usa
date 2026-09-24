@@ -35,9 +35,30 @@ _SES_COL_PATTERNS  = ['sessions']
 _QV_COL_PATTERNS   = ['nements cl', 'key events', '\xe9v\xe9nements']  # handles partial French match
 
 
-def _find_col(headers: list, patterns: list):
+def _find_col(headers: list, patterns: list, exclude: set = None):
+    """First header (in pattern-priority order) containing one of `patterns`.
+
+    `exclude` skips column indices already claimed by another target — needed
+    because a bare 'query' pattern for the keyword column can otherwise match
+    a landing-page header first. GA4's English export names the landing-page
+    column 'Landing page + query string' (referring to the URL's query
+    string) and the real search-query column 'Session Google Ads query' — a
+    real collision seen against Silk/International Delight's live exports,
+    where the LP column happens to sit before the query column, so the old
+    unconditional first-match logic silently resolved BOTH the keyword and
+    landing-page columns to the same (LP) index, collapsing every keyword
+    sharing a landing page into one bucket. Oikos's French export (query
+    column before the LP column, 'Requête...' vs 'Page de destination...')
+    never hit this because pattern order + column order happened to agree.
+    Resolving the landing-page column first (its patterns are specific
+    phrases, not single common words, so they don't have this ambiguity) and
+    excluding it here fixes both cases without depending on column order.
+    """
+    exclude = exclude or set()
     for p in patterns:
         for i, h in enumerate(headers):
+            if i in exclude:
+                continue
             if p.lower() in str(h).lower():
                 return i
     return None
@@ -86,10 +107,15 @@ def read_ga4_ads(token: str, file_id: str, tab=None) -> list:
         raise RuntimeError("GA4 Ads export: could not locate header row (needs 'sessions' + 'page' columns)")
 
     headers = [str(h).strip() for h in raw[header_idx]]
-    col_kw  = _find_col(headers, _KW_COL_PATTERNS)
+    # Resolution order matters — see _find_col()'s docstring: landing-page
+    # patterns are specific phrases (unambiguous), so resolve that column
+    # first and exclude it before resolving the keyword column, which uses a
+    # bare 'query' pattern that can otherwise collide with an LP header like
+    # 'Landing page + query string'.
     col_lp  = _find_col(headers, _LP_COL_PATTERNS)
-    col_ses = _find_col(headers, _SES_COL_PATTERNS)
-    col_qv  = _find_col(headers, _QV_COL_PATTERNS)
+    col_kw  = _find_col(headers, _KW_COL_PATTERNS, exclude={col_lp} - {None})
+    col_ses = _find_col(headers, _SES_COL_PATTERNS, exclude={col_lp, col_kw} - {None})
+    col_qv  = _find_col(headers, _QV_COL_PATTERNS, exclude={col_lp, col_kw, col_ses} - {None})
 
     missing = [name for name, c in [('keyword', col_kw), ('landing_page', col_lp),
                                      ('sessions', col_ses), ('key_events', col_qv)] if c is None]
@@ -192,11 +218,15 @@ def read_ga4_ads_compare(token: str, file_id: str, tab=None) -> tuple:
     raw, header_idx, headers = _ga4_header_row(token, file_id, tab)
     print(f"  GA4 Ads tab resolved: {repr(_resolve_tab(token, file_id, tab))} (Compare export)", flush=True)
 
-    col_kw  = _find_col(headers, _KW_COL_PATTERNS)
+    # See _find_col()'s docstring — landing-page column resolved first
+    # (specific phrase, unambiguous), keyword column excludes it (its 'query'
+    # pattern can otherwise match an LP header like 'Landing page + query
+    # string' — the exact collision hit against Silk/ID's real exports).
     col_lp  = _find_col(headers, _LP_COL_PATTERNS)
-    col_cmp = _find_col(headers, _CMP_COL_PATTERNS)
-    col_ses = _find_col(headers, _SES_COL_PATTERNS)
-    col_qv  = _find_col(headers, _QV_COL_PATTERNS)
+    col_kw  = _find_col(headers, _KW_COL_PATTERNS, exclude={col_lp} - {None})
+    col_cmp = _find_col(headers, _CMP_COL_PATTERNS, exclude={col_lp, col_kw} - {None})
+    col_ses = _find_col(headers, _SES_COL_PATTERNS, exclude={col_lp, col_kw, col_cmp} - {None})
+    col_qv  = _find_col(headers, _QV_COL_PATTERNS, exclude={col_lp, col_kw, col_cmp, col_ses} - {None})
 
     missing = [name for name, c in [('keyword', col_kw), ('landing_page', col_lp),
                                      ('date_comparison', col_cmp),
