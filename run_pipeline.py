@@ -34,7 +34,7 @@ from pipeline.trigram import build_index
 from pipeline.match_se import match_se_keywords
 from pipeline.match_ks import match_ks_keywords
 from pipeline.sem_qv import run_sem_qv
-from pipeline.enrich import enrich_volumes, enrich_monthly_volumes
+from pipeline.enrich import enrich_volumes, enrich_monthly_volumes, enrich_taxonomy
 from pipeline.classify import classify_competitors
 
 DEFAULT_BRAND = 'oikos-usa'
@@ -625,6 +625,26 @@ def _run(brand_key: str, max_rows=None) -> None:
             print(f'  WARNING: SE enrichment failed ({exc}) — volumes may be incomplete', flush=True)
     else:
         print('\nSE_RANKING_API_KEY not set — skipping volume enrichment', flush=True)
+
+    # ── Post-write: Claude taxonomy enrichment (opt-in per brand) ─────────────
+    # Fills TOPICS/CATEGORY/SUB-CATEGORY (+ taxonomy tags) for rows the KS match
+    # step (match_ks.py) left blank — real keywords (often GSC/SQR-only long-tail
+    # terms) with no match in the curated Keyword Study sheet. Runs fresh every
+    # pipeline execution, same as the SE Ranking volume enrichment above: the
+    # Masterlist gets fully cleared and rebuilt each run, so this can't persist
+    # any other way. Opt-in via cfg['enrich_taxonomy'] — off by default so brands
+    # that haven't reviewed/approved Claude-driven classification (e.g. Oikos,
+    # whose own KS sheet already covers its Masterlist well) are unaffected.
+    if cfg.get('enrich_taxonomy'):
+        anthropic_key = env.get('ANTHROPIC_API_KEY', '')
+        if anthropic_key:
+            print('\nRunning Claude taxonomy enrichment…', flush=True)
+            try:
+                enrich_taxonomy(token, master_id, master_tab, anthropic_key, cfg=cfg)
+            except Exception as exc:
+                print(f'  WARNING: taxonomy enrichment failed ({exc}) — TOPICS may be incomplete', flush=True)
+        else:
+            print('\nANTHROPIC_API_KEY not set — skipping taxonomy enrichment', flush=True)
 
     # ── SEM QV attribution (final pipeline step) ──────────────────────────────
     run_sem_qv(token, cfg)
