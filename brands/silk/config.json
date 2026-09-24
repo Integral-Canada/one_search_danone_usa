@@ -32,8 +32,8 @@
     "ref_client": "SILK",
     "master_id": "1nSLTL7DSPBjQVfB4dVYeGBodV-U1EnFXlgy-owJlo7U",
     "master_tab": "Listing",
-    "qs_sheet_id": "TBD",
-    "qs_sheet_tab": "TBD",
+    "qs_sheet_id": "1Q2qsXJYwDUkF2kguwCe4Pj0b1FI4XysU4-K4ZrEIVpU",
+    "qs_sheet_tab": "Q2",
     "ga4_ads_file_id": "1bPR7WKhk99M9Y7fvrLOQnpxvRD-D1iCo5AtmB-DifwM",
     "ga4_ads_tab": "SILK_GOOGLE_ADS_EXPORT",
     "ga4_ads_file_id_p2": "TBD",
@@ -44,6 +44,7 @@
     "login", "website", "my account"
   ],
 
+  "_quality_score_comment": "qs_sheet_id set 2026-09-24 — same shape as International Delight's export (real spreadsheet 'quality_score_silk_q1_v_q2', separate Q1/Q2 tabs, headers on row 3: 'Search term'/'Search terms match type'/'Added/Excluded'/'Keyword final URL'/'Quality Score'/'Landing page exp.'/'Ad relevance'). Found by checking the registry's Quality Report row column E (not just C/D) after the same miss happened for ID. Pointed at the 'Q2' tab (current period). scripts/build_html.py's header-based load_qs_data() rewrite handles this shape correctly — verified against ID's real data before wiring this one up.",
   "_competitors_comment": "Added 2026-08-20. Curated from the registry's 'COMPETITORS' candidate row (see 16-h0rmI.../SILK row 16, sourced from Carla Klaasen's Keyword Study filter formula — the same source described in the 'Topical cluster' reference, see onesearch_mechanics.html). That raw row is a pipe-delimited blob mixing real competitors with retailers, generic terms, and unrelated brands: kroger, walmart, amazon, aveeno, trader joe, kirkland, whole foods, private label, maker, vitamix, can, powder, thai, fage, coco lopez were deliberately excluded as non-competitors, per explicit instruction not to copy-paste it wholesale. 'diamond' → Blue Diamond (Almond Breeze's parent) rather than a bare pattern, to avoid matching unrelated 'diamond' keywords. Still needs a second human pass — this list is not guaranteed complete or fully correct.",
   "competitors": [
     {"name": "Almond Breeze / Blue Diamond", "patterns": ["almond breeze", "blue diamond"]},
