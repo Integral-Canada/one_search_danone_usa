@@ -1862,7 +1862,7 @@ QS_CLASSIFIED = [];
     <table class="sqr-table">
       <thead><tr>
         <th>Keyword</th><th>Topics</th><th>Category</th><th>Sub-cat.</th>
-        <th class="num">Search Demand</th><th class="num">Evo</th>
+        <th class="num">Demand</th>
         <th class="num">SEO Clicks</th><th class="num">Evo</th>
         <th class="num">SEM Clicks</th><th class="num">Evo</th>
         <th class="num">Conv. OneSearch</th>
@@ -7875,7 +7875,6 @@ function renderSQR(){
       +'<td>'+r[2]+'</td>'
       +'<td style="color:#888;font-size:11px;">'+r[3]+'</td>'
       +'<td class="num">'+fmt(volC)+'</td>'
-      +evoCell(volC===volP?null:evo(volC,volP))
       +'<td class="num">'+fmt(seoC)+'</td>'
       +evoCell(evo(seoC,seoP))
       +'<td class="num">'+fmt(semC)+'</td>'

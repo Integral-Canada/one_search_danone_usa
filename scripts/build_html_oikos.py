@@ -1610,6 +1610,10 @@ def apply_brand(html):
         ('Activia Canada', BRAND_NAME),
         ('ACTIVIA CA', BRAND_NAME.upper()),
         ('Activia', BRAND_NAME),
+        # SQR Detail by Keyword — drop the Search Demand Evo header (see matching
+        # patch_onesearch_js() removal of its cell content below).
+        ('<th class="num">Demand</th><th class="num">Evo</th>',
+         '<th class="num">Demand</th>'),
         # Stale reference-template period text (the raw template is a real,
         # already-built Activia CA dashboard, not a blank placeholder — its
         # period string is baked into several text nodes verbatim).
@@ -1894,15 +1898,15 @@ def patch_onesearch_js(html):
             "    const covOS=volC>0?(seoC+semC)/volC:0;"
         ),
 
-        # SQR Detail by Keyword — Search Demand Evo: when volC===volP the two periods
-        # are NOT a real "0% change" — they're either both the enrich_volumes() avg*3
-        # proxy (written identically into both period columns whenever SE Ranking only
-        # gave an average, not real per-quarter data) or both hit the _avgVol JS fallback
-        # above. Either way there is no genuine trend data, so show "—" (the table's
-        # existing no-data convention, via evoCell(null)) instead of a fabricated ▲0.0%.
+        # SQR Detail by Keyword — drop the Search Demand Evo column entirely. Volume P1/P2
+        # come from enrich_volumes()'s avg*3 back-fill (or the _avgVol JS fallback above)
+        # whenever SE Ranking only returns an average, not real per-quarter figures — which
+        # is true for 100% of this brand's volume data, so the column never carried a real
+        # trend, only a fabricated ▲0.0% (an earlier fix showed "—" instead, but a column
+        # that's blank for virtually every row is noise — simpler to remove it).
         (
-            "      +evoCell(evo(volC,volP))",
-            "      +evoCell(volC===volP?null:evo(volC,volP))"
+            "      +evoCell(evo(volC,volP))\n",
+            ""
         ),
 
         # SQR Insight cards: add JSON commentary box to Wasted Budget card
