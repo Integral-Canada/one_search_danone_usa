@@ -67,7 +67,8 @@ def _patch_module(brand_key: str, cfg: dict) -> None:
     # ── Module-level globals ──────────────────────────────────────────────────
     _bh.MASTER_ID   = sheets_cfg['master_id']
     _bh.MASTER_TAB  = sheets_cfg.get('master_tab', 'Listing')
-    _bh.QS_SHEET_ID = sheets_cfg.get('qs_sheet_id', '')
+    _bh.QS_SHEET_ID  = sheets_cfg.get('qs_sheet_id', '')
+    _bh.QS_SHEET_TAB = sheets_cfg.get('qs_sheet_tab', '')
     _bh.BRAND_NAME  = cfg.get('client_name', brand_key)
     def _color_or_default(value, default):
         # A brand's color fields are frequently left as the literal placeholder
@@ -247,6 +248,141 @@ def _patch_module(brand_key: str, cfg: dict) -> None:
         return dict(stats)
     _bh.compute_territory_stats = _patched_compute_territory_stats
 
+    # ── Fix load_qs_data(): header-based column resolution, tab-aware ─────────
+    # The original was hardcoded to one brand's exact Quality Score export layout
+    # (position-fixed: status, bracket-notation keyword, campaign, QS, LP, ad
+    # relevance, exp. CTR — validated against Oikos's real sheet, which does
+    # still match this). International Delight's real export has a completely
+    # different shape: separate plain-text keyword + match-type columns, no
+    # campaign column, "Added/Excluded" instead of "Enabled"/"Paused", and no
+    # Expected-CTR column at all — a positional read would silently misparse
+    # every field. Resolves columns by header text instead (exact-match-first,
+    # same strategy as pipeline/sem_qv.py's GA4 column resolution), and finds
+    # the header row itself by scanning for "Quality Score" rather than assuming
+    # a fixed row number, since Oikos's header is row 1 and ID's is row 3 (two
+    # rows of title/period text precede it).
+    def _patched_load_qs_data(token, rows):
+        if not _bh.QS_SHEET_ID or str(_bh.QS_SHEET_ID).strip().upper() == 'TBD':
+            print("  QS_CLASSIFIED: qs_sheet_id not configured for this brand — skipping", flush=True)
+            return 'const QS_CLASSIFIED = [];'
+        tab = _bh.QS_SHEET_TAB
+        range_ = f"'{tab}'!A1:J30" if tab else 'A1:J30'
+        head_scan = _bh.sheets_get(token, _bh.QS_SHEET_ID, range_)
+        if not head_scan and tab:
+            # qs_sheet_tab may be stale/wrong (never previously read by this
+            # function) — fall back to the spreadsheet's default/first tab
+            # rather than failing outright.
+            print(f"  QS_CLASSIFIED: tab {tab!r} not found — falling back to default tab", flush=True)
+            tab = ''
+            head_scan = _bh.sheets_get(token, _bh.QS_SHEET_ID, 'A1:J30')
+        if not head_scan:
+            return 'const QS_CLASSIFIED = [];'
+
+        header_row_idx = None
+        for i, r in enumerate(head_scan[:10]):
+            if any(str(c).strip().lower() == 'quality score' for c in r):
+                header_row_idx = i
+                break
+        if header_row_idx is None:
+            print("  QS_CLASSIFIED: could not find a 'Quality Score' header row — skipping", flush=True)
+            return 'const QS_CLASSIFIED = [];'
+        headers = [str(c).strip() for c in head_scan[header_row_idx]]
+
+        def _find(*names):
+            lower = {h.lower(): i for i, h in enumerate(headers)}
+            for n in names:
+                if n.lower() in lower:
+                    return lower[n.lower()]
+            return None
+
+        idx_kw     = _find('Keyword', 'Search term')
+        idx_match  = _find('Search terms match type')
+        idx_status = _find('Keyword status', 'Added/Excluded', 'Status')
+        idx_camp   = _find('Campaign')
+        idx_url    = _find('Keyword final URL', 'Final URL', 'URL')
+        idx_qs     = _find('Quality Score')
+        idx_lp     = _find('Landing page exp.', 'Landing page exp')
+        idx_pert   = _find('Ad relevance')
+        idx_ctrat  = _find('Exp. CTR', 'Expected CTR')
+        if idx_kw is None or idx_qs is None:
+            print(f"  QS_CLASSIFIED: missing required Keyword/Quality Score columns "
+                  f"(resolved headers: {headers}) — skipping", flush=True)
+            return 'const QS_CLASSIFIED = [];'
+
+        range_full = f"'{tab}'!A1:J30000" if tab else 'A1:J30000'
+        raw = _bh.sheets_get(token, _bh.QS_SHEET_ID, range_full)
+        if not raw:
+            return 'const QS_CLASSIFIED = [];'
+        data_rows = raw[header_row_idx + 1:]
+
+        kw_lookup = {}
+        for r in rows:
+            kw = str(r.get('Keyword', '')).strip().lower()
+            if kw:
+                kw_lookup[kw] = {
+                    'topic': str(r.get('TOPICS', '')).strip(),
+                    'cat':   str(r.get('CATEGORY', '')).strip(),
+                    'sub':   str(r.get('SUB-CATEGORY', '')).strip(),
+                }
+
+        def _cell(r, idx):
+            return str(r[idx]).strip() if idx is not None and idx < len(r) else ''
+
+        def _qs_int(v):
+            s = str(v).strip()
+            if s in ('--', '', '—'):
+                return 0
+            try:
+                return int(float(s))
+            except (ValueError, TypeError):
+                return 0
+
+        qs_rows = []
+        for r in data_rows:
+            kw_raw = _cell(r, idx_kw)
+            if not kw_raw or kw_raw.lower() in ('search keyword report', 'keyword', 'search term'):
+                continue
+            if idx_match is not None:
+                match, kw = _cell(r, idx_match), kw_raw
+            else:
+                # No explicit match-type column — infer from bracket/quote notation
+                # (Oikos-style export: "[chobani complete peach]" = Exact).
+                if kw_raw.startswith('[') and kw_raw.endswith(']'):
+                    match = 'Exact'
+                elif kw_raw.startswith('"') and kw_raw.endswith('"'):
+                    match = 'Phrase'
+                else:
+                    match = 'Broad'
+                kw = kw_raw.strip('[]"').strip()
+
+            meta = kw_lookup.get(kw.lower(), {})
+            qs_rows.append([
+                kw,                       # [0] KW
+                match,                    # [1] MATCH
+                _cell(r, idx_camp),       # [2] CAMP
+                '',                       # [3] ADGR
+                _cell(r, idx_status),     # [4] STATUS
+                _cell(r, idx_url),        # [5] URL
+                _qs_int(_cell(r, idx_qs)),# [6] QS
+                _cell(r, idx_lp),         # [7] LP
+                _cell(r, idx_ctrat),      # [8] CTR_ATT
+                _cell(r, idx_pert),       # [9] PERT
+                0, 0, 0, 0, 0,            # [10-14] IMPR/CLICS/COUT/CPC/CONV — not in this export
+                meta.get('topic', ''),    # [15] TOPIC
+                meta.get('cat', ''),      # [16] CAT
+                meta.get('sub', ''),      # [17] SUB
+            ])
+
+        print(f"  QS_CLASSIFIED: resolved columns — keyword: {headers[idx_kw]!r}, "
+              f"QS: {headers[idx_qs]!r}, {len(qs_rows)} keyword rows", flush=True)
+        lines = ['const QS_CLASSIFIED = [']
+        for i, row in enumerate(qs_rows):
+            comma = ',' if i < len(qs_rows) - 1 else ''
+            lines.append('  [' + ','.join(_bh._js_val(v) for v in row) + ']' + comma)
+        lines.append('];')
+        return '\n'.join(lines)
+    _bh.load_qs_data = _patched_load_qs_data
+
     # ── Fix build_sqr_data(): dynamic column names ────────────────────────────
     def _patched_build_sqr_data(rows):
         p1, p4 = _bh.PERIOD_P1, _bh.PERIOD_P4
@@ -341,6 +477,11 @@ def main() -> None:
     html, _ = _bh.replace_block(html, 'QS_CLASSIFIED', qs_js)
     html, _ = _bh.replace_block(html, 'SQR_ACTIVIA',   sqr_js, decl='var')
     html, _ = _bh.replace_block(html, 'SQR_DATA',      'var SQR_DATA = [];', decl='var')
+    # Live keyword count for the QS panel subtitle (see apply_brand()'s qs-kw-count span)
+    html += ('\n<script>document.addEventListener("DOMContentLoaded",function(){'
+             'var el=document.getElementById("qs-kw-count");'
+             'if(el&&typeof QS_CLASSIFIED!=="undefined")el.textContent=QS_CLASSIFIED.length.toLocaleString();'
+             '});</script>')
 
     print('  Applying brand colours and labels…', flush=True)
     html = _bh.apply_brand(html)

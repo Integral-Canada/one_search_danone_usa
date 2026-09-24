@@ -32,14 +32,15 @@
     "ref_client": "INTERNATIONAL DELIGHT",
     "master_id": "1bVEwAdCn4NoAfsdN__hm4LO6lhGEnRE-aMH_WS3Jo14",
     "master_tab": "Listing",
-    "qs_sheet_id": "TBD",
-    "qs_sheet_tab": "TBD",
+    "qs_sheet_id": "1w70roDrnJ7lff-6y2IrE4VVQW4YIBl4F_bCxoL_96oM",
+    "qs_sheet_tab": "Q2",
     "ga4_ads_file_id": "1o88hFCUXlJPO3h1BXSnYLBoZIIGd5pxDNpCduPbtPNA",
     "ga4_ads_tab": "ID_GOOGLE_ADS_EXPORT",
     "ga4_ads_file_id_p2": "TBD",
     "ga4_ads_tab_p2": null
   },
 
+  "_quality_score_comment": "qs_sheet_id set 2026-09-24 — real spreadsheet 'quality_score_internationaldelight_q1_v_q2' with separate Q1/Q2 tabs (not a Compare-export single-file shape). Pointed at the 'Q2' tab (current period, matches period.p1_label). Its column layout ('Search term','Search terms match type','Added/Excluded','Keyword final URL','Quality Score','Landing page exp.','Ad relevance') does NOT match load_qs_data()'s original assumed layout (built for an older French Google Ads QS export shape with État/Mot clé/Campagne/Niveau de qualité columns and bracket-notation match types) — see the header-based rewrite in scripts/build_html.py's _patched_load_qs_data(). No 'Expected CTR' or campaign columns exist in this export, so QS_CLASSIFIED's CTR_ATT/CAMP fields are left blank for this brand. STATUS is passed through as raw 'Added'/'Excluded' text rather than force-mapped into the template's French eligibility vocabulary (Éligible/Non éligible/etc.) — that filter dropdown just won't narrow anything for this brand, which is honest, not broken.",
   "_topic_labels_comment": "Added 2026-09-24 at user request: the KS Pipeline Format sheet's own TOPIC column uses 'EATING BETTER'/'HEALTH' labels borrowed from Danone's yogurt/wellness-brand taxonomy vocabulary. Checked the actual keywords under each — HEALTH = lactose-intolerance queries ('best coffee creamer for lactose intolerance'), EATING BETTER = nutrition-facts lookups ('coffee creamer nutrition facts', 'international delight french vanilla creamer nutrition facts'). Both are real, on-brand search intent for a creamer brand; only the label wording read oddly, not the underlying classification. Renamed for display only — does not touch the KS sheet or reclassify any keyword.",
   "topic_labels": {
     "EATING BETTER": "Nutrition Info",

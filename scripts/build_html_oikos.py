@@ -318,7 +318,8 @@ def sheets_get(token, sheet_id, range_):
         raise
 
 
-QS_SHEET_ID = '1RDgH021qO2VLIOIxBuq0_R7COVXTAHrScYsx6R1xvRc'
+QS_SHEET_ID  = '1RDgH021qO2VLIOIxBuq0_R7COVXTAHrScYsx6R1xvRc'
+QS_SHEET_TAB = ''  # '' = read the sheet's default/first tab; set per-brand for a multi-tab QS export
 
 
 def load_brand_regex(token):
@@ -1620,6 +1621,13 @@ def apply_brand(html):
         # already-built Activia CA dashboard, not a blank placeholder — its
         # period string is baked into several text nodes verbatim).
         ('Q1 2026 vs Q4 2025', PERIOD),
+        # Quality Score panel subtitle — same stale-template-text issue, plus a
+        # hardcoded "691 keywords" count left over from Activia CA's real QS
+        # export. Count gets a live-computed replacement via JS (see
+        # patch_onesearch_js()) since it depends on QS_CLASSIFIED, not
+        # something known at this string-substitution stage.
+        ('<div class="subtitle">Jan — Mar 2026 &bull; 691 keywords</div>',
+         f'<div class="subtitle">{PERIOD} &bull; <span id="qs-kw-count">691</span> keywords</div>'),
         # Section title color (deep red → deep teal)
         ('#8b0000', BRAND_COLOR),
         # Accent red → accent blue
