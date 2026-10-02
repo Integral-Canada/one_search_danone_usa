@@ -1587,21 +1587,27 @@ def js_tags(tags):
 # ── Template injection ──────────────────────────────────────────────────────────
 
 def replace_block(html, varname, new_block, decl='const'):
-    """Replace `const/var VARNAME = [...];` or `{...};`.
-    First occurrence gets new_block verbatim; subsequent occurrences get a bare
-    reassignment (no const/var) to avoid redeclaration SyntaxErrors."""
+    """Replace `const/var VARNAME = [...];` or `{...};`, every occurrence.
+
+    Found via real-world bug report (QS panel showing empty for International
+    Delight/Silk): the template can contain more than one `const VARNAME = ...`
+    for the same name across separate <script> tags — top-level const/let share
+    one lexical scope across all of them. The previous approach kept the first
+    occurrence's `const`/`var` as-is and stripped the keyword entirely from
+    later ones, producing a bare `VARNAME = ...` reassignment — valid syntax,
+    but a guaranteed runtime `TypeError: Assignment to constant variable` the
+    moment the first occurrence used `const` (as QS_CLASSIFIED's did). Forcing
+    every occurrence to `var` instead sidesteps this categorically: `var`
+    redeclaration is always legal in JS, regardless of how many times a name
+    repeats in the template, so this needs no occurrence-counting to be safe.
+    """
     pattern = rf'(?:const|var)\s+{re.escape(varname)}\s*=\s*(?:\[[\s\S]*?\]|\{{[\s\S]*?\}});'
-    seen = [0]
 
     def _replacer(m):
-        seen[0] += 1
-        if seen[0] == 1:
-            return new_block
-        # Strip leading const/var declaration for subsequent occurrences
-        return re.sub(r'^(?:const|var)\s+', '', new_block, count=1)
+        return re.sub(r'^(?:const|var)\s+', 'var ', new_block, count=1)
 
-    result = re.sub(pattern, _replacer, html, flags=re.DOTALL)
-    return result, seen[0]
+    result, n = re.subn(pattern, _replacer, html, flags=re.DOTALL)
+    return result, n
 
 
 def apply_brand(html):
