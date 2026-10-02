@@ -30,6 +30,12 @@ PERIOD_P1   = 'Q1 2026'
 PERIOD_P4   = 'Q4 2025'
 SEM_CONV_MEASURED = True  # False when this brand has no GA4 Ads Sessions export configured —
                           # in that case Conversions SEM is unmeasured, not a real zero.
+CONV_LABEL_SEO = 'Qualified Visits (SEO)'  # brand-neutral label for the Conversions SEO
+CONV_LABEL_SEM = 'Qualified Visits (SEM)'  # column — overridden per-brand from config.json's
+                          # (or defaults.json's) conversion_label. Deliberately not "MikMak
+                          # Checkout" / "MikMak Offline Store" — not every brand uses MikMak,
+                          # and once sem_qv.py owns Conversions SEM with real GA4 Ads QV
+                          # attribution, "Offline Store" would be an outright wrong label.
 TERRITORY_COLORS = [
     '#1565c0', '#2e7d32', '#e65100', '#6a1b9a',
     '#0277bd', '#558b2f', '#c62828', '#4527a0',
@@ -264,6 +270,8 @@ STRING_INDICES = {0, 1, 2, 3, 36}
 SPEND_P1 = ['Spent SEM Q1 2026', 'Dépense SEM Q1 2026', 'Spend SEM Q1 2026', 'Cost SEM Q1 2026']
 SPEND_P4 = ['Spent SEM Q4 2025', 'Dépense SEM Q4 2025', 'Spend SEM Q4 2025', 'Cost SEM Q4 2025']
 
+TOPIC_LABELS = {}  # raw TOPICS value -> display label override; set per-brand by build_html.py
+
 TAXONOMY_TAGS = [
     'Questions', 'Yogurt types', 'Taste', 'Packaging', 'Ingredient',
     'Brands', 'Retailer', 'Demography', 'Benefits', 'Testimonials',
@@ -310,7 +318,8 @@ def sheets_get(token, sheet_id, range_):
         raise
 
 
-QS_SHEET_ID = '1RDgH021qO2VLIOIxBuq0_R7COVXTAHrScYsx6R1xvRc'
+QS_SHEET_ID  = '1RDgH021qO2VLIOIxBuq0_R7COVXTAHrScYsx6R1xvRc'
+QS_SHEET_TAB = ''  # '' = read the sheet's default/first tab; set per-brand for a multi-tab QS export
 
 
 def load_brand_regex(token):
@@ -797,7 +806,7 @@ def _q1_seo_bullets(topic, s):
         sign = '+' if dp >= 0 else ''
         items.append(f'OneSearch coverage: {_fmt_pct(cov)} ({sign}{dp:.1f}pp vs {PERIOD_P4})')
     if s['conv_seo_q1'] > 0:
-        items.append(f'{s["conv_seo_q1"]:.0f} MikMak Checkout conversions in {PERIOD_P1}')
+        items.append(f'{s["conv_seo_q1"]:.0f} {CONV_LABEL_SEO} in {PERIOD_P1}')
     top_seo = sorted(s['top_kws'], key=lambda x: x['seo_q1'], reverse=True)
     if top_seo and top_seo[0]['seo_q1'] > 0:
         kd = top_seo[0]
@@ -823,7 +832,7 @@ def _q1_sem_bullets(topic, s):
     if not SEM_CONV_MEASURED:
         items.append('SEM conversions not yet measured — Google Ads Sessions export pending for this brand')
     elif s['conv_sem_q1'] > 0:
-        items.append(f'{s["conv_sem_q1"]:.0f} MikMak Click Offline Store conversions in {PERIOD_P1}')
+        items.append(f'{s["conv_sem_q1"]:.0f} {CONV_LABEL_SEM} in {PERIOD_P1}')
     top_sem = sorted(s['top_kws'], key=lambda x: x['sem_q1'], reverse=True)
     if top_sem and top_sem[0]['sem_q1'] > 0:
         kd = top_sem[0]
@@ -1073,7 +1082,7 @@ def build_territory_panel(territory_stats):
 
 <!-- Executive summary — single US-level narrative -->
 <div style="background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:20px 24px;margin:0 24px 20px;border-left:4px solid {BRAND_COLOR};">
-  <h2 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:{BRAND_COLOR};margin:0 0 14px;">Executive Summary — {H(BRAND_NAME)} US ({PERIOD})</h2>
+  <h2 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:{BRAND_COLOR};margin:0 0 14px;">Executive Summary — {H(BRAND_NAME)} ({PERIOD})</h2>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
     <div>
       <div style="font-size:9px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">AI Draft — US aggregate signals</div>
@@ -1141,8 +1150,6 @@ def build_territory_panel(territory_stats):
         slug  = _slug(topic)
         cov_q1 = _cov(s['os_clicks_q1'], s['avg_volume'])
         cov_q4 = _cov(s['os_clicks_q4'], s['avg_volume'])
-        total_conv_q1 = s['conv_seo_q1'] + s['conv_sem_q1']
-        total_conv_q4 = s['conv_seo_q4'] + s['conv_sem_q4']
 
         top_rows = ''
         for kd in s['top_kws']:
@@ -1183,7 +1190,8 @@ def build_territory_panel(territory_stats):
         seo_evo  = _delta_pct(s['seo_clicks_q4'], s['seo_clicks_q1'])
         sem_evo  = _delta_pct(s['sem_clicks_q4'], s['sem_clicks_q1'])
         cov_evo  = _delta_pp(cov_q4, cov_q1)
-        conv_evo = _delta_pct(total_conv_q4, total_conv_q1)
+        conv_seo_evo = _delta_pct(s['conv_seo_q4'], s['conv_seo_q1'])
+        conv_sem_evo = _delta_pct(s['conv_sem_q4'], s['conv_sem_q1'])
 
         def _perf_row(label, q4, q1, evo, indent=False, fmt=_fmt_num):
             pad = '&nbsp;&nbsp;&nbsp;' if indent else ''
@@ -1239,9 +1247,17 @@ def build_territory_panel(territory_stats):
         {_perf_row('SEO Clicks',       s['seo_clicks_q4'],  s['seo_clicks_q1'],  seo_evo,  indent=True)}
         {_perf_row('SEM Clicks',       s['sem_clicks_q4'],  s['sem_clicks_q1'],  sem_evo,  indent=True)}
         {_perf_row('OS Coverage',      _fmt_cov(cov_q4),    _fmt_cov(cov_q1),    cov_evo, indent=False)}
-        {_perf_row('MikMak Checkout',  total_conv_q4,       total_conv_q1,       conv_evo)}
+        {_perf_row(CONV_LABEL_SEO,     s['conv_seo_q4'],    s['conv_seo_q1'],    conv_seo_evo)}
+        {_perf_row(CONV_LABEL_SEM,     s['conv_sem_q4'],    s['conv_sem_q1'],    conv_sem_evo)}
       </tbody>
     </table>
+  </div>
+  <!-- Territory action cards (SEO + SEM × Q1 + Q2) -->
+  <div style="padding:0 20px 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+    {card_q1_seo}
+    {card_q1_sem}
+    {card_q2_seo}
+    {card_q2_sem}
   </div>
   <!-- Top Keywords -->
   <div style="padding:0 20px 12px;">
@@ -1267,7 +1283,11 @@ def build_territory_panel(territory_stats):
     return '\n'.join(parts)
 
 
-_JSON_EXPORT_CSS = f'''<style>
+def _json_export_css():
+    # Deliberately a function, not a module-level constant: it must be evaluated
+    # AFTER _patch_module() overrides BRAND_COLOR/LIGHT_BG for this brand, not
+    # once at import time with the Oikos module defaults baked in.
+    return f'''<style>
 /* Commentary toolbar — bottom-right so it never overlaps the dashboard header */
 #commentary-toolbar{{position:fixed;bottom:20px;right:20px;z-index:99999;background:rgba(255,255,255,.97);border:1px solid #ddd;border-radius:8px;padding:6px 12px;display:flex;align-items:center;gap:8px;box-shadow:0 2px 12px rgba(0,0,0,.15);font-family:-apple-system,sans-serif;font-size:11px;}}
 #commentary-toolbar button,#commentary-toolbar label{{cursor:pointer;padding:4px 10px;border-radius:5px;font-size:11px;font-weight:600;border:none;background:{BRAND_COLOR};color:#fff;display:inline-flex;align-items:center;gap:3px;}}
@@ -1295,7 +1315,10 @@ _JSON_EXPORT_HTML = '''<div id="commentary-toolbar">
   <label class="imp-btn">&#8593; Import<input type="file" accept=".json" onchange="importCommentary(event)"></label>
 </div>'''
 
-_JSON_EXPORT_JS = f'''<script>
+def _json_export_js():
+    # Same reasoning as _json_export_css(): must read BRAND_NAME/PERIOD/ACCENT_CLR
+    # after per-brand patching, not at module-import time.
+    return f'''<script>
 (function(){{
   /* Commentary store — keyed by data-field-id.
      Uses an in-memory object so export works regardless of tab visibility
@@ -1465,7 +1488,7 @@ def inject_reco_filter(html):
         '<div class="section-title">Detailed SEO / SEM Recommendations by Sub-Category</div>\n'
         '<div style="display:flex;align-items:center;gap:8px;padding:10px 24px 4px;background:#f4f4f4;border-bottom:1px solid #e0e0e0;">\n'
         '  <span style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-right:4px;">Show:</span>\n'
-        '  <button class="reco-filter-btn" data-mode="active" onclick="filterRecoTable(this)" style="font-size:11px;padding:4px 14px;border:1px solid #1a7aad;border-radius:20px;background:#1a7aad;color:#fff;cursor:pointer;font-weight:600;">Active</button>\n'
+        f'  <button class="reco-filter-btn" data-mode="active" onclick="filterRecoTable(this)" style="font-size:11px;padding:4px 14px;border:1px solid {ACCENT_CLR};border-radius:20px;background:{ACCENT_CLR};color:#fff;cursor:pointer;font-weight:600;">Active</button>\n'
         '  <button class="reco-filter-btn" data-mode="long-term" onclick="filterRecoTable(this)" style="font-size:11px;padding:4px 14px;border:1px solid #78909c;border-radius:20px;background:#fff;color:#78909c;cursor:pointer;font-weight:600;">Long-term</button>\n'
         '  <button class="reco-filter-btn" data-mode="all" onclick="filterRecoTable(this)" style="font-size:11px;padding:4px 14px;border:1px solid #bbb;border-radius:20px;background:#fff;color:#888;cursor:pointer;font-weight:600;">All</button>\n'
         '  <span id="reco-row-count" style="font-size:10px;color:#aaa;margin-left:6px;"></span>\n'
@@ -1483,11 +1506,11 @@ def inject_reco_filter(html):
 
 
 def inject_export_ui(html):
-    html = html.replace('</head>', _JSON_EXPORT_CSS + '\n</head>', 1)
+    html = html.replace('</head>', _json_export_css() + '\n</head>', 1)
     body_pos = html.find('<body')
     body_end  = html.find('>', body_pos) + 1
     html = html[:body_end] + '\n' + _JSON_EXPORT_HTML + html[body_end:]
-    html += '\n' + _JSON_EXPORT_JS
+    html += '\n' + _json_export_js()
     return html
 
 
@@ -1564,21 +1587,27 @@ def js_tags(tags):
 # ── Template injection ──────────────────────────────────────────────────────────
 
 def replace_block(html, varname, new_block, decl='const'):
-    """Replace `const/var VARNAME = [...];` or `{...};`.
-    First occurrence gets new_block verbatim; subsequent occurrences get a bare
-    reassignment (no const/var) to avoid redeclaration SyntaxErrors."""
+    """Replace `const/var VARNAME = [...];` or `{...};`, every occurrence.
+
+    Found via real-world bug report (QS panel showing empty for International
+    Delight/Silk): the template can contain more than one `const VARNAME = ...`
+    for the same name across separate <script> tags — top-level const/let share
+    one lexical scope across all of them. The previous approach kept the first
+    occurrence's `const`/`var` as-is and stripped the keyword entirely from
+    later ones, producing a bare `VARNAME = ...` reassignment — valid syntax,
+    but a guaranteed runtime `TypeError: Assignment to constant variable` the
+    moment the first occurrence used `const` (as QS_CLASSIFIED's did). Forcing
+    every occurrence to `var` instead sidesteps this categorically: `var`
+    redeclaration is always legal in JS, regardless of how many times a name
+    repeats in the template, so this needs no occurrence-counting to be safe.
+    """
     pattern = rf'(?:const|var)\s+{re.escape(varname)}\s*=\s*(?:\[[\s\S]*?\]|\{{[\s\S]*?\}});'
-    seen = [0]
 
     def _replacer(m):
-        seen[0] += 1
-        if seen[0] == 1:
-            return new_block
-        # Strip leading const/var declaration for subsequent occurrences
-        return re.sub(r'^(?:const|var)\s+', '', new_block, count=1)
+        return re.sub(r'^(?:const|var)\s+', 'var ', new_block, count=1)
 
-    result = re.sub(pattern, _replacer, html, flags=re.DOTALL)
-    return result, seen[0]
+    result, n = re.subn(pattern, _replacer, html, flags=re.DOTALL)
+    return result, n
 
 
 def apply_brand(html):
@@ -1589,7 +1618,22 @@ def apply_brand(html):
         # Header / subtitle text
         ('Activia Canada', BRAND_NAME),
         ('ACTIVIA CA', BRAND_NAME.upper()),
-        ('Activia', 'Oikos'),
+        ('Activia', BRAND_NAME),
+        # SQR Detail by Keyword — drop the Search Demand Evo header (see matching
+        # patch_onesearch_js() removal of its cell content below).
+        ('<th class="num">Demand</th><th class="num">Evo</th>',
+         '<th class="num">Demand</th>'),
+        # Stale reference-template period text (the raw template is a real,
+        # already-built Activia CA dashboard, not a blank placeholder — its
+        # period string is baked into several text nodes verbatim).
+        ('Q1 2026 vs Q4 2025', PERIOD),
+        # Quality Score panel subtitle — same stale-template-text issue, plus a
+        # hardcoded "691 keywords" count left over from Activia CA's real QS
+        # export. Count gets a live-computed replacement via JS (see
+        # patch_onesearch_js()) since it depends on QS_CLASSIFIED, not
+        # something known at this string-substitution stage.
+        ('<div class="subtitle">Jan — Mar 2026 &bull; 691 keywords</div>',
+         f'<div class="subtitle">{PERIOD} &bull; <span id="qs-kw-count">691</span> keywords</div>'),
         # Section title color (deep red → deep teal)
         ('#8b0000', BRAND_COLOR),
         # Accent red → accent blue
@@ -1607,6 +1651,13 @@ def apply_brand(html):
         # OS_TOPIC_COLORS brand key — Activia had 'PRODUCTS' as dark red; keep structure
         ("'#B8001C'", f"'{BRAND_COLOR}'"),
     ]
+    # OS_TOPIC_COLORS keys are a static hardcoded object literal in the raw template
+    # ({'PRODUCTS':..,'HEALTH':..,'EATING BETTER':..,'RECIPES':..}), unrelated to any
+    # per-brand DATA_MAP field — but DATA/territory-stats/SQR output now carry the
+    # TOPIC_LABELS-renamed display label, so the color lookup needs the same keys or
+    # a renamed topic silently falls through to the default gray badge color.
+    for raw, renamed in TOPIC_LABELS.items():
+        subs.append((f"'{raw}':", f"'{renamed}':"))
     for old, new in subs:
         html = html.replace(old, new)
     return html
@@ -1712,10 +1763,13 @@ def patch_onesearch_js(html):
         ("const _SEO_SEM_FORCE = new Set(['Danone - Pure Brand','Danone - Probiotics','Probiotic yogurt']);",
          "const _SEO_SEM_FORCE = new Set(['Brand']);"),
 
-        # Split single "Conversions (QV)" KPI column into MikMak Checkout + MM Offline Store
+        # Split single "Conversions (QV)" KPI column into the two conversion
+        # sub-metrics. Labels come from CONV_LABEL_SEO/CONV_LABEL_SEM (brand
+        # config's conversion_label) rather than being hardcoded here — see
+        # the module-level comment on those globals for why.
         # Header
         ('<th>Conversions (QV)</th>',
-         '<th>MM Checkout</th><th>MM Offline Store</th>'),
+         f'<th>{CONV_LABEL_SEO}</th><th>{CONV_LABEL_SEM}</th>'),
 
         # OS row: show seoCaC (checkout) + semCaC (offline) in two separate cells
         ('<td class="kpi-cell"><span class="kv" id="k-os-ca">—</span><span class="ke" id="k-os-ca-e"></span></td>',
@@ -1794,7 +1848,7 @@ def patch_onesearch_js(html):
             "      +' data-field-id=\"'+_recoFid+'\"'\n"
             "      +' data-placeholder=\"Add analyst notes (JSON or plain text)\\u2026\"'\n"
             "      +' style=\"min-height:36px;font-size:10px;line-height:1.5;color:#e0e0e0;border:1px dashed #555;border-radius:4px;padding:5px 7px;background:#3a3a3a;outline:none;margin-top:6px;font-family:monospace;white-space:pre-wrap;\"'\n"
-            "      +' onfocus=\"this.style.borderColor=\\'#1a7aad\\';this.style.background=\\'#fff\\';\"'\n"
+            f"      +' onfocus=\"this.style.borderColor=\\'{ACCENT_CLR}\\';this.style.background=\\'#fff\\';\"'\n"
             "      +' onblur=\"this.style.borderColor=\\'#555\\';this.style.background=\\'#3a3a3a\\';\"'\n"
             "      +'></div>'\n"
             "      +'</td>'\n"
@@ -1867,6 +1921,17 @@ def patch_onesearch_js(html):
             "    const covOS=volC>0?(seoC+semC)/volC:0;"
         ),
 
+        # SQR Detail by Keyword — drop the Search Demand Evo column entirely. Volume P1/P2
+        # come from enrich_volumes()'s avg*3 back-fill (or the _avgVol JS fallback above)
+        # whenever SE Ranking only returns an average, not real per-quarter figures — which
+        # is true for 100% of this brand's volume data, so the column never carried a real
+        # trend, only a fabricated ▲0.0% (an earlier fix showed "—" instead, but a column
+        # that's blank for virtually every row is noise — simpler to remove it).
+        (
+            "      +evoCell(evo(volC,volP))\n",
+            ""
+        ),
+
         # SQR Insight cards: add JSON commentary box to Wasted Budget card
         (
             "+'<div style=\"margin-top:8px;font-size:10px;color:#888;line-height:1.5;\"><strong>Top wasted terms:</strong> '+ltTop+'</div>'\n"
@@ -1876,7 +1941,7 @@ def patch_onesearch_js(html):
             "    +' data-field-id=\"sqr-insights-wasted\"'\n"
             "    +' data-placeholder=\"Add analyst notes\\u2026\"'\n"
             "    +' style=\"min-height:36px;font-size:10px;line-height:1.5;color:#e0e0e0;border:1px dashed #555;border-radius:4px;padding:5px 7px;background:#3a3a3a;outline:none;margin-top:8px;font-family:monospace;white-space:pre-wrap;\"'\n"
-            "    +' onfocus=\"this.style.borderColor=\\'#1a7aad\\';this.style.background=\\'#fff\\';\"'\n"
+            f"    +' onfocus=\"this.style.borderColor=\\'{ACCENT_CLR}\\';this.style.background=\\'#fff\\';\"'\n"
             "    +' onblur=\"this.style.borderColor=\\'#c0cfe0\\';this.style.background=\\'#f8f9fb\\';\"'\n"
             "    +'></div>'\n"
             "    +'</div></div>';"
@@ -1891,7 +1956,7 @@ def patch_onesearch_js(html):
             "    +' data-field-id=\"sqr-insights-regression\"'\n"
             "    +' data-placeholder=\"Add analyst notes\\u2026\"'\n"
             "    +' style=\"min-height:36px;font-size:10px;line-height:1.5;color:#e0e0e0;border:1px dashed #555;border-radius:4px;padding:5px 7px;background:#3a3a3a;outline:none;margin-top:8px;font-family:monospace;white-space:pre-wrap;\"'\n"
-            "    +' onfocus=\"this.style.borderColor=\\'#1a7aad\\';this.style.background=\\'#fff\\';\"'\n"
+            f"    +' onfocus=\"this.style.borderColor=\\'{ACCENT_CLR}\\';this.style.background=\\'#fff\\';\"'\n"
             "    +' onblur=\"this.style.borderColor=\\'#c0cfe0\\';this.style.background=\\'#f8f9fb\\';\"'\n"
             "    +'></div>'\n"
             "    +'</div></div>';"
@@ -1906,7 +1971,7 @@ def patch_onesearch_js(html):
             "    +' data-field-id=\"sqr-insights-rising\"'\n"
             "    +' data-placeholder=\"Add analyst notes\\u2026\"'\n"
             "    +' style=\"min-height:36px;font-size:10px;line-height:1.5;color:#e0e0e0;border:1px dashed #555;border-radius:4px;padding:5px 7px;background:#3a3a3a;outline:none;margin-top:8px;font-family:monospace;white-space:pre-wrap;\"'\n"
-            "    +' onfocus=\"this.style.borderColor=\\'#1a7aad\\';this.style.background=\\'#fff\\';\"'\n"
+            f"    +' onfocus=\"this.style.borderColor=\\'{ACCENT_CLR}\\';this.style.background=\\'#fff\\';\"'\n"
             "    +' onblur=\"this.style.borderColor=\\'#c0cfe0\\';this.style.background=\\'#f8f9fb\\';\"'\n"
             "    +'></div>'\n"
             "    +'</div></div>';"

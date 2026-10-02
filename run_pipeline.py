@@ -26,7 +26,7 @@ from pipeline.utils import (
     col_letter, ensure_tab_exists,
 )
 from pipeline.normalize import normalize, clean_num
-from pipeline.ingest import norm_gsc, norm_sqr, norm_se, norm_ks
+from pipeline.ingest import norm_gsc, norm_sqr, norm_sqr_split, norm_se, norm_ks
 from pipeline.ingest_ga4 import ga4_from_raw
 from pipeline.merge import merge_gsc_sqr
 from pipeline.format_rows import format_base_rows
@@ -34,7 +34,7 @@ from pipeline.trigram import build_index
 from pipeline.match_se import match_se_keywords
 from pipeline.match_ks import match_ks_keywords
 from pipeline.sem_qv import run_sem_qv
-from pipeline.enrich import enrich_volumes, enrich_monthly_volumes
+from pipeline.enrich import enrich_volumes, enrich_monthly_volumes, enrich_taxonomy
 from pipeline.classify import classify_competitors
 
 DEFAULT_BRAND = 'oikos-usa'
@@ -117,6 +117,30 @@ def raw_to_dicts(raw_values: list) -> tuple:
     headers = [str(h) for h in raw_values[0]]
     rows = []
     for row in raw_values[1:]:
+        d = {headers[i]: (row[i] if i < len(row) else '') for i in range(len(headers))}
+        rows.append(d)
+    return headers, rows
+
+
+def raw_to_dicts_find_header(raw_values: list, header_marker: str) -> tuple:
+    """Like raw_to_dicts(), but scans the first ~10 rows for the real header
+    row instead of assuming row 1 — some exports (this tool's search-terms
+    report, used for both Quality Score and Activia's real SQR export) put a
+    title row and a date-range row before the actual headers. header_marker
+    is a cell value expected to appear somewhere in the real header row
+    (e.g. 'Search term')."""
+    if not raw_values:
+        return [], []
+    header_row_idx = None
+    for i, row in enumerate(raw_values[:10]):
+        if any(str(c).strip() == header_marker for c in row):
+            header_row_idx = i
+            break
+    if header_row_idx is None:
+        return [], []
+    headers = [str(h) for h in raw_values[header_row_idx]]
+    rows = []
+    for row in raw_values[header_row_idx + 1:]:
         d = {headers[i]: (row[i] if i < len(row) else '') for i in range(len(headers))}
         rows.append(d)
     return headers, rows
@@ -272,10 +296,28 @@ def _run(brand_key: str, max_rows=None) -> None:
     print(f'  GSC: {len(gsc_raw)} rows', flush=True)
 
     sqr_cfg       = require('Account Level SQR Report')
+    sqr_cfg_p2    = source_config.get(f'Account Level SQR Report {p2_label}')
     sqr_raw_vals  = sheets_get(token, sqr_cfg['doc_id'], f"'{sqr_cfg['sheet_tab']}'!A:V")
-    _, sqr_raw    = raw_to_dicts(sqr_raw_vals)
-    sqr_raw       = lim(sqr_raw)
-    print(f'  SQR: {len(sqr_raw)} rows', flush=True)
+    if sqr_cfg_p2 and sqr_cfg_p2.get('doc_id'):
+        # Two separate single-period tabs (e.g. Activia's real export: a 'Q1'
+        # tab and a 'Q2' tab, neither carrying "(Compare to)" columns) instead
+        # of one Google-Ads-Compare-mode tab — merge them in Python via
+        # norm_sqr_split() rather than requiring the export itself to be
+        # pre-paired. See pipeline/ingest.py's norm_sqr_split() docstring.
+        # This export shape also has a title row + date-range row before the
+        # real headers (same tool as the Quality Score export), so headers
+        # must be located by scanning, not assumed to be row 1.
+        _, sqr_raw = raw_to_dicts_find_header(sqr_raw_vals, 'Search term')
+        sqr_raw = lim(sqr_raw)
+        sqr_p2_vals = sheets_get(token, sqr_cfg_p2['doc_id'], f"'{sqr_cfg_p2['sheet_tab']}'!A:V")
+        _, sqr_raw_p2 = raw_to_dicts_find_header(sqr_p2_vals, 'Search term')
+        sqr_raw_p2 = lim(sqr_raw_p2)
+        print(f'  SQR: {len(sqr_raw)} P1 rows + {len(sqr_raw_p2)} P2 rows (two-tab split)', flush=True)
+    else:
+        _, sqr_raw = raw_to_dicts(sqr_raw_vals)
+        sqr_raw = lim(sqr_raw)
+        sqr_raw_p2 = None
+        print(f'  SQR: {len(sqr_raw)} rows', flush=True)
 
     se_cfg        = require('SE Ranking')
     se_raw_vals   = sheets_get(token, se_cfg['doc_id'], f"'{se_cfg['sheet_tab']}'!A:Z")
@@ -306,10 +348,14 @@ def _run(brand_key: str, max_rows=None) -> None:
         sys.exit(f'ERROR in norm_gsc: {e}')
     print(f'  GSC: {len(gsc_norm)}/{len(gsc_raw)} kept', flush=True)
 
-    sqr_norm = norm_sqr(sqr_raw)
-    print(f'  SQR: {len(sqr_norm)}/{len(sqr_raw)} kept', flush=True)
+    if sqr_raw_p2 is not None:
+        sqr_norm = norm_sqr_split(sqr_raw, sqr_raw_p2)
+        print(f'  SQR: {len(sqr_norm)} kept (from {len(sqr_raw)} P1 + {len(sqr_raw_p2)} P2 rows)', flush=True)
+    else:
+        sqr_norm = norm_sqr(sqr_raw)
+        print(f'  SQR: {len(sqr_norm)}/{len(sqr_raw)} kept', flush=True)
 
-    se_norm = norm_se(se_raw)
+    se_norm = norm_se(se_raw, exclude_url_prefixes=cfg.get('se_exclude_url_prefixes'))
     print(f'  SE:  {len(se_norm)}/{len(se_raw)} kept (pos ≤ 100)', flush=True)
 
     ks_norm = norm_ks(ks_raw, se_months=se_months if se_months else None,
@@ -445,24 +491,30 @@ def _run(brand_key: str, max_rows=None) -> None:
                 if seo:
                     merged_rows[i][conv_col] = round(seo / total_seo * page_events, 4)
 
-    # Column ownership: Conversions SEM P1 (col AC) is exclusively owned by
-    # sem_qv.run_sem_qv() (Thomas's QV-SEM LP-attribution methodology) whenever
-    # GA4 Ads data is configured for this brand — it overwrites this column
-    # unconditionally later in this run. Writing the offline-store proxy here
-    # too would just be silently discarded, and misreports the pre-overwrite
-    # "hit count" below. Only fall back to the proxy when GA4 Ads QV SEM isn't
-    # configured, so the column isn't left completely blank.
-    _ga4_ads_id = sheets_cfg.get('ga4_ads_file_id')
-    has_qv_sem = bool(_ga4_ads_id) and str(_ga4_ads_id).strip().upper() != 'TBD'
+    # Column ownership: Conversions SEM P1/P2 are exclusively owned by
+    # sem_qv.run_sem_qv() (Thomas's QV-SEM LP-attribution methodology) for
+    # whichever period has GA4 Ads data configured for this brand — it
+    # overwrites those columns unconditionally later in this run. Writing the
+    # offline-store proxy here too would just be silently discarded, and
+    # misreports the pre-overwrite "hit count" below. Only fall back to the
+    # proxy for a period when GA4 Ads QV SEM isn't configured for it, so the
+    # column isn't left completely blank.
+    _ga4_ads_id    = sheets_cfg.get('ga4_ads_file_id')
+    _ga4_ads_id_p2 = sheets_cfg.get('ga4_ads_file_id_p2')
+    has_qv_sem    = bool(_ga4_ads_id)    and str(_ga4_ads_id).strip().upper()    != 'TBD'
+    has_qv_sem_p2 = bool(_ga4_ads_id_p2) and str(_ga4_ads_id_p2).strip().upper() != 'TBD'
     _distribute_conversions(checkout_map, f'Conversions SEO {p1_label}')
     if not has_qv_sem:
         _distribute_conversions(offline_map, f'Conversions SEM {p1_label}')
     _distribute_conversions(checkout_q4_map, f'Conversions SEO {p2_label}')
-    _distribute_conversions(offline_q4_map, f'Conversions SEM {p2_label}')
+    if not has_qv_sem_p2:
+        _distribute_conversions(offline_q4_map, f'Conversions SEM {p2_label}')
 
     conv_seo = sum(1 for r in merged_rows if r.get(f'Conversions SEO {p1_label}'))
     sem_p1_note = 'owned by sem_qv.py (written below)' if has_qv_sem else 'SEM proxy (no GA4 Ads configured)'
-    print(f'  Conversion hits — SEO: {conv_seo}  |  Conversions SEM P1: {sem_p1_note}', flush=True)
+    sem_p2_note = 'owned by sem_qv.py (written below)' if has_qv_sem_p2 else 'SEM proxy (no GA4 Ads configured)'
+    print(f'  Conversion hits — SEO: {conv_seo}  |  Conversions SEM P1: {sem_p1_note}  |  '
+          f'Conversions SEM P2: {sem_p2_note}', flush=True)
 
     # ── Build row values aligned to Masterlist headers ────────────────────────
     print('\nReading Masterlist headers…', flush=True)
@@ -620,7 +672,35 @@ def _run(brand_key: str, max_rows=None) -> None:
     else:
         print('\nSE_RANKING_API_KEY not set — skipping volume enrichment', flush=True)
 
+    # ── Post-write: Claude taxonomy enrichment (opt-in per brand) ─────────────
+    # Fills TOPICS/CATEGORY/SUB-CATEGORY (+ taxonomy tags) for rows the KS match
+    # step (match_ks.py) left blank — real keywords (often GSC/SQR-only long-tail
+    # terms) with no match in the curated Keyword Study sheet. Runs fresh every
+    # pipeline execution, same as the SE Ranking volume enrichment above: the
+    # Masterlist gets fully cleared and rebuilt each run, so this can't persist
+    # any other way. Opt-in via cfg['enrich_taxonomy'] — off by default so brands
+    # that haven't reviewed/approved Claude-driven classification (e.g. Oikos,
+    # whose own KS sheet already covers its Masterlist well) are unaffected.
+    if cfg.get('enrich_taxonomy'):
+        anthropic_key = env.get('ANTHROPIC_API_KEY', '')
+        if anthropic_key:
+            print('\nRunning Claude taxonomy enrichment…', flush=True)
+            # Google's access token is short-lived (~1hr) and was fetched once at
+            # the very start of this run. Taxonomy enrichment can take 30-60+
+            # minutes on a large keyword set (real incident: a Silk run's token
+            # expired mid-write, failing all ~300 write batches with HTTP 401 and
+            # silently discarding a completed classification pass). Refresh right
+            # before this step so a long run doesn't inherit a near-dead token.
+            token = get_token(env)
+            try:
+                enrich_taxonomy(token, master_id, master_tab, anthropic_key, cfg=cfg)
+            except Exception as exc:
+                print(f'  WARNING: taxonomy enrichment failed ({exc}) — TOPICS may be incomplete', flush=True)
+        else:
+            print('\nANTHROPIC_API_KEY not set — skipping taxonomy enrichment', flush=True)
+
     # ── SEM QV attribution (final pipeline step) ──────────────────────────────
+    token = get_token(env)  # same reasoning — refresh before the final long step
     run_sem_qv(token, cfg)
 
     # ── Validation summary ────────────────────────────────────────────────────

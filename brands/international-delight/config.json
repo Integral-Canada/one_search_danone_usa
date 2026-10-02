@@ -1,5 +1,5 @@
 {
-  "_comment": "Period updated to Q2 2026 vs Q1 2026 (2026-08-18) to match the live source exports. brand.color and brand.accent_color were sampled 2026-08-20 from a screenshot of internationaldelight.com's Cold Foam Creamer page (blue headline + gold bottle cap — two genuinely distinct colors, unlike Silk's single-color crop). light_bg sampled as the page's plain white background. Quality Report sheet and GA4 Google Ads Sessions export (SEM QV) remain TBD — intentionally left unset rather than guessed. See one_search/docs/export_requirements_international_delight.md.",
+  "_comment": "Period updated to Q2 2026 vs Q1 2026 (2026-08-18) to match the live source exports. brand.color and brand.accent_color were sampled 2026-08-20 from a screenshot of internationaldelight.com's Cold Foam Creamer page (blue headline + gold bottle cap — two genuinely distinct colors, unlike Silk's single-color crop). light_bg sampled as the page's plain white background. Quality Report sheet remains TBD. ga4_ads_file_id set 2026-09-23 — a GA4 'Compare' Explore export (both Q2 2026 and Q1 2026 in one file, verified against its Grand total row: Key events sum to an exact match for both periods). pipeline/sem_qv.py auto-detects this shape and reads both periods from it, so ga4_ads_file_id_p2 is left TBD. See one_search/docs/export_requirements_international_delight.md.",
 
   "client_name": "International Delight USA",
   "client_handle": "international-delight",
@@ -32,10 +32,19 @@
     "ref_client": "INTERNATIONAL DELIGHT",
     "master_id": "1bVEwAdCn4NoAfsdN__hm4LO6lhGEnRE-aMH_WS3Jo14",
     "master_tab": "Listing",
-    "qs_sheet_id": "TBD",
-    "qs_sheet_tab": "TBD",
-    "ga4_ads_file_id": "TBD",
-    "ga4_ads_tab": null
+    "qs_sheet_id": "1w70roDrnJ7lff-6y2IrE4VVQW4YIBl4F_bCxoL_96oM",
+    "qs_sheet_tab": "Q2",
+    "ga4_ads_file_id": "1o88hFCUXlJPO3h1BXSnYLBoZIIGd5pxDNpCduPbtPNA",
+    "ga4_ads_tab": "ID_GOOGLE_ADS_EXPORT",
+    "ga4_ads_file_id_p2": "TBD",
+    "ga4_ads_tab_p2": null
+  },
+
+  "_quality_score_comment": "qs_sheet_id set 2026-09-24 — real spreadsheet 'quality_score_internationaldelight_q1_v_q2' with separate Q1/Q2 tabs (not a Compare-export single-file shape). Pointed at the 'Q2' tab (current period, matches period.p1_label). Its column layout ('Search term','Search terms match type','Added/Excluded','Keyword final URL','Quality Score','Landing page exp.','Ad relevance') does NOT match load_qs_data()'s original assumed layout (built for an older French Google Ads QS export shape with État/Mot clé/Campagne/Niveau de qualité columns and bracket-notation match types) — see the header-based rewrite in scripts/build_html.py's _patched_load_qs_data(). No 'Expected CTR' or campaign columns exist in this export, so QS_CLASSIFIED's CTR_ATT/CAMP fields are left blank for this brand. STATUS is passed through as raw 'Added'/'Excluded' text rather than force-mapped into the template's French eligibility vocabulary (Éligible/Non éligible/etc.) — that filter dropdown just won't narrow anything for this brand, which is honest, not broken.",
+  "_topic_labels_comment": "Added 2026-09-24 at user request: the KS Pipeline Format sheet's own TOPIC column uses 'EATING BETTER'/'HEALTH' labels borrowed from Danone's yogurt/wellness-brand taxonomy vocabulary. Checked the actual keywords under each — HEALTH = lactose-intolerance queries ('best coffee creamer for lactose intolerance'), EATING BETTER = nutrition-facts lookups ('coffee creamer nutrition facts', 'international delight french vanilla creamer nutrition facts'). Both are real, on-brand search intent for a creamer brand; only the label wording read oddly, not the underlying classification. Renamed for display only — does not touch the KS sheet or reclassify any keyword.",
+  "topic_labels": {
+    "EATING BETTER": "Nutrition Info",
+    "HEALTH": "Dietary Needs"
   },
 
   "conn_intent_exclusions": [
@@ -49,6 +58,18 @@
   ],
 
   "_competitors_comment": "Added 2026-08-20, updated 2026-08-20 against the registry's 'COMPETITORS' row (16-h0rmI.../INTERNATIONAL DELIGHT row 16: 'chobani|coffee mate|nestle|nestlé|nutpods|chobani|malk|splanda|satarbucks|dunkin|silk'). Competitor-name presence in a keyword overrides whatever TOPICS/CATEGORY it already has — see pipeline/classify.py. Two terms from that row were deliberately NOT added, and need a human call, not an automatic one: (1) 'dunkin' — Dunkin' Creamers is a Danone-owned sibling brand (see shared/brand-guidelines/dunkincreamers.md), not an external competitor; tagging it COMPETITOR would misclassify internal-portfolio overlap as market competition. (2) 'splanda' — almost certainly a typo for Splenda, a sweetener/ingredient brand, not a competing creamer; likely belongs under an Ingredient taxonomy tag instead, not COMPETITOR. 'nestle'/'nestlé' folded into Coffee Mate's patterns since Coffee Mate is Nestlé-owned and the two terms co-occur in the same creamer-competitor queries. This list is still almost certainly incomplete; add any competitor product line as its own entry (not just the parent company) as they turn up.",
+  "enrich_taxonomy": true,
+  "_taxonomy_prompt_comment": "Added 2026-09-24. Original plan was scripts/classify_ks_taxonomy.py against the KS sheet, but that turned out to be moot for this brand — the KS sheet itself is already 100% classified (10,431/10,431). The real gap is in the Masterlist: ~1,589 rows have blank TOPICS because their keyword (often a GSC/SQR-only long-tail term, e.g. 'cotton candy cold foam') never matched any KS row. Switched to enabling `enrich_taxonomy` below instead, which runs against the Masterlist post-write (pipeline/enrich.py, wired into run_pipeline.py) and only touches rows the KS match step left blank. Reuses the 5 categories already present in the KS data (PRODUCTS, COMPETITOR, RECIPE, HEALTH, EATING BETTER) so newly-classified rows stay consistent, rather than introducing a new BRAND/PRODUCT split. This means SEM Recommendation tagging (which requires TOPICS=='BRAND') stays a no-op for this brand — a deliberate scope choice to avoid silently reclassifying already-curated rows; revisit separately if BRAND-tier SEM tagging is wanted here too.",
+  "taxonomy_prompt": {
+    "brand_context": "International Delight, a coffee creamer brand (flavored creamers, cold foam creamers, non-dairy options)",
+    "topics": ["PRODUCTS", "COMPETITOR", "RECIPE", "HEALTH", "EATING BETTER"]
+  },
+
+  "_sem_qv_comment": "competitor_blocklist added 2026-09-24, reused from this file's own curated competitors[].patterns (not the raw registry COMPETITORS blob in the comment above, which still has uncurated noise like 'splanda'/'dunkin' deliberately excluded there) — sem_qv.py's tag_sem_recommendations() checks this via exact normalized-keyword membership, not substring matching, so it only guards a BRAND-mistagged row whose entire keyword text is one of these terms. Currently a no-op in practice since TOPICS never equals 'BRAND' for this brand yet (see the KS taxonomy classification work referenced in project memory) — wired up now so it's active the moment that's fixed, not a second manual step later.",
+  "sem_qv": {
+    "competitor_blocklist": ["coffee mate", "coffeemate", "nestle", "nestlé", "natural bliss", "starbucks", "chobani", "nutpod", "malk", "silk"]
+  },
+
   "competitors": [
     {"name": "Coffee Mate", "patterns": ["coffee mate", "coffeemate", "nestle", "nestlé"]},
     {"name": "Natural Bliss", "patterns": ["natural bliss"]},

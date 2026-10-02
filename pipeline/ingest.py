@@ -110,6 +110,62 @@ def norm_sqr(rows: list) -> list:
     return out
 
 
+def norm_sqr_split(rows_p1: list, rows_p2: list) -> list:
+    """Like norm_sqr(), but for a brand whose SQR export is two separate
+    single-period tabs (plain 'Clicks'/'Cost'/'Impr.' columns, no '(Compare to)'
+    pairing) instead of one Google-Ads-Compare-mode tab — e.g. Activia's real
+    export has a 'Q1' tab and a 'Q2' tab in the same spreadsheet, neither one
+    carrying the other period's numbers. Does the period-pairing in Python
+    instead of relying on the export itself to have already paired them.
+
+    Full outer join on normalized 'Search term', since a term can appear in
+    only one period (new/dropped search terms between quarters).
+    """
+    def _index(rows):
+        idx = {}
+        for j in rows:
+            term = str(j.get('Search term') or '').strip()
+            if not term or term.startswith('Total:'):
+                continue
+            campaign_type = str(j.get('Campaign Type') or '').strip().lower()
+            if 'performance max' in campaign_type:
+                continue
+            norm_term = normalize(term)
+            idx[norm_term] = {
+                'search_term':    term,
+                'search_keyword': str(j.get('Search keyword') or ''),
+                'clicks':         clean_num(j.get('Clicks')),
+                'cost':           clean_num(j.get('Cost')),
+                'impr':           clean_num(j.get('Impr.')),
+            }
+        return idx
+
+    p1_idx = _index(rows_p1)
+    p2_idx = _index(rows_p2)
+
+    out = []
+    for norm_term in p1_idx.keys() | p2_idx.keys():
+        r1 = p1_idx.get(norm_term)
+        r2 = p2_idx.get(norm_term)
+        if r1 and r1['clicks'] == 0 and (not r2 or r2['clicks'] == 0):
+            continue
+        if not r1 and r2 and r2['clicks'] == 0:
+            continue
+        base = r1 or r2
+        out.append({
+            'norm_term':      norm_term,
+            'search_term':    base['search_term'],
+            'search_keyword': base['search_keyword'],
+            'sqr_clicks_p1':  r1['clicks'] if r1 else 0,
+            'sqr_clicks_p2':  r2['clicks'] if r2 else 0,
+            'sqr_cost_p1':    r1['cost']   if r1 else 0,
+            'sqr_cost_p2':    r2['cost']   if r2 else 0,
+            'sqr_impr_p1':    r1['impr']   if r1 else 0,
+            'sqr_impr_p2':    r2['impr']   if r2 else 0,
+        })
+    return out
+
+
 # ── Keyword Study ─────────────────────────────────────────────────────────────
 
 _MONTH_ABBR = {
@@ -189,9 +245,27 @@ _SE_KW_CANDIDATES = ('Keyword', 'Mot clé', 'Mot-clé', 'Mots-clés', 'Mot cle')
 _se_kw_col_warned = False
 
 
-def norm_se(rows: list) -> list:
-    """Normalize SE Ranking rows. Handles BOM + French keyword column names. Filters to position <= 100."""
+def norm_se(rows: list, exclude_url_prefixes: list = None) -> list:
+    """Normalize SE Ranking rows. Handles BOM + French keyword column names. Filters to position <= 100.
+
+    exclude_url_prefixes: optional list of URL path prefixes (e.g. ['/en-uk/',
+    '/fr-be/', '/nl-be/']) whose matching rows get se_url_path blanked out,
+    not dropped entirely. Found via a real brand (Activia): its "US" SE
+    Ranking domain-history export has real US-search keywords (volume/
+    position/CPC all legitimate) where Google happens to rank a non-US
+    locale page instead — a genuine cross-market SEO issue, not an export
+    mistake. Dropping those rows outright would throw away real keyword/
+    position/volume data (84% of the export, in that case) just because of
+    which page currently ranks. se_url_path feeds GA4 conversion pro-rata
+    distribution by matching keywords to landing pages, so blanking just
+    that field stops conversions from misattributing to the wrong market's
+    page while the keyword's own SEO data stays fully usable everywhere
+    else (SE Ranking matching, Position/Volume on the Masterlist, etc.).
+    Default is no filtering — every other brand's real export is already
+    US-only, so this is opt-in per brand via config.
+    """
     global _se_kw_col_warned
+    exclude_url_prefixes = exclude_url_prefixes or []
     out = []
     for j in rows:
         # Strip BOM (U+FEFF) from every key once, then try English then French keyword-column names
@@ -212,6 +286,8 @@ def norm_se(rows: list) -> list:
         cpc = float(cpc_str) if cpc_str else 0.0
         raw_url = str(clean.get('URL') or '').strip()
         se_path = re.sub(r'^https?://[^/]+', '', raw_url).rstrip('/') or ''
+        if exclude_url_prefixes and any(se_path.startswith(p) for p in exclude_url_prefixes):
+            se_path = ''  # keep the row's keyword/position/volume/CPC; just don't use this page for conversion attribution
         out.append({
             'norm_se_keyword':  normalize(kw),
             'se_keyword':       kw,

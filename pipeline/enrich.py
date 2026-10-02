@@ -325,7 +325,13 @@ def _claude_classify(items, api_key, system_message):
         },
     )
 
-    for attempt in range(3):
+    # Real incident: a long taxonomy run hit repeated connection resets/DNS
+    # failures (transient local network trouble, not Claude-side) that the old
+    # 3-attempts/flat-10s backoff burned through in under a minute — nowhere
+    # near enough to ride out a real blip. 6 attempts with exponential backoff
+    # (10/20/40/80/160/160s) gives a multi-minute network hiccup a real chance
+    # to clear before this batch gives up and returns [].
+    for attempt in range(6):
         try:
             resp = json.loads(urllib.request.urlopen(req, timeout=120).read())
             text = resp["content"][0]["text"].strip()
@@ -350,8 +356,9 @@ def _claude_classify(items, api_key, system_message):
                 wait = 10
             time.sleep(wait)
         except Exception as e:
-            print(f"    Claude API attempt {attempt + 1}: {e}", flush=True)
-            time.sleep(10)
+            wait = min(10 * (2 ** attempt), 160)
+            print(f"    Claude API attempt {attempt + 1}: {e} — retry in {wait}s", flush=True)
+            time.sleep(wait)
     return []
 
 
@@ -498,45 +505,77 @@ def enrich_taxonomy(token, master_id, master_tab, anthropic_key, cfg=None):
     if not to_enrich:
         return
 
-    classified_map = {}
     batches = [to_enrich[i:i + CLAUDE_BATCH] for i in range(0, len(to_enrich), CLAUDE_BATCH)]
     print(f"  Sending {len(batches)} batches to Claude ({CLAUDE_BATCH} keywords/batch)…",
           flush=True)
 
+    def _batch_updates(batch, classified_map):
+        """Cell updates for one batch's classified rows (blank-cell-only, same rule as before)."""
+        updates = []
+        for item in batch:
+            cls = classified_map.get(item['keyword'].lower())
+            if not cls:
+                continue
+            existing  = item['_existing']
+            sheet_row = item['sheet_row']
+            for col in fill_cols:
+                if col not in hdr_idx:
+                    continue
+                current = existing.get(col, '')
+                new_val = str(cls.get(col, '') or '')
+                if current == '' and new_val:
+                    col_ltr = _col_letter(hdr_idx[col])
+                    updates.append((f"'{master_tab}'!{col_ltr}{sheet_row}", [[new_val]]))
+        return updates
+
+    # Writes happen per-batch, not deferred to the end: a long run (30-60+ min
+    # for a large brand) that hits a token expiry, network drop, or crash partway
+    # through should keep whatever it already classified, not lose all of it —
+    # this bit twice in practice (a Silk run lost a fully-completed classification
+    # pass to an expired token, then lost more to a mid-run network outage).
+    total_classified = 0
+    total_cells = 0
+    failed_batches = []
     for bi, batch in enumerate(batches):
         print(f"    Batch {bi + 1}/{len(batches)}: {len(batch)} keywords… ", end="", flush=True)
         results = _claude_classify(batch, anthropic_key, system_message)
+        if not results:
+            failed_batches.append(bi)
+        classified_map = {}
         for r in results:
             kw = str(r.get('keyword', '')).strip()
             if kw:
                 classified_map[kw.lower()] = r
-        print(f"{len(results)} classified", flush=True)
+        total_classified += len(classified_map)
+        print(f"{len(classified_map)} classified", flush=True)
+
+        updates = _batch_updates(batch, classified_map)
+        for j in range(0, len(updates), 50):  # same chunk size the original bulk write used
+            total_cells += _sheets_write(token, master_id, updates[j:j + 50])
         if bi < len(batches) - 1:
             time.sleep(1)
 
-    print(f"  Total classified: {len(classified_map)}", flush=True)
+    # One retry pass over batches that came back empty (exhausted all retries in
+    # _claude_classify) — a longer gap since the last attempt gives a real network
+    # outage more time to clear than back-to-back retries within a single call did.
+    if failed_batches:
+        print(f"  Retrying {len(failed_batches)} batch(es) that failed entirely…", flush=True)
+        time.sleep(30)
+        for bi in failed_batches:
+            batch = batches[bi]
+            print(f"    Retry batch {bi + 1}/{len(batches)}: {len(batch)} keywords… ",
+                  end="", flush=True)
+            results = _claude_classify(batch, anthropic_key, system_message)
+            classified_map = {}
+            for r in results:
+                kw = str(r.get('keyword', '')).strip()
+                if kw:
+                    classified_map[kw.lower()] = r
+            total_classified += len(classified_map)
+            print(f"{len(classified_map)} classified", flush=True)
+            updates = _batch_updates(batch, classified_map)
+            for j in range(0, len(updates), 50):
+                total_cells += _sheets_write(token, master_id, updates[j:j + 50])
 
-    updates = []
-    for item in to_enrich:
-        cls = classified_map.get(item['keyword'].lower())
-        if not cls:
-            continue
-        existing  = item['_existing']
-        sheet_row = item['sheet_row']
-
-        for col in fill_cols:
-            if col not in hdr_idx:
-                continue
-            current = existing.get(col, '')
-            new_val = str(cls.get(col, '') or '')
-            if current == '' and new_val:
-                col_ltr = _col_letter(hdr_idx[col])
-                updates.append((f"'{master_tab}'!{col_ltr}{sheet_row}", [[new_val]]))
-
-    print(f"  Writing {len(updates)} taxonomy cells…", flush=True)
-    total_cells = 0
-    for i in range(0, len(updates), 50):
-        total_cells += _sheets_write(token, master_id, updates[i:i + 50])
-        if i + 50 < len(updates):
-            time.sleep(1)
+    print(f"  Total classified: {total_classified}", flush=True)
     print(f"  Taxonomy enrichment done — {total_cells} cells updated", flush=True)

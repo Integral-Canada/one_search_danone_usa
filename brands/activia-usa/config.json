@@ -1,0 +1,99 @@
+{
+  "_comment": "Created 2026-10-02 during Activia USA onboarding. NOT yet run for real — pipeline deliberately not started until all source exports validate clean (per explicit user instruction). Brand colors, competitors[], sem_qv.competitor_blocklist, and ga4_ads_file_id are all still TBD/missing real values; qs_sheet_id (Quality Report) and both Conversions exports are entirely unregistered in the source registry as of this writing. See brands/activia-usa's _masterlist_comment, _keyword_study_comment, and _se_ranking_comment below for the specific data-quality issues found and how the pipeline was adjusted to handle them.",
+
+  "client_name": "Activia USA",
+  "client_handle": "activia-usa",
+  "lang": "EN",
+
+  "brand": {
+    "color": "TBD",
+    "accent_color": "TBD",
+    "light_bg": "TBD",
+    "regex_default": "activia",
+    "regex_sheet_id": "1o526Qv4UzP_Qfe-cjrfvcA7jRUi6zUtd9Ecp2WPMIhQ",
+    "regex_sheet_tab": "DANONE USA - Overview",
+    "regex_sheet_name_col": "Activia"
+  },
+
+  "period": {
+    "p1_label": "Q2 2026",
+    "p2_label": "Q1 2026",
+    "display": "Q2 2026 vs Q1 2026",
+    "se_months_p1": ["2026-04-01", "2026-05-01", "2026-06-01"],
+    "se_months_p2": ["2026-01-01", "2026-02-01", "2026-03-01"],
+    "se_api_source": "us"
+  },
+
+  "_gsc_comment": "gsc_p1_prefix/gsc_p2_prefix deliberately left UNSET. The real GSC export (Queries tab) auto-detects correctly via _detect_gsc_prefixes() — confirmed against real data: it finds '4/1/26 - 6/30/26' as P1 and '1/1/26 - 3/31/26' as P2 exactly matching this brand's real period. Hardcoding these instead risks a documented silent-failure mode: if the hardcoded text doesn't exactly match the sheet's real column names, norm_gsc() doesn't raise an exception — every row's lookup returns 0 for both periods, gets dropped by the c1==0 and c2==0 filter, and the function returns an empty list with NO error, only an easy-to-miss 'GSC: 0/XXXX kept' log line. Leaving these unset routes through the auto-detect path instead, which was verified to work correctly for this brand's real export.",
+
+  "_se_ranking_comment": "se_exclude_url_prefixes added 2026-10-02 after finding the real SE Ranking export is a whole-domain history report, not US-scoped: verified 4,252 of 4,524 rows (94%) are real US-search keywords with legitimate position/volume/CPC data, but Google currently ranks a non-US locale page for them (genuine cross-market SEO issue, not an export mistake). pipeline/ingest.py's norm_se() was extended to blank just se_url_path for these rows (not drop them) when exclude_url_prefixes is set, so the keyword's real SE Ranking data stays usable everywhere (SE matching, Position/Volume on the Masterlist) while GA4 conversion pro-rata distribution (which matches by URL) won't misattribute a conversion to the wrong market's page. Verified against real data before settling on this design — an earlier attempt that dropped the whole row would have discarded 94% of the export's keyword data.",
+  "se_exclude_url_prefixes": ["/en-uk/", "/fr-be/", "/nl-be/"],
+
+  "_keyword_study_comment": "Per explicit user instruction ('these are all we have, make sure the pipeline is adjusted to accept it as is') — no new KS data is coming, the pipeline is adjusted around what exists. Real sheet ('Nov 2025 - Activia US - Keyword Study', tab 'Keyword Study - US', 19,872 rows) is a frozen Nov 2025 snapshot: TOPICS/CATEGORY/SUB-CATEGORY carry real per-row values (confirmed, e.g. 'smoothies near me' -> RECIPE/RECIPE/smoothie) and norm_ks() already handles its TOPIC/TOPICS naming variance, but it has (a) no LANG column — rows fall back to this config's top-level lang='EN', harmless since 100% of real sampled rows were English with no French/CA-market contamination found; (b) monthly search-volume history that stops at Oct 2025, with zero data for the real Apr-Jun 2026 period — Average Search Volume would be blank for every single row from KS alone; (c) none of the Oikos-style 13 taxonomy tag columns (Questions, Taste, Ingredient, etc.) exist here at all — only a 'Brand' (singular) column does. Mitigations: taxonomy_tags below is trimmed to just ['Brands'] so norm_ks()'s built-in Brand/Brands singular-plural aliasing (ingest.py:235) picks up the one real tag column that exists, instead of requesting 12 columns that will never be there; enrich_taxonomy is enabled below so Claude backfills Average Search Volume indirectly is NOT covered by this (that's a volume problem, not a classification problem) but DOES fill in TOPICS/CATEGORY/SUB-CATEGORY for whatever Masterlist rows don't match into this KS sheet at all, same gap class found and fixed for International Delight. Real fix for Average Search Volume is enrich_volumes()/enrich_monthly_volumes() hitting the live SE Ranking API post-write (pipeline/enrich.py) — independent of this stale KS sheet, requires SE_RANKING_API_KEY in .env (already set, shared across brands) and se_months_p1/p2 above pointing at the real Apr-Jun/Jan-Mar 2026 months, which the Masterlist header_corrections below also need to expose as real columns. NOT yet checked: the same file's unwired 'Volumes US' tab (62 cols, 27,025 rows) might be a fresher volume source — worth checking before fully accepting the Nov 2025 snapshot as final, but out of scope for 'accept it as-is'.",
+  "taxonomy_tags": ["Brands"],
+  "enrich_taxonomy": true,
+  "taxonomy_prompt": {
+    "brand_context": "Activia, a probiotic yogurt brand (gut health, digestion, probiotics)",
+    "topics": ["BRAND", "PRODUCT", "COMPETITOR", "GENERIC", "HEALTH", "RECIPE", "CONSUMER HABITS", "OTHER"]
+  },
+
+  "_masterlist_comment": "Real Masterlist ('MASTERLIST - Activia OneSearch', tab 'Listing') was copy-pasted from an Oikos-era template and still has Oikos's period labels baked into its header row ('Volume Q1 2026'/'Volume Q4 2025' etc.) even though every real source export here is genuinely Q2 2026 vs Q1 2026 data. Confirmed exactly what happens if this isn't fixed: run_pipeline.py's _hdr_letter() (required=True for 7 core columns) calls sys.exit() the moment it looks for e.g. 'Clics OneSearch Q2 2026' and doesn't find it — a loud crash, and it happens BEFORE 'Clearing Masterlist rows 2+', so a first bad run can't corrupt the live sheet. header_corrections below renames every stale header in place (the pipeline applies these automatically at the very start of each run, before the required-column check) rather than trying to make brand config labels match the stale sheet. Covers all period-labeled columns, not just the 7 required ones — format_base_rows() writes several others (Impressions, CTR, CPC avg SEM, Spent SEM) with no required-column protection, so those would otherwise go silently, permanently blank on a name mismatch. Also renames the Masterlist's 3 stale monthly-search-volume columns (Oct/Nov/Dec 2025 -> Apr/May/Jun 2026); Jan/Feb/Mar 2026 already have the right labels as-is, so only 3 of the 6 need renaming, not all 6.",
+  "header_corrections": {
+    "Volume Q1 2026": "Volume Q2 2026",
+    "Volume Q4 2025": "Volume Q1 2026",
+    "Coverage One Search Q1 2026": "Coverage One Search Q2 2026",
+    "Coverage One Search Q4 2025": "Coverage One Search Q1 2026",
+    "Clics OneSearch Q1 2026": "Clics OneSearch Q2 2026",
+    "Impressions OneSearch Q1 2026": "Impressions OneSearch Q2 2026",
+    "Clics OneSearch Q4 2025": "Clics OneSearch Q1 2026",
+    "Impressions OneSearch Q4 2025": "Impressions OneSearch Q1 2026",
+    "Clics SEO Q1 2026": "Clics SEO Q2 2026",
+    "Clics SEM Q1 2026": "Clics SEM Q2 2026",
+    "Clics SEO Q4 2025": "Clics SEO Q1 2026",
+    "Clics SEM Q4 2025": "Clics SEM Q1 2026",
+    "Impr. SEO Q1 2026": "Impr. SEO Q2 2026",
+    "Impr. SEM Q1 2026": "Impr. SEM Q2 2026",
+    "Impr. SEO Q4 2025": "Impr. SEO Q1 2026",
+    "Impr. SEM Q4 2025": "Impr. SEM Q1 2026",
+    "CTR SEO Q1 2026": "CTR SEO Q2 2026",
+    "CTR SEM Q1 2026": "CTR SEM Q2 2026",
+    "CTR SEO Q4 2025": "CTR SEO Q1 2026",
+    "CTR SEM Q4 2025": "CTR SEM Q1 2026",
+    "Conversions SEO Q1 2026": "Conversions SEO Q2 2026",
+    "Conversions SEM Q1 2026": "Conversions SEM Q2 2026",
+    "Conversions SEO Q4 2025": "Conversions SEO Q1 2026",
+    "Conversions SEM Q4 2025": "Conversions SEM Q1 2026",
+    "CPC SEO Q1 2026": "CPC SEO Q2 2026",
+    "CPC avg. SEM Q1 2026": "CPC avg. SEM Q2 2026",
+    "Spent SEM Q1 2026": "Spent SEM Q2 2026",
+    "Cost SEO Q1 2026": "Cost SEO Q2 2026",
+    "Spent SEM Q4 2025": "Spent SEM Q1 2026",
+    "Cost SEO Q4 2025": "Cost SEO Q1 2026",
+    "Searches: Oct 2025": "Searches: Apr 2026",
+    "Searches: Nov 2025": "Searches: May 2026",
+    "Searches: Dec 2025": "Searches: Jun 2026"
+  },
+
+  "sheets": {
+    "ref_id": "16-h0rmI-5fx0RVXfxbVOIjcrGugkvY3vH31JWgRLqLg",
+    "ref_tab": "Activia",
+    "ref_client": "Activia",
+    "master_id": "11nbD9I7KY5OXasO7P2BD-kZm6dI_vTWK0MxFewTlI2w",
+    "master_tab": "Listing",
+    "qs_sheet_id": "TBD",
+    "qs_sheet_tab": "TBD",
+    "ga4_ads_file_id": "TBD",
+    "ga4_ads_tab": "TBD",
+    "ga4_ads_file_id_p2": "TBD",
+    "ga4_ads_tab_p2": null
+  },
+
+  "_ga4_ads_comment": "Real sheet exists (Google_Ads_Data_Q1_v_Q2_2026, registered in the source registry) and IS a genuine 'Compare' export with the right Q2-vs-Q1-2026 period, but it's missing the keyword dimension entirely (only Landing page + query string, Session default channel group, Date Comparison, Sessions, Key events — no 'Session Google Ads query' column). Without a keyword field there's nothing for sem_qv.py's LP-rate attribution to attribute to. Left as TBD here rather than wired up as-is, since wiring it up now would mean run_sem_qv() either errors on the missing required keyword column or silently produces a QV map with no real per-keyword attribution. Needs a GA4 Explore rebuild (same dimension/metric/filter steps already given to the user) before this can be set to the real doc/tab.",
+
+  "conn_intent_exclusions": [
+    "login", "website", "my account"
+  ],
+
+  "_competitors_comment": "Not yet curated — no raw COMPETITORS candidate row exists yet in the registry's Activia tab (unlike Oikos/Silk/International Delight, which each had one). competitors[] and sem_qv.competitor_blocklist both need a human to provide Activia's real competitor brand list before these can be filled in the same way the other three brands were.",
+  "competitors": []
+}
