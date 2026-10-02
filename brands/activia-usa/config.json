@@ -5,10 +5,11 @@
   "client_handle": "activia-usa",
   "lang": "EN",
 
+  "_brand_colors_comment": "Sampled 2026-10-02 directly from activia.us.com's live production CSS (curl + grep for hex codes, then confirmed via the site's own literal named CSS custom properties: --activia-green, --activia-green-light, --activia-yellow) — not a screenshot guess. --activia-green was by far the dominant dark color across the homepage (56+ occurrences incl. near-identical shade variants #045025/#04551D), --activia-yellow the dominant light background (97 occurrences) despite reading as cream, not literal yellow, to the eye.",
   "brand": {
-    "color": "TBD",
-    "accent_color": "TBD",
-    "light_bg": "TBD",
+    "color": "#04511D",
+    "accent_color": "#15A73C",
+    "light_bg": "#FFFCEA",
     "regex_default": "activia",
     "regex_sheet_id": "1o526Qv4UzP_Qfe-cjrfvcA7jRUi6zUtd9Ecp2WPMIhQ",
     "regex_sheet_tab": "DANONE USA - Overview",
@@ -94,6 +95,14 @@
     "login", "website", "my account"
   ],
 
-  "_competitors_comment": "Not yet curated — no raw COMPETITORS candidate row exists yet in the registry's Activia tab (unlike Oikos/Silk/International Delight, which each had one). competitors[] and sem_qv.competitor_blocklist both need a human to provide Activia's real competitor brand list before these can be filled in the same way the other three brands were.",
-  "competitors": []
+  "_competitors_comment": "Drafted 2026-10-02 from the real Keyword Study sheet's own competitor-tracking columns (5x 'Pos. Google <competitor>.com' rank-tracking columns) rather than waiting on a fresh raw candidate list like Oikos/Silk/ID each got from the registry — confirmed real brand mentions in the KS sheet's own 'Brand' column for 4 of these 5 (Chobani, Yoplait, Yakult, Stonyfield all appear repeatedly; Lifeway Kefir didn't appear in the ~3,000-row sample checked but is still a real tracked competitor per the position columns). This is a starting list grounded in what the brand's own SEO team already tracks, not an exhaustive market scan — likely incomplete (e.g. no Fage, Siggi's, Dannon, Two Good mentioned anywhere sampled) and worth a second human pass, same caveat given to Oikos/Silk/ID's lists.",
+  "competitors": [
+    {"name": "Chobani", "patterns": ["chobani"]},
+    {"name": "Yoplait", "patterns": ["yoplait"]},
+    {"name": "Yakult", "patterns": ["yakult"]},
+    {"name": "Stonyfield", "patterns": ["stonyfield"]},
+    {"name": "Lifeway Kefir", "patterns": ["lifeway"]}
+  ],
+
+  "_sem_qv_comment": "competitor_blocklist left unset for now — same reasoning as Oikos/Silk/ID: sem_qv.py's tag_sem_recommendations() only matters once TOPICS=='BRAND' rows actually exist, and this brand's pipeline hasn't been run yet. Revisit once a real run produces BRAND-tagged rows, using these same curated patterns as the starting point."
 }
