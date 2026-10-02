@@ -26,7 +26,7 @@ from pipeline.utils import (
     col_letter, ensure_tab_exists,
 )
 from pipeline.normalize import normalize, clean_num
-from pipeline.ingest import norm_gsc, norm_sqr, norm_se, norm_ks
+from pipeline.ingest import norm_gsc, norm_sqr, norm_sqr_split, norm_se, norm_ks
 from pipeline.ingest_ga4 import ga4_from_raw
 from pipeline.merge import merge_gsc_sqr
 from pipeline.format_rows import format_base_rows
@@ -117,6 +117,30 @@ def raw_to_dicts(raw_values: list) -> tuple:
     headers = [str(h) for h in raw_values[0]]
     rows = []
     for row in raw_values[1:]:
+        d = {headers[i]: (row[i] if i < len(row) else '') for i in range(len(headers))}
+        rows.append(d)
+    return headers, rows
+
+
+def raw_to_dicts_find_header(raw_values: list, header_marker: str) -> tuple:
+    """Like raw_to_dicts(), but scans the first ~10 rows for the real header
+    row instead of assuming row 1 — some exports (this tool's search-terms
+    report, used for both Quality Score and Activia's real SQR export) put a
+    title row and a date-range row before the actual headers. header_marker
+    is a cell value expected to appear somewhere in the real header row
+    (e.g. 'Search term')."""
+    if not raw_values:
+        return [], []
+    header_row_idx = None
+    for i, row in enumerate(raw_values[:10]):
+        if any(str(c).strip() == header_marker for c in row):
+            header_row_idx = i
+            break
+    if header_row_idx is None:
+        return [], []
+    headers = [str(h) for h in raw_values[header_row_idx]]
+    rows = []
+    for row in raw_values[header_row_idx + 1:]:
         d = {headers[i]: (row[i] if i < len(row) else '') for i in range(len(headers))}
         rows.append(d)
     return headers, rows
@@ -272,10 +296,28 @@ def _run(brand_key: str, max_rows=None) -> None:
     print(f'  GSC: {len(gsc_raw)} rows', flush=True)
 
     sqr_cfg       = require('Account Level SQR Report')
+    sqr_cfg_p2    = source_config.get(f'Account Level SQR Report {p2_label}')
     sqr_raw_vals  = sheets_get(token, sqr_cfg['doc_id'], f"'{sqr_cfg['sheet_tab']}'!A:V")
-    _, sqr_raw    = raw_to_dicts(sqr_raw_vals)
-    sqr_raw       = lim(sqr_raw)
-    print(f'  SQR: {len(sqr_raw)} rows', flush=True)
+    if sqr_cfg_p2 and sqr_cfg_p2.get('doc_id'):
+        # Two separate single-period tabs (e.g. Activia's real export: a 'Q1'
+        # tab and a 'Q2' tab, neither carrying "(Compare to)" columns) instead
+        # of one Google-Ads-Compare-mode tab — merge them in Python via
+        # norm_sqr_split() rather than requiring the export itself to be
+        # pre-paired. See pipeline/ingest.py's norm_sqr_split() docstring.
+        # This export shape also has a title row + date-range row before the
+        # real headers (same tool as the Quality Score export), so headers
+        # must be located by scanning, not assumed to be row 1.
+        _, sqr_raw = raw_to_dicts_find_header(sqr_raw_vals, 'Search term')
+        sqr_raw = lim(sqr_raw)
+        sqr_p2_vals = sheets_get(token, sqr_cfg_p2['doc_id'], f"'{sqr_cfg_p2['sheet_tab']}'!A:V")
+        _, sqr_raw_p2 = raw_to_dicts_find_header(sqr_p2_vals, 'Search term')
+        sqr_raw_p2 = lim(sqr_raw_p2)
+        print(f'  SQR: {len(sqr_raw)} P1 rows + {len(sqr_raw_p2)} P2 rows (two-tab split)', flush=True)
+    else:
+        _, sqr_raw = raw_to_dicts(sqr_raw_vals)
+        sqr_raw = lim(sqr_raw)
+        sqr_raw_p2 = None
+        print(f'  SQR: {len(sqr_raw)} rows', flush=True)
 
     se_cfg        = require('SE Ranking')
     se_raw_vals   = sheets_get(token, se_cfg['doc_id'], f"'{se_cfg['sheet_tab']}'!A:Z")
@@ -306,8 +348,12 @@ def _run(brand_key: str, max_rows=None) -> None:
         sys.exit(f'ERROR in norm_gsc: {e}')
     print(f'  GSC: {len(gsc_norm)}/{len(gsc_raw)} kept', flush=True)
 
-    sqr_norm = norm_sqr(sqr_raw)
-    print(f'  SQR: {len(sqr_norm)}/{len(sqr_raw)} kept', flush=True)
+    if sqr_raw_p2 is not None:
+        sqr_norm = norm_sqr_split(sqr_raw, sqr_raw_p2)
+        print(f'  SQR: {len(sqr_norm)} kept (from {len(sqr_raw)} P1 + {len(sqr_raw_p2)} P2 rows)', flush=True)
+    else:
+        sqr_norm = norm_sqr(sqr_raw)
+        print(f'  SQR: {len(sqr_norm)}/{len(sqr_raw)} kept', flush=True)
 
     se_norm = norm_se(se_raw)
     print(f'  SE:  {len(se_norm)}/{len(se_raw)} kept (pos ≤ 100)', flush=True)

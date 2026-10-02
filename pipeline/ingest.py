@@ -110,6 +110,62 @@ def norm_sqr(rows: list) -> list:
     return out
 
 
+def norm_sqr_split(rows_p1: list, rows_p2: list) -> list:
+    """Like norm_sqr(), but for a brand whose SQR export is two separate
+    single-period tabs (plain 'Clicks'/'Cost'/'Impr.' columns, no '(Compare to)'
+    pairing) instead of one Google-Ads-Compare-mode tab — e.g. Activia's real
+    export has a 'Q1' tab and a 'Q2' tab in the same spreadsheet, neither one
+    carrying the other period's numbers. Does the period-pairing in Python
+    instead of relying on the export itself to have already paired them.
+
+    Full outer join on normalized 'Search term', since a term can appear in
+    only one period (new/dropped search terms between quarters).
+    """
+    def _index(rows):
+        idx = {}
+        for j in rows:
+            term = str(j.get('Search term') or '').strip()
+            if not term or term.startswith('Total:'):
+                continue
+            campaign_type = str(j.get('Campaign Type') or '').strip().lower()
+            if 'performance max' in campaign_type:
+                continue
+            norm_term = normalize(term)
+            idx[norm_term] = {
+                'search_term':    term,
+                'search_keyword': str(j.get('Search keyword') or ''),
+                'clicks':         clean_num(j.get('Clicks')),
+                'cost':           clean_num(j.get('Cost')),
+                'impr':           clean_num(j.get('Impr.')),
+            }
+        return idx
+
+    p1_idx = _index(rows_p1)
+    p2_idx = _index(rows_p2)
+
+    out = []
+    for norm_term in p1_idx.keys() | p2_idx.keys():
+        r1 = p1_idx.get(norm_term)
+        r2 = p2_idx.get(norm_term)
+        if r1 and r1['clicks'] == 0 and (not r2 or r2['clicks'] == 0):
+            continue
+        if not r1 and r2 and r2['clicks'] == 0:
+            continue
+        base = r1 or r2
+        out.append({
+            'norm_term':      norm_term,
+            'search_term':    base['search_term'],
+            'search_keyword': base['search_keyword'],
+            'sqr_clicks_p1':  r1['clicks'] if r1 else 0,
+            'sqr_clicks_p2':  r2['clicks'] if r2 else 0,
+            'sqr_cost_p1':    r1['cost']   if r1 else 0,
+            'sqr_cost_p2':    r2['cost']   if r2 else 0,
+            'sqr_impr_p1':    r1['impr']   if r1 else 0,
+            'sqr_impr_p2':    r2['impr']   if r2 else 0,
+        })
+    return out
+
+
 # ── Keyword Study ─────────────────────────────────────────────────────────────
 
 _MONTH_ABBR = {
