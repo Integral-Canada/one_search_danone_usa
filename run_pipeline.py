@@ -355,7 +355,7 @@ def _run(brand_key: str, max_rows=None) -> None:
         sqr_norm = norm_sqr(sqr_raw)
         print(f'  SQR: {len(sqr_norm)}/{len(sqr_raw)} kept', flush=True)
 
-    se_norm = norm_se(se_raw)
+    se_norm = norm_se(se_raw, exclude_url_prefixes=cfg.get('se_exclude_url_prefixes'))
     print(f'  SE:  {len(se_norm)}/{len(se_raw)} kept (pos ≤ 100)', flush=True)
 
     ks_norm = norm_ks(ks_raw, se_months=se_months if se_months else None,

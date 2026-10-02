@@ -245,9 +245,27 @@ _SE_KW_CANDIDATES = ('Keyword', 'Mot clé', 'Mot-clé', 'Mots-clés', 'Mot cle')
 _se_kw_col_warned = False
 
 
-def norm_se(rows: list) -> list:
-    """Normalize SE Ranking rows. Handles BOM + French keyword column names. Filters to position <= 100."""
+def norm_se(rows: list, exclude_url_prefixes: list = None) -> list:
+    """Normalize SE Ranking rows. Handles BOM + French keyword column names. Filters to position <= 100.
+
+    exclude_url_prefixes: optional list of URL path prefixes (e.g. ['/en-uk/',
+    '/fr-be/', '/nl-be/']) whose matching rows get se_url_path blanked out,
+    not dropped entirely. Found via a real brand (Activia): its "US" SE
+    Ranking domain-history export has real US-search keywords (volume/
+    position/CPC all legitimate) where Google happens to rank a non-US
+    locale page instead — a genuine cross-market SEO issue, not an export
+    mistake. Dropping those rows outright would throw away real keyword/
+    position/volume data (84% of the export, in that case) just because of
+    which page currently ranks. se_url_path feeds GA4 conversion pro-rata
+    distribution by matching keywords to landing pages, so blanking just
+    that field stops conversions from misattributing to the wrong market's
+    page while the keyword's own SEO data stays fully usable everywhere
+    else (SE Ranking matching, Position/Volume on the Masterlist, etc.).
+    Default is no filtering — every other brand's real export is already
+    US-only, so this is opt-in per brand via config.
+    """
     global _se_kw_col_warned
+    exclude_url_prefixes = exclude_url_prefixes or []
     out = []
     for j in rows:
         # Strip BOM (U+FEFF) from every key once, then try English then French keyword-column names
@@ -268,6 +286,8 @@ def norm_se(rows: list) -> list:
         cpc = float(cpc_str) if cpc_str else 0.0
         raw_url = str(clean.get('URL') or '').strip()
         se_path = re.sub(r'^https?://[^/]+', '', raw_url).rstrip('/') or ''
+        if exclude_url_prefixes and any(se_path.startswith(p) for p in exclude_url_prefixes):
+            se_path = ''  # keep the row's keyword/position/volume/CPC; just don't use this page for conversion attribution
         out.append({
             'norm_se_keyword':  normalize(kw),
             'se_keyword':       kw,
