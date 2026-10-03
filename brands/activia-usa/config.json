@@ -83,13 +83,13 @@
     "master_tab": "Listing",
     "qs_sheet_id": "TBD",
     "qs_sheet_tab": "TBD",
-    "ga4_ads_file_id": "TBD",
-    "ga4_ads_tab": "TBD",
+    "ga4_ads_file_id": "1Y0LBYkNxkyGIRAYtMr98NNu1V5vRDkOwhMFzFxmDokU",
+    "ga4_ads_tab": "activia_google_ads_export",
     "ga4_ads_file_id_p2": "TBD",
     "ga4_ads_tab_p2": null
   },
 
-  "_ga4_ads_comment": "Real sheet exists (Google_Ads_Data_Q1_v_Q2_2026, registered in the source registry) and IS a genuine 'Compare' export with the right Q2-vs-Q1-2026 period, but it's missing the keyword dimension entirely (only Landing page + query string, Session default channel group, Date Comparison, Sessions, Key events — no 'Session Google Ads query' column). Without a keyword field there's nothing for sem_qv.py's LP-rate attribution to attribute to. Left as TBD here rather than wired up as-is, since wiring it up now would mean run_sem_qv() either errors on the missing required keyword column or silently produces a QV map with no real per-keyword attribution. Needs a GA4 Explore rebuild (same dimension/metric/filter steps already given to the user) before this can be set to the real doc/tab.",
+  "_ga4_ads_comment": "Fixed 2026-10-02 — the real re-pulled export (replacing the earlier one that was missing the keyword dimension) now has 'Session Google Ads query' alongside 'Landing page + query string', in GA4 Compare mode. Verified directly against pipeline/sem_qv.py's real read_ga4_ads_compare() + calculate_qv_sem() before registering: columns resolve with zero collisions (keyword: 'Session Google Ads query', landing_page: 'Landing page + query string'), and QV SEM totals (14,278 for Q1 2026, 4,465 for Q2 2026) match the sheet's own Grand Total 'Key events' row exactly, 0 unassigned. ga4_ads_file_id_p2 stays TBD/unused — this one file covers both periods via Compare mode, auto-detected by detect_ga4_compare_mode(), same as Silk/ID's real exports.",
 
   "conn_intent_exclusions": [
     "login", "website", "my account"
