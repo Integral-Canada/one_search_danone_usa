@@ -17,6 +17,63 @@ _PATH_COL_CANDIDATES = (
 )
 _EVENTS_COL_CANDIDATES = ('Key events ', 'Key events', 'Événements clés')
 
+# Dimension/metric columns that are never themselves the custom-event-name
+# column, used by _resolve_events_col()'s last-resort fallback below.
+_KNOWN_NON_EVENT_COLS = {
+    'Session default channel group', 'Session Google Ads query', 'Date Comparison',
+    'Sessions', 'Views', 'Active users', 'Online active user views',
+    'Average online active user engagement time', 'Total revenue',
+} | set(_PATH_COL_CANDIDATES)
+
+
+def _resolve_events_col(headers: list) -> str:
+    """Find the events/key-events column in a GA4 export header row.
+
+    Tries, in order: (1) a generic 'Key events' label, (2) the column
+    immediately before 'Total revenue' — real exports sometimes name this
+    column after the specific event itself (e.g. 'mikmak_checkout') instead
+    of a generic label, and that column is consistently placed right before
+    Total revenue when Total revenue is present, (3) the last column that
+    isn't a known dimension/metric name — covers real exports seen with no
+    Total revenue column at all, where the custom event-name column is
+    simply the final column with nothing after it (e.g. a Landing-page-
+    dimensioned Compare export ending in '...,Sessions,mikmak_checkout').
+    Returns '' if nothing resolves (caller should warn and treat as zero).
+    """
+    for c in _EVENTS_COL_CANDIDATES:
+        if c in headers:
+            return c
+    if 'Total revenue' in headers:
+        idx = headers.index('Total revenue')
+        if idx > 0:
+            col = headers[idx - 1]
+            print(f"  GA4 export: events column resolved by position as "
+                  f"'{col}' (no generic 'Key events' label found)", flush=True)
+            return col
+    remaining = [h for h in headers if h not in _KNOWN_NON_EVENT_COLS]
+    if len(remaining) == 1:
+        col = remaining[0]
+        print(f"  GA4 export: events column resolved as the one remaining "
+              f"unrecognized column '{col}' (no 'Key events' label or "
+              f"'Total revenue' anchor found)", flush=True)
+        return col
+    return ''
+
+
+def _normalize_path(raw_path: str) -> str:
+    """Strip the query string and trailing slash(es) from a page path, while
+    preserving the homepage root ('/') instead of collapsing it to ''.
+
+    Real bug found via Activia's real GA4 export: '/?msclkid=...'.split('?')[0]
+    is '/', and a bare '/'.rstrip('/') is '' — not '/'. Every homepage row with
+    a tracking-parameter query string (very common for paid-search landing
+    pages) then fails every caller's `if not path: continue` check and gets
+    silently dropped, undercounting homepage conversions. Confirmed this cost
+    ~18-19% of real events in one real export before this fix.
+    """
+    path = raw_path.split('?')[0].rstrip('/')
+    return path if path else ('/' if raw_path.split('?')[0] else '')
+
 
 def norm_ga4_rows(rows: list) -> dict:
     """Convert list-of-dicts rows to {normalized_path: key_events}.
@@ -37,34 +94,19 @@ def norm_ga4_rows(rows: list) -> dict:
                 if c in row:
                     path_col = c
                     break
-            for c in _EVENTS_COL_CANDIDATES:
-                if c in row:
-                    events_col = c
-                    break
             if path_col is None:
                 continue  # still in metadata rows
+            events_col = _resolve_events_col(list(row.keys())) or None
             if events_col is None:
-                # Some GA4 exports name the events column after the specific event
-                # itself (e.g. 'mikmak_checkout') instead of a generic 'Key events'
-                # label. In every such export seen so far, that column is always
-                # the one immediately before 'Total revenue' — fall back to that
-                # position rather than silently returning zero conversions.
-                keys = list(row.keys())
-                if 'Total revenue' in keys:
-                    idx = keys.index('Total revenue')
-                    if idx > 0:
-                        events_col = keys[idx - 1]
-                        print(f"  GA4 export: events column resolved by position as "
-                              f"'{events_col}' (no generic 'Key events' label found)", flush=True)
-                if events_col is None:
-                    print(f"  WARNING: GA4 export has a recognized path column ('{path_col}') "
-                          f"but no recognized events column (tried {_EVENTS_COL_CANDIDATES}). "
-                          f"All conversions from this source will be 0. "
-                          f"Header row keys: {list(row.keys())[:12]}", flush=True)
+                print(f"  WARNING: GA4 export has a recognized path column ('{path_col}') "
+                      f"but no recognized events column (tried {_EVENTS_COL_CANDIDATES}, "
+                      f"a Total-revenue-anchored fallback, and a last-remaining-column "
+                      f"fallback). All conversions from this source will be 0. "
+                      f"Header row keys: {list(row.keys())[:12]}", flush=True)
 
         raw_path = str(row.get(path_col) or '').strip()
         # Strip query strings (?...) before normalizing — GA4 Ads export includes them
-        path = raw_path.split('?')[0].rstrip('/')
+        path = _normalize_path(raw_path)
         if not path or path.startswith('#'):
             continue
 
@@ -138,22 +180,13 @@ def ga4_from_raw_compare(raw_values: list) -> tuple:
                         path_col = c
                         break
                 cmp_col = 'Date Comparison'
-                for c in _EVENTS_COL_CANDIDATES:
-                    if c in headers:
-                        events_col = c
-                        break
-                if events_col is None and 'Total revenue' in headers:
-                    idx = headers.index('Total revenue')
-                    if idx > 0:
-                        events_col = headers[idx - 1]
-                        print(f"  GA4 Compare export: events column resolved by position as "
-                              f"'{events_col}' (no generic 'Key events' label found)", flush=True)
+                events_col = _resolve_events_col(headers) or None
             continue
 
         d = {headers[i]: (row[i] if i < len(row) else '') for i in range(len(headers))}
         raw_path = str(d.get(path_col) or '').strip()
         if raw_path:
-            last_path = raw_path.split('?')[0].rstrip('/')
+            last_path = _normalize_path(raw_path)
         cmp_label = str(d.get(cmp_col) or '').strip()
         if not cmp_label or cmp_label == '% change' or not last_path or last_path.startswith('#'):
             continue

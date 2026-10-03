@@ -285,7 +285,12 @@ def norm_se(rows: list, exclude_url_prefixes: list = None) -> list:
         cpc_str = re.sub(r'[^0-9.]', '', str(clean.get('CPC') or '0'))
         cpc = float(cpc_str) if cpc_str else 0.0
         raw_url = str(clean.get('URL') or '').strip()
-        se_path = re.sub(r'^https?://[^/]+', '', raw_url).rstrip('/') or ''
+        _path_no_domain = re.sub(r'^https?://[^/]+', '', raw_url)
+        # .rstrip('/') on a bare '/' (homepage, or homepage + query string)
+        # produces '' — not '/' — which every downstream `if not se_path`
+        # check then treats as "no page at all," silently losing homepage
+        # attribution. Preserve '/' explicitly instead of collapsing to ''.
+        se_path = _path_no_domain.rstrip('/') or ('/' if _path_no_domain else '')
         if exclude_url_prefixes and any(se_path.startswith(p) for p in exclude_url_prefixes):
             se_path = ''  # keep the row's keyword/position/volume/CPC; just don't use this page for conversion attribution
         out.append({
