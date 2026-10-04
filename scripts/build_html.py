@@ -544,9 +544,10 @@ def main() -> None:
     html = _bh.clean_embedded_docs(html)
     html = _bh.truncate_after_last_script(html)
 
-    print('  Injecting brand config, export UI, reco filter…', flush=True)
+    print('  Injecting brand config, reco filter…', flush=True)
     html = _bh.inject_brand_config(html, brand_regex)
-    html = _bh.inject_export_ui(html)
+    # Commentary export UI (Export/Import toolbar + analyst-notes boxes) removed per
+    # user request 2026-10-04.
     html = _bh.inject_reco_filter(html)
 
     taxonomy_html = _bh.build_taxonomy_glossary_html(rows)

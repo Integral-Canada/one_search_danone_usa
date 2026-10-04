@@ -910,6 +910,9 @@ def _q2_sem_bullets(topic, s):
 
 
 def _action_card(title, color, lite_bg, items, field_id, placeholder):
+    # field_id/placeholder kept in the signature (many call sites pass them) but no
+    # longer rendered — the analyst-notes contenteditable box was removed per user
+    # request, along with the Export-to-JSON feature it fed (see inject_export_ui).
     blist = _bullets_html(items)
     return (
         f'<div style="background:#fff;border:1px solid {color}30;border-radius:8px;'
@@ -919,13 +922,6 @@ def _action_card(title, color, lite_bg, items, field_id, placeholder):
         f'border-bottom:1px solid {color}20;">{title}</h4>'
         f'<ul style="list-style:disc;padding-left:16px;margin:0;font-size:11px;'
         f'line-height:1.5;color:#444;">{blist}</ul>'
-        f'<div contenteditable="true" data-field-id="{field_id}" data-placeholder="{_html_escape.escape(placeholder)}"'
-        f' style="min-height:54px;font-size:11px;line-height:1.5;color:#444;'
-        f'border:1px dashed #555;border-radius:5px;padding:7px 9px;'
-        f'background:{lite_bg};outline:none;margin-top:2px;"'
-        f' onfocus="this.style.borderColor=\'{ACCENT_CLR}\';this.style.background=\'#fff\';"'
-        f' onblur="this.style.borderColor=\'#555\';this.style.background=\'{lite_bg}\';"'
-        f'>{placeholder}</div>'
         f'</div>'
     )
 
@@ -1072,6 +1068,7 @@ def build_territory_panel(territory_stats):
     q2_blist = _bullets_html(q2_bullets)
 
     parts = []
+    se_gap_count = 0  # rows flagged below with a footnote asterisk (SE Ranking volume vs. real clicks mismatch)
 
     # ── Header ──────────────────────────────────────────────────────────────────
     parts.append(f'''
@@ -1101,7 +1098,7 @@ def build_territory_panel(territory_stats):
 <!-- Executive summary — single US-level narrative -->
 <div style="background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:20px 24px;margin:0 24px 20px;border-left:4px solid {BRAND_COLOR};">
   <h2 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:{BRAND_COLOR};margin:0 0 14px;">Executive Summary — {H(BRAND_NAME)} ({PERIOD})</h2>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+  <div style="display:grid;grid-template-columns:1fr;gap:20px;">
     <div>
       <div style="font-size:9px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">AI Draft — US aggregate signals</div>
       <!-- KPI row -->
@@ -1143,14 +1140,6 @@ def build_territory_panel(territory_stats):
       <div style="font-size:9px;font-weight:700;color:{BRAND_COLOR};text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Q2 2026 Priorities</div>
       <ul style="list-style:disc;padding-left:16px;margin:0;font-size:11px;line-height:1.5;color:#444;">{q2_blist}</ul>
     </div>
-    <div>
-      <div style="font-size:9px;font-weight:700;color:{ACCENT_CLR};text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">&#9999; Analyst Commentary — click to edit</div>
-      <div contenteditable="true" data-field-id="exec-summary" data-placeholder="Click to add your executive summary..."
-           style="min-height:120px;font-size:12px;line-height:1.6;color:#e0e0e0;border:1px dashed #555;border-radius:6px;padding:8px 10px;background:#3a3a3a;outline:none;"
-           onfocus="this.style.borderColor='{ACCENT_CLR}';this.style.background='#fff';"
-           onblur="this.style.borderColor='#555';this.style.background='{LIGHT_BG}';"
-           >Click to add your executive summary...</div>
-    </div>
   </div>
   <!-- US-level action cards (SEO + SEM × Q1 + Q2) -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;">
@@ -1172,9 +1161,16 @@ def build_territory_panel(territory_stats):
         top_rows = ''
         for kd in s['top_kws']:
             kw_cov = _cov(kd['os_q1'], kd['avg_vol'])
+            # SE Ranking volume gap: clicks exceed indexed volume, or volume is
+            # missing entirely despite real clicks — flag with a footnote asterisk
+            # rather than silently showing a >100% or blank-denominator coverage figure.
+            se_gap = kd['avg_vol'] == 0 and kd['os_q1'] > 0 or (kd['avg_vol'] > 0 and kd['os_q1'] > kd['avg_vol'])
+            if se_gap:
+                se_gap_count += 1
+            kw_label = H(kd['kw']) + (' <sup style="color:#c62828;font-weight:700;">*</sup>' if se_gap else '')
             top_rows += (
                 f'<tr style="border-bottom:1px solid #f0f0f0;">'
-                f'<td style="padding:5px 8px;font-size:11px;">{H(kd["kw"])}</td>'
+                f'<td style="padding:5px 8px;font-size:11px;">{kw_label}</td>'
                 f'<td style="padding:5px 8px;text-align:right;font-size:11px;color:#888;">{_fmt_num(kd["avg_vol"])}</td>'
                 f'<td style="padding:5px 8px;text-align:right;font-size:11px;font-weight:600;">{_fmt_num(kd["os_q1"])}</td>'
                 f'<td style="padding:5px 8px;text-align:right;font-size:11px;">{_fmt_cov(kw_cov)}</td>'
@@ -1297,6 +1293,17 @@ def build_territory_panel(territory_stats):
 </div>
 ''')
 
+    if se_gap_count > 0:
+        parts.append(
+            '<div style="padding:10px 20px 18px;font-size:10.5px;color:#777;line-height:1.5;">'
+            '<sup style="color:#c62828;font-weight:700;">*</sup> '
+            'OneSearch clicks exceed, or search volume is missing for, this keyword in SE Ranking’s data. '
+            'This typically means either (a) OneSearch clicks roll up several close-variant real searches into '
+            'one keyword bucket while SE Ranking volume reflects only that exact phrase, or (b) the keyword is a '
+            'very recent/long-tail term SE Ranking has not finished indexing yet. Coverage % for these rows is '
+            'directionally approximate, not a data error.'
+            '</div>'
+        )
     parts.append('</div><!-- /territory-container -->')
     return '\n'.join(parts)
 
@@ -1909,19 +1916,11 @@ def patch_onesearch_js(html):
             "      +'<td><strong>'+cat+'</strong>'+qsChip+'<div class=\"reco-metrics\">'+d.kw_count+' keywords</div></td>'"
         ),
 
-        # Append JSON textarea + close row (inside the else branch)
+        # Close row (inside the else branch) — no analyst-notes box, removed per user request
         (
             "+'<td style=\"max-width:380px;\">'+_fmtReco(reco)+kwEx+'</td>'\n"
             "      +'</tr>';",
-            "+'<td style=\"max-width:380px;\">'+_fmtReco(reco)+kwEx\n"
-            "      +'<div contenteditable=\"true\"'\n"
-            "      +' data-field-id=\"'+_recoFid+'\"'\n"
-            "      +' data-placeholder=\"Add analyst notes (JSON or plain text)\\u2026\"'\n"
-            "      +' style=\"min-height:36px;font-size:10px;line-height:1.5;color:#e0e0e0;border:1px dashed #555;border-radius:4px;padding:5px 7px;background:#3a3a3a;outline:none;margin-top:6px;font-family:monospace;white-space:pre-wrap;\"'\n"
-            f"      +' onfocus=\"this.style.borderColor=\\'{ACCENT_CLR}\\';this.style.background=\\'#fff\\';\"'\n"
-            "      +' onblur=\"this.style.borderColor=\\'#555\\';this.style.background=\\'#3a3a3a\\';\"'\n"
-            "      +'></div>'\n"
-            "      +'</td>'\n"
+            "+'<td style=\"max-width:380px;\">'+_fmtReco(reco)+kwEx+'</td>'\n"
             "      +'</tr>';\n"
             "    }"
         ),
@@ -2002,59 +2001,9 @@ def patch_onesearch_js(html):
             ""
         ),
 
-        # SQR Insight cards: add JSON commentary box to Wasted Budget card
-        (
-            "+'<div style=\"margin-top:8px;font-size:10px;color:#888;line-height:1.5;\"><strong>Top wasted terms:</strong> '+ltTop+'</div>'\n"
-            "    +'</div></div>';",
-            "+'<div style=\"margin-top:8px;font-size:10px;color:#888;line-height:1.5;\"><strong>Top wasted terms:</strong> '+ltTop+'</div>'\n"
-            "    +'<div contenteditable=\"true\"'\n"
-            "    +' data-field-id=\"sqr-insights-wasted\"'\n"
-            "    +' data-placeholder=\"Add analyst notes\\u2026\"'\n"
-            "    +' style=\"min-height:36px;font-size:10px;line-height:1.5;color:#e0e0e0;border:1px dashed #555;border-radius:4px;padding:5px 7px;background:#3a3a3a;outline:none;margin-top:8px;font-family:monospace;white-space:pre-wrap;\"'\n"
-            f"    +' onfocus=\"this.style.borderColor=\\'{ACCENT_CLR}\\';this.style.background=\\'#fff\\';\"'\n"
-            "    +' onblur=\"this.style.borderColor=\\'#c0cfe0\\';this.style.background=\\'#f8f9fb\\';\"'\n"
-            "    +'></div>'\n"
-            "    +'</div></div>';"
-        ),
-
-        # SQR Insight cards: add JSON commentary box to Regressions card
-        (
-            "+'<div style=\"margin-top:8px;font-size:10px;color:#888;line-height:1.5;\"><strong>Top declining:</strong> '+regTop+'</div>'\n"
-            "    +'</div></div>';",
-            "+'<div style=\"margin-top:8px;font-size:10px;color:#888;line-height:1.5;\"><strong>Top declining:</strong> '+regTop+'</div>'\n"
-            "    +'<div contenteditable=\"true\"'\n"
-            "    +' data-field-id=\"sqr-insights-regression\"'\n"
-            "    +' data-placeholder=\"Add analyst notes\\u2026\"'\n"
-            "    +' style=\"min-height:36px;font-size:10px;line-height:1.5;color:#e0e0e0;border:1px dashed #555;border-radius:4px;padding:5px 7px;background:#3a3a3a;outline:none;margin-top:8px;font-family:monospace;white-space:pre-wrap;\"'\n"
-            f"    +' onfocus=\"this.style.borderColor=\\'{ACCENT_CLR}\\';this.style.background=\\'#fff\\';\"'\n"
-            "    +' onblur=\"this.style.borderColor=\\'#c0cfe0\\';this.style.background=\\'#f8f9fb\\';\"'\n"
-            "    +'></div>'\n"
-            "    +'</div></div>';"
-        ),
-
-        # SQR Insight cards: add JSON commentary box to Rising Stars card
-        (
-            "+'<div style=\"margin-top:8px;font-size:10px;color:#888;line-height:1.5;\"><strong>Top rising:</strong> '+starsTop+'</div>'\n"
-            "    +'</div></div>';",
-            "+'<div style=\"margin-top:8px;font-size:10px;color:#888;line-height:1.5;\"><strong>Top rising:</strong> '+starsTop+'</div>'\n"
-            "    +'<div contenteditable=\"true\"'\n"
-            "    +' data-field-id=\"sqr-insights-rising\"'\n"
-            "    +' data-placeholder=\"Add analyst notes\\u2026\"'\n"
-            "    +' style=\"min-height:36px;font-size:10px;line-height:1.5;color:#e0e0e0;border:1px dashed #555;border-radius:4px;padding:5px 7px;background:#3a3a3a;outline:none;margin-top:8px;font-family:monospace;white-space:pre-wrap;\"'\n"
-            f"    +' onfocus=\"this.style.borderColor=\\'{ACCENT_CLR}\\';this.style.background=\\'#fff\\';\"'\n"
-            "    +' onblur=\"this.style.borderColor=\\'#c0cfe0\\';this.style.background=\\'#f8f9fb\\';\"'\n"
-            "    +'></div>'\n"
-            "    +'</div></div>';"
-        ),
-
-        # SQR Insight cards: initialize commentary fields after innerHTML is set
-        (
-            "  document.getElementById('sqr-insights').innerHTML=c;\n}",
-            "  document.getElementById('sqr-insights').innerHTML=c;\n"
-            "  document.querySelectorAll('#sqr-insights [contenteditable][data-field-id]').forEach(function(el){\n"
-            "    if(window._commentaryInitField) window._commentaryInitField(el);\n"
-            "  });\n}"
-        ),
+        # SQR Insight cards previously grew a JSON commentary box here (Wasted Budget /
+        # Regressions / Rising Stars) — removed per user request; no replacement needed
+        # since the search pattern already matches the template's un-patched state.
     ]
     for old, new in subs:
         if old not in html:
@@ -2147,18 +2096,9 @@ def build_recos_panel(territory_stats):
             maintain.append((topic, s, cov))
 
     def _reco_card(num, title, tags_html, body, border_color, bg_color, field_id=None, placeholder=None):
+        # field_id/placeholder kept in the signature (many call sites pass them) but
+        # no longer rendered — the analyst-notes box was removed per user request.
         commentary = ''
-        if field_id:
-            ph = placeholder or f'Add analyst notes for recommendation {num:02d}…'
-            commentary = (
-                f'<div contenteditable="true" data-field-id="{field_id}" data-placeholder="{_html_escape.escape(ph)}"'
-                f' style="min-height:40px;font-size:11px;line-height:1.5;color:#444;'
-                f'border:1px dashed #555;border-radius:5px;padding:6px 8px;'
-                f'background:#3a3a3a;outline:none;margin-top:6px;"'
-                f' onfocus="this.style.borderColor=\'{ACCENT_CLR}\';this.style.background=\'#fff\';"'
-                f' onblur="this.style.borderColor=\'#555\';this.style.background=\'#3a3a3a\';"'
-                f'>{ph}</div>'
-            )
         return (
             f'<div style="display:flex;gap:10px;padding:9px 12px;border-left:3px solid {border_color};'
             f'background:{bg_color};border-radius:0 6px 6px 0;">'
@@ -2289,8 +2229,6 @@ def build_recos_panel(territory_stats):
         f'<strong>{_html_escape.escape(title)}</strong> — {_html_escape.escape(body)}</li>'
         for title, body in top15
     )
-    top15_placeholder = 'Add analyst notes or edit prioritization list…'
-
     priori_section = (
         f'<div class="section-title">One Search Recommendations Prioritization</div>'
         f'<div style="background:#fff;margin:0 24px 16px;padding:20px 24px;border-radius:0 0 8px 8px;box-shadow:0 1px 3px rgba(0,0,0,.1);">'
@@ -2300,16 +2238,8 @@ def build_recos_panel(territory_stats):
         f'Coverage target: &gt;3% non-brand &middot; &gt;10% brand</p>'
         f'<div style="font-size:9px;font-weight:700;color:#888;text-transform:uppercase;'
         f'letter-spacing:.05em;margin-bottom:8px;">Top {len(top15)} Priority Recommendations</div>'
-        f'<ul style="list-style:disc;padding-left:18px;margin:0 0 12px;font-size:11px;'
+        f'<ul style="list-style:disc;padding-left:18px;margin:0 0 20px;font-size:11px;'
         f'line-height:1.5;color:#444;">{top15_li}</ul>'
-        f'<div contenteditable="true" data-field-id="top-recs-prioritization"'
-        f' data-placeholder="{_html_escape.escape(top15_placeholder)}"'
-        f' style="min-height:54px;font-size:11px;line-height:1.5;color:#444;'
-        f'border:1px dashed #555;border-radius:5px;padding:7px 9px;'
-        f'background:#3a3a3a;outline:none;margin-bottom:20px;"'
-        f' onfocus="this.style.borderColor=\'{ACCENT_CLR}\';this.style.background=\'#fff\';"'
-        f' onblur="this.style.borderColor=\'#555\';this.style.background=\'{LIGHT_BG}\';"'
-        f'>{top15_placeholder}</div>'
         + _section('#c62828', 'Immediate — High Impact · Coverage Gap', cards_immediate)
         + _section('#e65100', 'Short-Term — Growth Opportunities', cards_short)
         + _section('#2e7d32', 'Maintain — Above Target', cards_maintain)
@@ -2490,8 +2420,8 @@ def main():
     print('  Injecting brand config (regex, topic order, coverage targets)…', flush=True)
     html = inject_brand_config(html, brand_regex)
 
-    print('  Injecting commentary export UI…', flush=True)
-    html = inject_export_ui(html)
+    # Commentary export UI (Export/Import toolbar + analyst-notes boxes) removed per
+    # user request 2026-10-04 — see inject_export_ui()'s docstring/history if reviving.
 
     print('  Injecting reco filter config + filter tabs…', flush=True)
     html = inject_reco_filter(html)
