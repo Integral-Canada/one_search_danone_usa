@@ -38,6 +38,12 @@
     "topics": ["BRAND", "PRODUCT", "COMPETITOR", "GENERIC", "HEALTH", "RECIPE", "CONSUMER HABITS", "OTHER"]
   },
 
+  "_topic_labels_comment": "Added 2026-10-03 after a post-build dashboard audit found real taxonomy fragmentation: the Masterlist's real TOPICS column has 9 distinct literal values, not 8 — the pre-existing real Keyword Study data (copied verbatim for KS-matched rows, untouched per the earlier taxonomy work) uses 'PRODUCTS' (443 rows, plural) alongside our own taxonomy_prompt.topics' 'PRODUCT' (67 rows, singular, from Claude/manual enrichment of KS-unmatched rows) — since build_html.py's territory grouping is an exact string match, these rendered as two SEPARATE Territory sections with opposite recommendation priorities (a labeling artifact, not a real business split). Similarly 'EATING BETTER' (6 rows, real KS data) had no glossary entry and fell into a default bucket. topic_labels is build_html.py's pre-existing alias mechanism (cfg.get('topic_labels', {}), read by _patched_compute_territory_stats() and build_data()) — maps a raw TOPICS cell value to a display label for grouping/rendering ONLY; it does not touch the real Masterlist cells. Verified all 6 real EATING BETTER rows are explicit 'activia yogurt nutrition...' brand-lookup queries, matching exactly the BRAND/Nutrition-Facts pattern used for equivalent manually-classified rows elsewhere in this Masterlist — aliased to BRAND, not HEALTH or a new bucket, for that reason.",
+  "topic_labels": {
+    "PRODUCTS": "PRODUCT",
+    "EATING BETTER": "BRAND"
+  },
+
   "_topic_order_comment": "Added 2026-10-03 per pre-dashboard-build audit finding: build_html.py reads 'topic_order' (not 'territories') for the Overview tab's Coverage-by-Topics gauges — 'territories' only controls the Core Search Territories glossary/deep-dive panel. Left unset, the Overview tab would silently auto-sort by volume instead of this curated order. Mirrors territories' key order above.",
   "topic_order": ["BRAND", "PRODUCT", "COMPETITOR", "GENERIC", "HEALTH", "RECIPE", "CONSUMER HABITS", "OTHER"],
 
