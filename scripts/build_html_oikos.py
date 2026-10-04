@@ -41,6 +41,24 @@ TERRITORY_COLORS = [
     '#0277bd', '#558b2f', '#c62828', '#4527a0',
     '#00695c', '#f57f17', '#37474f', '#00838f',
 ]
+# Hero-chip facts: the raw template (a real, already-built Activia CA dashboard)
+# has these baked in as literal stale numbers ('2 070 priority keywords', '2 390
+# kw — Position SEO', '693 keywords — Quality Score', 'Canadian Market'), none of
+# which were ever replaced per-brand — confirmed via audit that EVERY brand built
+# through this script (not just Activia) has been silently shipping these as
+# fabricated, brand-irrelevant numbers. HERO_TOTAL_KW/HERO_POS_SEO_KW are set from
+# real data in build_html.py's main() right before apply_brand() runs (computed
+# from the real Masterlist row count / real non-blank Position SE Ranking count);
+# the QS chip count is set client-side via JS (see the hero-qs-kw span + the
+# existing qs-kw-count DOMContentLoaded script in build_html.py's main(), since
+# the QS array length isn't known as a plain Python int at this point for every
+# caller). MARKET_LABEL defaults to 'US Market' since every real brand onboarded
+# so far (Oikos, Silk, International Delight, Activia) is a US-market client —
+# override per-brand via brand.market_label in config.json if a Canada-market
+# client is ever onboarded.
+HERO_TOTAL_KW   = 0
+HERO_POS_SEO_KW = 0
+MARKET_LABEL    = 'US Market'
 TEMPLATE    = os.path.join(os.path.dirname(__file__), '..', 'examples',
                             'activia_ca_onesearch_dashboard.html')
 OUTPUT_DIR  = os.path.join(os.path.dirname(__file__), 'one_search_html')
@@ -1610,15 +1628,43 @@ def replace_block(html, varname, new_block, decl='const'):
     return result, n
 
 
+def _hex_to_rgb(hex_color):
+    h = hex_color.lstrip('#')
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def _darken(hex_color, factor=0.83):
+    r, g, b = _hex_to_rgb(hex_color)
+    return '#%02X%02X%02X' % (int(r * factor), int(g * factor), int(b * factor))
+
+
+def _tint(hex_color, white_ratio):
+    r, g, b = _hex_to_rgb(hex_color)
+    mix = lambda c: int(c + (255 - c) * white_ratio)
+    return '#%02X%02X%02X' % (mix(r), mix(g), mix(b))
+
+
 def apply_brand(html):
+    # 'Activia Canada' / bare 'Activia' substitutions, done up front with a guard:
+    # when BRAND_NAME itself starts with 'Activia' (i.e. the real Activia USA
+    # brand, not just the template's source brand), a plain sequential
+    # str.replace('Activia Canada', BRAND_NAME) followed by
+    # str.replace('Activia', BRAND_NAME) re-matches the 'Activia' that the FIRST
+    # replace just inserted, producing 'Activia USA USA' everywhere. Caught via
+    # direct simulation before the first real Activia build — never shipped.
+    # Fix: do the compound phrase first, then only replace remaining BARE
+    # 'Activia' occurrences not already followed by BRAND_NAME's own suffix.
+    html = html.replace('OneSearch Dashboard - Activia Canada', f'OneSearch Dashboard — {BRAND_NAME}')
+    html = html.replace('OneSearch Dashboard – Activia Canada', f'OneSearch Dashboard — {BRAND_NAME}')
+    html = html.replace('Activia Canada', BRAND_NAME)
+    html = html.replace('ACTIVIA CA', BRAND_NAME.upper())
+    if BRAND_NAME.startswith('Activia') and BRAND_NAME != 'Activia':
+        _suffix = BRAND_NAME[len('Activia'):]
+        html = re.sub(r'Activia(?!' + re.escape(_suffix) + r')', BRAND_NAME, html)
+    else:
+        html = html.replace('Activia', BRAND_NAME)
+
     subs = [
-        # Title
-        ('OneSearch Dashboard - Activia Canada', f'OneSearch Dashboard — {BRAND_NAME}'),
-        ('OneSearch Dashboard – Activia Canada', f'OneSearch Dashboard — {BRAND_NAME}'),
-        # Header / subtitle text
-        ('Activia Canada', BRAND_NAME),
-        ('ACTIVIA CA', BRAND_NAME.upper()),
-        ('Activia', BRAND_NAME),
         # SQR Detail by Keyword — drop the Search Demand Evo header (see matching
         # patch_onesearch_js() removal of its cell content below).
         ('<th class="num">Demand</th><th class="num">Evo</th>',
@@ -1634,11 +1680,35 @@ def apply_brand(html):
         # something known at this string-substitution stage.
         ('<div class="subtitle">Jan — Mar 2026 &bull; 691 keywords</div>',
          f'<div class="subtitle">{PERIOD} &bull; <span id="qs-kw-count">691</span> keywords</div>'),
+        # Hero chips — stale Activia CA facts baked into the raw template, never
+        # previously replaced for ANY brand (see HERO_TOTAL_KW comment above).
+        ('Canadian Market', MARKET_LABEL),
+        ('2 070 priority keywords', f'{HERO_TOTAL_KW:,} priority keywords'),
+        ('2 390 kw — Position SEO', f'{HERO_POS_SEO_KW:,} kw — Position SEO'),
+        ('SQR data coming soon', 'SQR Data Included'),
+        ('693 keywords — Quality Score',
+         '<span id="hero-qs-kw">693</span> keywords — Quality Score'),
+        # Stale build-date stamp (hero subtitle + footer) — both read literally
+        # "April 2026" in the raw template regardless of the real brand period.
+        ('April 2026', PERIOD),
         # Section title color (deep red → deep teal)
         ('#8b0000', BRAND_COLOR),
         # Accent red → accent blue
         ('#B8001C', BRAND_COLOR),
         ('#E8374A', ACCENT_CLR),
+        # --brand-hover/--brand-tint/--brand-accent/--brand-glow CSS custom
+        # properties, plus the SEO-vs-SEM opportunity chart's hardcoded bubble
+        # fill/stroke colors — all derived from the same Activia CA red
+        # (#B8001C = rgb(184,0,28)) but NOT caught by the '#B8001C' hex rule
+        # above since these use either a different hex shade or the rgb(...)
+        # decimal form. Found via a second validation pass after the first
+        # build still showed red UI elements despite --brand itself being
+        # correctly green. Computed from BRAND_COLOR so every brand gets a
+        # correctly-shaded hover/tint/accent, not just a literal color swap.
+        ('#9A0017', _darken(BRAND_COLOR, 0.83)),
+        ('#FDF2F3', _tint(BRAND_COLOR, 0.97)),
+        ('#F1CCD2', _tint(BRAND_COLOR, 0.80)),
+        ('184,0,28', ','.join(str(c) for c in _hex_to_rgb(BRAND_COLOR))),
         # Very light pink bg → very light blue bg
         ('#fef5f5', LIGHT_BG),
         # Text color references
@@ -2336,6 +2406,11 @@ def main():
     data_rows = build_data(rows)
     print(f'  {len(data_rows)} keyword rows', flush=True)
 
+    global HERO_TOTAL_KW, HERO_POS_SEO_KW
+    HERO_TOTAL_KW = len(data_rows)
+    HERO_POS_SEO_KW = sum(
+        1 for r in rows if str(r.get('Position SE Ranking', '')).strip())
+
     print('\n  Building TAGS…', flush=True)
     tags = build_tags(rows)
     print(f'  {len(tags)} keywords with taxonomy tags', flush=True)
@@ -2352,6 +2427,13 @@ def main():
     with open(TEMPLATE, encoding='utf-8') as f:
         html = f.read()
     print(f'  Template: {len(html):,} chars', flush=True)
+
+    # See the matching comment in build_html.py's main() — the raw template has
+    # ~15,000 lines of dead orphaned SQR data trailing after the last real
+    # </script> tag, which truncate_after_last_script() only catches here,
+    # before any later step appends a new script block after it.
+    html = truncate_after_last_script(html)
+    print(f'  Template (after stripping trailing dead data): {len(html):,} chars', flush=True)
 
     print('\n  Injecting DATA…', flush=True)
     data_js = js_data(data_rows)
