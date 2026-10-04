@@ -8,10 +8,10 @@
 - [ ] Decide the SEM QV methodology question (fast caveat-label vs. slower click-capped rework) — affects ID, Silk, and Activia equally since it's shared code.
 - [ ] Decide, once the `normalize()` bug (below) is fixed and "silk 官网" splits apart, whether CJK-market navigational traffic should count toward Silk's US BRAND coverage metric at all.
 
-## International Delight
-- [ ] Register missing Q1 2026 GA4 conversion sources (Checkout, Click Offline Store) in the source registry, then re-run ingestion — fixes SEO QV showing 0/"NEW" everywhere in the previous period.
-- [ ] Fix cosmetic percent-formatting bug on 4 Masterlist columns (Clics/Impr. SEO/SEM Q1 2026 display as e.g. "246900%") — safe, no data impact, Sheets cell-format change only.
-- [ ] Rebuild dashboard once the above + the shared fixes below are ready (hero chips, colors, orphaned-data truncation, SE-gap asterisk footnote, export button + input-box removal).
+## International Delight — DONE 2026-10-04 (commit `ca0fa9b`, local only, not pushed)
+- [x] Fix cosmetic percent-formatting bug on 4 Masterlist columns — applied directly to the live sheet, verified (row 2 "international delight": 246900%→2,469).
+- [x] Rebuild dashboard with all shared fixes (hero chips, colors, orphaned-data truncation, SE-gap asterisk footnote, export button + input-box removal) — verified directly in the output file.
+- [ ] Register missing Q1 2026 GA4 conversion sources (Checkout, Click Offline Store) — **blocked, not a registry bug**: confirmed both source files have only one tab each, no previous-period data exists anywhere. Needs a fresh export from the client before this can be registered/fixed.
 
 ## Silk
 - [ ] Fix `pipeline/normalize.py::normalize()` so it stops stripping non-Latin-script characters (strip punctuation/symbols only) — highest-value item, real bug, currently merges "silk 官网" (CJK brand-nav traffic) with the unrelated English query "silk" into one row that drives Silk's single biggest territory-coverage loss (BRAND, -15.4pp). Needs testing against the fuzzy-matching step that also depends on `normalize()`.
