@@ -5,10 +5,11 @@
   "client_handle": "activia-usa",
   "lang": "EN",
 
+  "_brand_colors_comment": "Sampled 2026-10-02 directly from activia.us.com's live production CSS (curl + grep for hex codes, then confirmed via the site's own literal named CSS custom properties: --activia-green, --activia-green-light, --activia-yellow) — not a screenshot guess. --activia-green was by far the dominant dark color across the homepage (56+ occurrences incl. near-identical shade variants #045025/#04551D), --activia-yellow the dominant light background (97 occurrences) despite reading as cream, not literal yellow, to the eye.",
   "brand": {
-    "color": "TBD",
-    "accent_color": "TBD",
-    "light_bg": "TBD",
+    "color": "#04511D",
+    "accent_color": "#15A73C",
+    "light_bg": "#FFFCEA",
     "regex_default": "activia",
     "regex_sheet_id": "1o526Qv4UzP_Qfe-cjrfvcA7jRUi6zUtd9Ecp2WPMIhQ",
     "regex_sheet_tab": "DANONE USA - Overview",
@@ -37,42 +38,61 @@
     "topics": ["BRAND", "PRODUCT", "COMPETITOR", "GENERIC", "HEALTH", "RECIPE", "CONSUMER HABITS", "OTHER"]
   },
 
-  "_masterlist_comment": "Real Masterlist ('MASTERLIST - Activia OneSearch', tab 'Listing') was copy-pasted from an Oikos-era template and still has Oikos's period labels baked into its header row ('Volume Q1 2026'/'Volume Q4 2025' etc.) even though every real source export here is genuinely Q2 2026 vs Q1 2026 data. Confirmed exactly what happens if this isn't fixed: run_pipeline.py's _hdr_letter() (required=True for 7 core columns) calls sys.exit() the moment it looks for e.g. 'Clics OneSearch Q2 2026' and doesn't find it — a loud crash, and it happens BEFORE 'Clearing Masterlist rows 2+', so a first bad run can't corrupt the live sheet. header_corrections below renames every stale header in place (the pipeline applies these automatically at the very start of each run, before the required-column check) rather than trying to make brand config labels match the stale sheet. Covers all period-labeled columns, not just the 7 required ones — format_base_rows() writes several others (Impressions, CTR, CPC avg SEM, Spent SEM) with no required-column protection, so those would otherwise go silently, permanently blank on a name mismatch. Also renames the Masterlist's 3 stale monthly-search-volume columns (Oct/Nov/Dec 2025 -> Apr/May/Jun 2026); Jan/Feb/Mar 2026 already have the right labels as-is, so only 3 of the 6 need renaming, not all 6.",
-  "header_corrections": {
-    "Volume Q1 2026": "Volume Q2 2026",
-    "Volume Q4 2025": "Volume Q1 2026",
-    "Coverage One Search Q1 2026": "Coverage One Search Q2 2026",
-    "Coverage One Search Q4 2025": "Coverage One Search Q1 2026",
-    "Clics OneSearch Q1 2026": "Clics OneSearch Q2 2026",
-    "Impressions OneSearch Q1 2026": "Impressions OneSearch Q2 2026",
-    "Clics OneSearch Q4 2025": "Clics OneSearch Q1 2026",
-    "Impressions OneSearch Q4 2025": "Impressions OneSearch Q1 2026",
-    "Clics SEO Q1 2026": "Clics SEO Q2 2026",
-    "Clics SEM Q1 2026": "Clics SEM Q2 2026",
-    "Clics SEO Q4 2025": "Clics SEO Q1 2026",
-    "Clics SEM Q4 2025": "Clics SEM Q1 2026",
-    "Impr. SEO Q1 2026": "Impr. SEO Q2 2026",
-    "Impr. SEM Q1 2026": "Impr. SEM Q2 2026",
-    "Impr. SEO Q4 2025": "Impr. SEO Q1 2026",
-    "Impr. SEM Q4 2025": "Impr. SEM Q1 2026",
-    "CTR SEO Q1 2026": "CTR SEO Q2 2026",
-    "CTR SEM Q1 2026": "CTR SEM Q2 2026",
-    "CTR SEO Q4 2025": "CTR SEO Q1 2026",
-    "CTR SEM Q4 2025": "CTR SEM Q1 2026",
-    "Conversions SEO Q1 2026": "Conversions SEO Q2 2026",
-    "Conversions SEM Q1 2026": "Conversions SEM Q2 2026",
-    "Conversions SEO Q4 2025": "Conversions SEO Q1 2026",
-    "Conversions SEM Q4 2025": "Conversions SEM Q1 2026",
-    "CPC SEO Q1 2026": "CPC SEO Q2 2026",
-    "CPC avg. SEM Q1 2026": "CPC avg. SEM Q2 2026",
-    "Spent SEM Q1 2026": "Spent SEM Q2 2026",
-    "Cost SEO Q1 2026": "Cost SEO Q2 2026",
-    "Spent SEM Q4 2025": "Spent SEM Q1 2026",
-    "Cost SEO Q4 2025": "Cost SEO Q1 2026",
-    "Searches: Oct 2025": "Searches: Apr 2026",
-    "Searches: Nov 2025": "Searches: May 2026",
-    "Searches: Dec 2025": "Searches: Jun 2026"
+  "_topic_labels_comment": "Added 2026-10-03 after a post-build dashboard audit found real taxonomy fragmentation: the Masterlist's real TOPICS column has 9 distinct literal values, not 8 — the pre-existing real Keyword Study data (copied verbatim for KS-matched rows, untouched per the earlier taxonomy work) uses 'PRODUCTS' (443 rows, plural) alongside our own taxonomy_prompt.topics' 'PRODUCT' (67 rows, singular, from Claude/manual enrichment of KS-unmatched rows) — since build_html.py's territory grouping is an exact string match, these rendered as two SEPARATE Territory sections with opposite recommendation priorities (a labeling artifact, not a real business split). Similarly 'EATING BETTER' (6 rows, real KS data) had no glossary entry and fell into a default bucket. topic_labels is build_html.py's pre-existing alias mechanism (cfg.get('topic_labels', {}), read by _patched_compute_territory_stats() and build_data()) — maps a raw TOPICS cell value to a display label for grouping/rendering ONLY; it does not touch the real Masterlist cells. Verified all 6 real EATING BETTER rows are explicit 'activia yogurt nutrition...' brand-lookup queries, matching exactly the BRAND/Nutrition-Facts pattern used for equivalent manually-classified rows elsewhere in this Masterlist — aliased to BRAND, not HEALTH or a new bucket, for that reason.",
+  "topic_labels": {
+    "PRODUCTS": "PRODUCT",
+    "EATING BETTER": "BRAND"
   },
+
+  "_topic_order_comment": "Added 2026-10-03 per pre-dashboard-build audit finding: build_html.py reads 'topic_order' (not 'territories') for the Overview tab's Coverage-by-Topics gauges — 'territories' only controls the Core Search Territories glossary/deep-dive panel. Left unset, the Overview tab would silently auto-sort by volume instead of this curated order. Mirrors territories' key order above.",
+  "topic_order": ["BRAND", "PRODUCT", "COMPETITOR", "GENERIC", "HEALTH", "RECIPE", "CONSUMER HABITS", "OTHER"],
+
+  "_territories_comment": "Added 2026-10-03, before the first real pipeline run, per explicit user request to lock down taxonomy/territory ahead of the masterlist build. build_html.py's _patch_module() reads this 'territories' dict directly into TERRITORY_DEFINITIONS/TERRITORY_TOPICS with NO fallback (list(cfg.get('territories', {}).keys())) — leaving it unset would silently render an empty Core Search Territories panel and glossary once the dashboard is built, same class of silent-blank-on-missing-config bug already found and documented elsewhere in this file. Key order here IS the dashboard display order. Descriptions/examples grounded in shared/brand-guidelines/activia.md (Danone's real Activia brand brief) AND a real crawl of activia.us.com done 2026-10-03 (sitemap.xml + homepage nav) — real site sections confirmed: Probiotic Products (Cups/Dailies/Drinks; Probiotics/Fiber/Zero Added Sugar/ProActive lines), Gut Health/Wellness/Probiotics education articles, the Gut Health Challenge (14-day habit program — matches CONSUMER HABITS), Healthcare Professionals/clinical-strain content, and corporate/navigational pages (About, Press, FAQ, Where to Buy) — no recipe section anywhere. Topics list mirrors Silk's set (BRAND/PRODUCT/COMPETITOR/GENERIC/HEALTH/RECIPE/CONSUMER HABITS/OTHER) rather than Oikos's (which adds a protein-specific SOURCE OF PROTEIN territory that doesn't apply to a gut-health yogurt brand). HEALTH is Activia's single most central territory (the entire brand promise is 'Supports gut health*') — judgment call to treat it as a priority territory alongside BRAND rather than a generic-tier one, worth revisiting once real classified volume shows how big it actually is. No numeric coverage_target per territory — confirmed build_html.py/build_html_oikos.py only read a flat coverage_targets.brand/generic/competitor split (inherited from brands/defaults.json: 10/3/2), not a per-territory target field, so one wasn't added here to avoid dead config.\n\nRECIPE special case: counted the real frozen Keyword Study sheet's TOPICS column directly (19,871 rows) before finalizing this — RECIPE is actually the SINGLE LARGEST topic at 10,248 rows (51.6%), ahead of HEALTH (6,439) and PRODUCTS (3,162), and sampling confirms these are legitimate food/recipe search terms (smoothies, overnight oats, chia pudding, spinach-artichoke dip), not mislabeled noise. User flagged that Activia's real content plan has no recipe pillar (confirmed true by the site crawl) and asked whether RECIPE still belongs in the taxonomy. Explicit user decision: keep RECIPE as a tracked territory — not because it's a content priority, but because it's useful competitive intelligence (shows leadership what yogurt-recipe-focused competitors are capturing that Activia, by deliberate gut-health-first positioning, is not). Kept the exact key 'RECIPE' (not renamed) so it keeps matching the real KS sheet's existing classified value and match_ks.py's pre-existing matches stay intact; only desc/intent/examples were rewritten to frame it explicitly as a competitive-gap signal, not a content-plan recommendation. taxonomy_prompt.topics also keeps RECIPE so future unmatched/new keywords with genuine recipe intent keep classifying correctly going forward instead of being forced into an ill-fitting bucket.",
+  "territories": {
+    "BRAND": {
+      "desc": "Keywords that explicitly name Activia, its core product lines (Probiotic Yogurt cups, Probiotic Dailies drinkable yogurt, ProActive, Zero Added Sugar, Fiber), or brand variants and misspellings. The highest-intent territory — users already know the brand.",
+      "intent": "Branded / Navigational",
+      "examples": ["activia", "activia probiotic yogurt", "activia dailies", "activia zero added sugar", "activia fiber yogurt", "activia proactive"]
+    },
+    "PRODUCT": {
+      "desc": "Generic product-type keywords — probiotic yogurt, drinkable yogurt, high-fiber yogurt — where Activia is a natural answer but the brand isn't named. Captures shoppers comparing yogurt types or probiotic formats.",
+      "intent": "Commercial / Transactional",
+      "examples": ["probiotic yogurt", "drinkable yogurt", "yogurt with probiotics", "high fiber yogurt", "yogurt with live cultures"]
+    },
+    "COMPETITOR": {
+      "desc": "Keywords naming competing yogurt and probiotic-drink brands (Chobani, Yoplait, Yakult, Stonyfield, Lifeway Kefir). Activia can capture switcher traffic and conquest clicks via SEM on these terms.",
+      "intent": "Competitive / Conquest",
+      "examples": ["chobani probiotic yogurt", "yakult probiotic drink", "stonyfield yogurt", "yoplait yogurt", "lifeway kefir"]
+    },
+    "GENERIC": {
+      "desc": "Broad, non-branded category queries about probiotic foods and gut-supportive nutrition with no specific brand intent. High volume, top-of-funnel entry point for shoppers new to the category.",
+      "intent": "Informational / Top-of-funnel",
+      "examples": ["probiotic foods", "best probiotic yogurt", "healthy gut foods", "fermented foods list", "foods with live cultures"]
+    },
+    "HEALTH": {
+      "desc": "Gut health, digestion, and microbiome queries — Activia's core brand promise ('Supports gut health*'). Covers the gut-brain connection, digestive wellness, and immunity angles the brand is built to answer.",
+      "intent": "Informational / Health-driven",
+      "examples": ["gut health", "how to improve gut health", "gut-brain connection", "what do probiotics do", "digestive health tips", "why is gut health important"]
+    },
+    "RECIPE": {
+      "desc": "Recipe and food-use queries (smoothies, overnight oats, dips, puddings) where yogurt is a natural ingredient. Activia's own site has no recipe content — its content strategy centers on gut-health science and digestion rather than general yogurt recipes — but this is real, substantial search volume (51.6% of this brand's full Keyword Study, the single largest topic) that yogurt-recipe-focused competitors actively capture. Tracked as a competitive-intelligence / content-gap territory to show leadership what competitors are doing here, not as a near-term content priority for Activia itself.",
+      "intent": "Informational / Competitive content gap",
+      "examples": ["smoothie recipe", "overnight oats", "chia seed pudding", "spinach artichoke dip", "yogurt parfait recipe"]
+    },
+    "CONSUMER HABITS": {
+      "desc": "Occasion and routine queries — breakfast, snacking, New Year resets, seasonal gut-health challenges — that frame probiotic yogurt as part of a daily wellness routine rather than a one-off purchase.",
+      "intent": "Informational / Lifestyle",
+      "examples": ["healthy breakfast ideas", "snack for gut health", "daily probiotic routine", "gut health challenge", "new year gut reset"]
+    },
+    "OTHER": {
+      "desc": "Miscellaneous queries including brand misspellings, customer service, coupons, and where-to-buy. Low strategic priority but useful for brand monitoring and defensive coverage.",
+      "intent": "Mixed / Miscellaneous",
+      "examples": ["activia coupon", "activia customer service", "where to buy activia", "is activia discontinued"]
+    }
+  },
+
+  "_masterlist_comment": "Real Masterlist ('MASTERLIST - Activia OneSearch', tab 'Listing') was copy-pasted from an Oikos-era template and originally had Oikos's period labels baked into its header row ('Volume Q1 2026'/'Volume Q4 2025' etc.) even though every real source export here is genuinely Q2 2026 vs Q1 2026 data. header_corrections below was the one-time migration that fixed this — RETIRED (emptied) on 2026-10-03 after confirming the live sheet's header row is now fully, correctly labeled (verified cell-by-cell via mcp__google-sheets__readSpreadsheet: every pair reads '... Q2 2026' / '... Q1 2026' with no stale 'Q4 2025' and no duplicates). Do NOT repopulate this dict with the old rename pairs — doing so caused a real, reproducible data-corruption incident: the dict had two chained rules per metric (e.g. 'X Q1 2026'->'X Q2 2026' AND 'X Q4 2025'->'X Q1 2026'); applying it ONCE against the original stale template was correct, but applying it a SECOND time (e.g. on a second pipeline run after the first already fixed the headers) matched the already-correct 'X Q1 2026' P2 column against the FIRST rule and renamed it to 'X Q2 2026' too — leaving two columns both named '...Q2 2026' and zero named '...Q1 2026' for 14 metric pairs (Volume, Coverage, Clics/Impressions OneSearch, Clics/Impr./CTR/Conversions SEO+SEM, Spent SEM, Cost SEO), which crashed run_pipeline.py's ARRAYFORMULA step looking for the now-missing 'Clics OneSearch Q1 2026' column. Manually repaired via a targeted batchWrite (renamed the 14 duplicate second-occurrence cells back to their correct 'Q1 2026' labels by column position) before retiring this dict. If a brand's Masterlist header ever needs a similar one-time fix again, apply it, confirm the sheet is correct, then immediately empty header_corrections the same way — never leave chained Q1->Q2 / Q4->Q1 style rename pairs active across multiple runs.",
+  "header_corrections": {},
 
   "sheets": {
     "ref_id": "16-h0rmI-5fx0RVXfxbVOIjcrGugkvY3vH31JWgRLqLg",
@@ -82,18 +102,26 @@
     "master_tab": "Listing",
     "qs_sheet_id": "TBD",
     "qs_sheet_tab": "TBD",
-    "ga4_ads_file_id": "TBD",
-    "ga4_ads_tab": "TBD",
+    "ga4_ads_file_id": "1Y0LBYkNxkyGIRAYtMr98NNu1V5vRDkOwhMFzFxmDokU",
+    "ga4_ads_tab": "activia_google_ads_export",
     "ga4_ads_file_id_p2": "TBD",
     "ga4_ads_tab_p2": null
   },
 
-  "_ga4_ads_comment": "Real sheet exists (Google_Ads_Data_Q1_v_Q2_2026, registered in the source registry) and IS a genuine 'Compare' export with the right Q2-vs-Q1-2026 period, but it's missing the keyword dimension entirely (only Landing page + query string, Session default channel group, Date Comparison, Sessions, Key events — no 'Session Google Ads query' column). Without a keyword field there's nothing for sem_qv.py's LP-rate attribution to attribute to. Left as TBD here rather than wired up as-is, since wiring it up now would mean run_sem_qv() either errors on the missing required keyword column or silently produces a QV map with no real per-keyword attribution. Needs a GA4 Explore rebuild (same dimension/metric/filter steps already given to the user) before this can be set to the real doc/tab.",
+  "_ga4_ads_comment": "Fixed 2026-10-02 — the real re-pulled export (replacing the earlier one that was missing the keyword dimension) now has 'Session Google Ads query' alongside 'Landing page + query string', in GA4 Compare mode. Verified directly against pipeline/sem_qv.py's real read_ga4_ads_compare() + calculate_qv_sem() before registering: columns resolve with zero collisions (keyword: 'Session Google Ads query', landing_page: 'Landing page + query string'), and QV SEM totals (14,278 for Q1 2026, 4,465 for Q2 2026) match the sheet's own Grand Total 'Key events' row exactly, 0 unassigned. ga4_ads_file_id_p2 stays TBD/unused — this one file covers both periods via Compare mode, auto-detected by detect_ga4_compare_mode(), same as Silk/ID's real exports.",
 
   "conn_intent_exclusions": [
     "login", "website", "my account"
   ],
 
-  "_competitors_comment": "Not yet curated — no raw COMPETITORS candidate row exists yet in the registry's Activia tab (unlike Oikos/Silk/International Delight, which each had one). competitors[] and sem_qv.competitor_blocklist both need a human to provide Activia's real competitor brand list before these can be filled in the same way the other three brands were.",
-  "competitors": []
+  "_competitors_comment": "Drafted 2026-10-02 from the real Keyword Study sheet's own competitor-tracking columns (5x 'Pos. Google <competitor>.com' rank-tracking columns) rather than waiting on a fresh raw candidate list like Oikos/Silk/ID each got from the registry — confirmed real brand mentions in the KS sheet's own 'Brand' column for 4 of these 5 (Chobani, Yoplait, Yakult, Stonyfield all appear repeatedly; Lifeway Kefir didn't appear in the ~3,000-row sample checked but is still a real tracked competitor per the position columns). This is a starting list grounded in what the brand's own SEO team already tracks, not an exhaustive market scan — likely incomplete (e.g. no Fage, Siggi's, Dannon, Two Good mentioned anywhere sampled) and worth a second human pass, same caveat given to Oikos/Silk/ID's lists.",
+  "competitors": [
+    {"name": "Chobani", "patterns": ["chobani"]},
+    {"name": "Yoplait", "patterns": ["yoplait"]},
+    {"name": "Yakult", "patterns": ["yakult"]},
+    {"name": "Stonyfield", "patterns": ["stonyfield"]},
+    {"name": "Lifeway Kefir", "patterns": ["lifeway"]}
+  ],
+
+  "_sem_qv_comment": "competitor_blocklist left unset for now — same reasoning as Oikos/Silk/ID: sem_qv.py's tag_sem_recommendations() only matters once TOPICS=='BRAND' rows actually exist, and this brand's pipeline hasn't been run yet. Revisit once a real run produces BRAND-tagged rows, using these same curated patterns as the starting point."
 }

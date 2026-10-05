@@ -86,6 +86,7 @@ def _patch_module(brand_key: str, cfg: dict) -> None:
     _bh.PERIOD_P1   = period_cfg.get('p1_label', 'Q1 2026')
     _bh.PERIOD_P4   = period_cfg.get('p2_label', 'Q4 2025')
     _bh.PERIOD      = period_cfg.get('display', f"{_bh.PERIOD_P1} vs {_bh.PERIOD_P4}")
+    _bh.MARKET_LABEL = brand_cfg.get('market_label', 'US Market')
     _bh.TERRITORY_DEFINITIONS = cfg.get('territories', {})
     _bh.TERRITORY_TOPICS      = list(cfg.get('territories', {}).keys())
     _bh.TOPIC_ORDER           = cfg.get('topic_order', [])
@@ -452,6 +453,13 @@ def main() -> None:
     data_rows = _bh.build_data(rows, headers)
     print(f'  {len(data_rows)} keyword rows', flush=True)
 
+    # Real hero-chip facts (see HERO_TOTAL_KW/HERO_POS_SEO_KW comment in
+    # build_html_oikos.py) — computed here, before apply_brand(), from the real
+    # Masterlist data rather than left as the template's stale fabricated numbers.
+    _bh.HERO_TOTAL_KW = len(data_rows)
+    _bh.HERO_POS_SEO_KW = sum(
+        1 for r in rows if str(r.get('Position SE Ranking', '')).strip())
+
     print('\n  Building TAGS…', flush=True)
     tags = _bh.build_tags(rows)
     print(f'  {len(tags)} keywords with taxonomy tags', flush=True)
@@ -469,18 +477,48 @@ def main() -> None:
         html = f.read()
     print(f'  Template: {len(html):,} chars', flush=True)
 
+    # The raw template has ~15,000 lines of dead, orphaned SQR data (a stray
+    # duplicate of the real Activia CA dataset, never wrapped in a <script>
+    # tag or assigned to any JS variable) trailing after the last real
+    # </script> tag, all the way to EOF. truncate_after_last_script() already
+    # existed to strip exactly this kind of artifact, but only ran at the END
+    # of the pipeline — by then, later steps (patch_onesearch_js, recos/
+    # territory panel injection, export UI injection) have appended NEW script
+    # blocks after this dead content, so "the last </script> tag" no longer
+    # points to where the dead content starts, and it survives into every
+    # brand's output. Running it here, immediately after loading the pristine
+    # template (where this dead block really is the last thing before EOF),
+    # fixes it at the source — before any later step can confuse it.
+    html = _bh.truncate_after_last_script(html)
+    print(f'  Template (after stripping trailing dead data): {len(html):,} chars', flush=True)
+
     print('\n  Injecting DATA, TAGS, QS, SQR…', flush=True)
-    html, _ = _bh.replace_block(html, 'DATA', _bh.js_data(data_rows))
-    html, _ = _bh.replace_block(html, 'TAGS', _bh.js_tags(tags))
+    def _replace_block_checked(html, name, new_block, **kw):
+        # replace_block()'s match count was previously discarded — if the
+        # template ever drifts so a block marker isn't found, the raw
+        # Activia-CA example data baked into the template would silently ship
+        # instead of real client data, with no error anywhere. Loud failure
+        # instead: this is real production data, a silent no-op here is worse
+        # than a crash.
+        html2, n = _bh.replace_block(html, name, new_block, **kw)
+        if n < 1:
+            raise RuntimeError(f'replace_block(): block {name!r} not found in template — '
+                                f'template may have drifted, refusing to silently keep stale data')
+        return html2, n
+    html, _ = _replace_block_checked(html, 'DATA', _bh.js_data(data_rows))
+    html, _ = _replace_block_checked(html, 'TAGS', _bh.js_tags(tags))
     qs_js   = _bh.load_qs_data(token, rows)
     sqr_js  = _bh.build_sqr_data(rows)
-    html, _ = _bh.replace_block(html, 'QS_CLASSIFIED', qs_js)
-    html, _ = _bh.replace_block(html, 'SQR_ACTIVIA',   sqr_js, decl='var')
-    html, _ = _bh.replace_block(html, 'SQR_DATA',      'var SQR_DATA = [];', decl='var')
-    # Live keyword count for the QS panel subtitle (see apply_brand()'s qs-kw-count span)
+    html, _ = _replace_block_checked(html, 'QS_CLASSIFIED', qs_js)
+    html, _ = _replace_block_checked(html, 'SQR_ACTIVIA',   sqr_js, decl='var')
+    html, _ = _replace_block_checked(html, 'SQR_DATA',      'var SQR_DATA = [];', decl='var')
+    # Live keyword count for the QS panel subtitle AND the hero QS chip (see
+    # apply_brand()'s qs-kw-count / hero-qs-kw spans) — both read off the same
+    # QS_CLASSIFIED array, so one DOMContentLoaded script fills both.
     html += ('\n<script>document.addEventListener("DOMContentLoaded",function(){'
-             'var el=document.getElementById("qs-kw-count");'
-             'if(el&&typeof QS_CLASSIFIED!=="undefined")el.textContent=QS_CLASSIFIED.length.toLocaleString();'
+             'var n=(typeof QS_CLASSIFIED!=="undefined")?QS_CLASSIFIED.length.toLocaleString():"0";'
+             'var el=document.getElementById("qs-kw-count");if(el)el.textContent=n;'
+             'var el2=document.getElementById("hero-qs-kw");if(el2)el2.textContent=n;'
              '});</script>')
 
     print('  Applying brand colours and labels…', flush=True)
@@ -506,9 +544,10 @@ def main() -> None:
     html = _bh.clean_embedded_docs(html)
     html = _bh.truncate_after_last_script(html)
 
-    print('  Injecting brand config, export UI, reco filter…', flush=True)
+    print('  Injecting brand config, reco filter…', flush=True)
     html = _bh.inject_brand_config(html, brand_regex)
-    html = _bh.inject_export_ui(html)
+    # Commentary export UI (Export/Import toolbar + analyst-notes boxes) removed per
+    # user request 2026-10-04.
     html = _bh.inject_reco_filter(html)
 
     taxonomy_html = _bh.build_taxonomy_glossary_html(rows)

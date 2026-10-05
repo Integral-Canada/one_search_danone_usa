@@ -27,7 +27,7 @@ from pipeline.utils import (
 )
 from pipeline.normalize import normalize, clean_num
 from pipeline.ingest import norm_gsc, norm_sqr, norm_sqr_split, norm_se, norm_ks
-from pipeline.ingest_ga4 import ga4_from_raw
+from pipeline.ingest_ga4 import ga4_from_raw, ga4_from_raw_compare, is_ga4_compare_export
 from pipeline.merge import merge_gsc_sqr
 from pipeline.format_rows import format_base_rows
 from pipeline.trigram import build_index
@@ -325,6 +325,20 @@ def _run(brand_key: str, max_rows=None) -> None:
     se_raw        = lim(se_raw)
     print(f'  SE: {len(se_raw)} rows', flush=True)
 
+    def _label_sort_key(label):
+        # GA4 Compare labels look like "Apr 1 - Jun 30, 2026" — parse the first
+        # date so the two periods can be ordered chronologically (current
+        # period = later range = P1, by this pipeline's established convention).
+        m = re.search(r'([A-Za-z]{3,9})\s+(\d{1,2}),?\s+(\d{4})', label)
+        if not m:
+            return (0, 0, 0)
+        month_str, day, year = m.groups()
+        try:
+            month = datetime.datetime.strptime(month_str[:3], '%b').month
+        except ValueError:
+            return (0, 0, 0)
+        return (int(year), month, int(day))
+
     def read_ga4(label: str) -> dict:
         c = source_config.get(label)
         if not c or not c.get('doc_id'):
@@ -335,10 +349,29 @@ def _run(brand_key: str, max_rows=None) -> None:
         print(f"  GA4 '{label}': {len(result)} pages with key events", flush=True)
         return result
 
-    checkout_map    = read_ga4('Conversions: Checkout')
-    offline_map     = read_ga4('Conversions: Click Offline Store')
-    checkout_q4_map = read_ga4(f'Conversions: Checkout {p2_label}')
-    offline_q4_map  = read_ga4(f'Conversions: Click Offline Store {p2_label}')
+    def read_ga4_both_periods(base_label: str) -> tuple:
+        """Returns (p1_map, p2_map) for a Conversions export. Handles both
+        shapes seen in practice: a single GA4 'Compare' file covering both
+        periods (Activia's real offline_store export — split via
+        ga4_from_raw_compare(), ordered chronologically since the file itself
+        doesn't say which period is 'current'), or two separate single-period
+        files registered under '{base_label}' (P1) and '{base_label} {p2_label}'
+        (P2, the pre-existing convention)."""
+        c = source_config.get(base_label)
+        if c and c.get('doc_id'):
+            vals = sheets_get(token, c['doc_id'], f"'{c['sheet_tab']}'!A1:H")
+            if is_ga4_compare_export(vals):
+                map_a, map_b, label_a, label_b = ga4_from_raw_compare(vals)
+                pairs = sorted([(label_a, map_a), (label_b, map_b)],
+                                key=lambda x: _label_sort_key(x[0]), reverse=True)
+                (lbl_p1, p1_map), (lbl_p2, p2_map) = pairs
+                print(f"  GA4 '{base_label}' (Compare export): P1={lbl_p1!r} "
+                      f"{len(p1_map)} pages, P2={lbl_p2!r} {len(p2_map)} pages", flush=True)
+                return p1_map, p2_map
+        return read_ga4(base_label), read_ga4(f'{base_label} {p2_label}')
+
+    checkout_map, checkout_q4_map = read_ga4_both_periods('Conversions: Checkout')
+    offline_map, offline_q4_map   = read_ga4_both_periods('Conversions: Click Offline Store')
 
     # ── Normalize sources ─────────────────────────────────────────────────────
     print('\nNormalizing…', flush=True)
