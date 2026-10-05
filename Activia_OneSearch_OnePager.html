@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Activia USA · OneSearch one-pager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+ --brand:#04511D; --brand-dark:#023815; --brand-tint:#F3F8F4; --brand-accent:#CFE0D5;
+ --ink:#141414; --ink-2:#444; --ink-3:#777; --line:#E4E4E4; --bg:#F4F4F4; --paper:#fff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:Poppins,system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:7.8pt;line-height:1.4}
+.page{width:8.5in;height:11in;margin:24px auto;background:var(--paper);padding:.4in .5in .3in;
+ box-shadow:0 2px 18px rgba(0,0,0,.08);display:flex;flex-direction:column;overflow:hidden}
+@page{size:letter;margin:0}
+@media print{body{background:#fff}.page{margin:0;box-shadow:none}}
+@media screen and (max-width:860px){.page{width:auto;height:auto;margin:0;padding:20px 16px}
+ .kpis,.two,.four,.uv,ul.three{grid-template-columns:1fr !important}}
+p,li{text-wrap:pretty}
+
+header{display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:2px solid var(--brand)}
+.logos{display:flex;align-items:center;gap:12px}
+.logos img{height:19px}
+.logos .sep{width:1px;height:19px;background:var(--line)}
+.meta{text-align:right;font-size:6.8pt;color:var(--ink-3);line-height:1.35}
+.meta b{color:var(--ink);font-weight:600;font-size:7.4pt;display:block}
+
+.body{flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:10px 0 8px;gap:8px}
+ul.three{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+h1{text-wrap:balance;font-size:14pt;line-height:1.2;font-weight:700;letter-spacing:-.01em}
+h1 em{font-style:normal;color:var(--brand)}
+.lead{color:var(--ink-2);font-size:7.9pt;margin-top:2px}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:7px}
+.kpi{border:1px solid var(--line);border-radius:5px;padding:7px 10px}
+.kpi.hi{background:var(--brand);border-color:var(--brand);color:#fff}
+.kpi .v{font-size:13.5pt;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:6.8pt;font-weight:600}
+.kpi .s{font-size:6.4pt;color:var(--ink-3)}
+.kpi.hi .s{color:var(--brand-accent)}
+
+h2{font-size:9.2pt;font-weight:700;margin:0 0 6px;display:flex;align-items:baseline;gap:7px}
+h2 .n{color:var(--brand)}
+h2 small{font-weight:400;font-size:6.6pt;color:var(--ink-3)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.four{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+
+ul.pts{list-style:none}
+ul.pts li{position:relative;padding-left:10px;margin-bottom:2px;color:var(--ink-2)}
+ul.pts li::before{content:"";position:absolute;left:0;top:.55em;width:4px;height:4px;border-radius:50%;background:var(--brand)}
+ul.pts b{color:var(--ink);font-weight:600}
+
+.uv{display:grid;grid-template-columns:1.75in 1fr;gap:16px;padding:7px 0;border-top:1px solid var(--line)}
+.uv ul.pts li{margin-bottom:1px}
+.uv ul.pts li{break-inside:avoid}
+.uv:last-child{border-bottom:1px solid var(--line)}
+.uv .name{font-size:9.8pt;font-weight:700;color:var(--brand);line-height:1.1}
+.uv .big{font-size:11.5pt;font-weight:700;line-height:1.1;margin-top:3px;font-variant-numeric:tabular-nums}
+.uv .bl{font-size:6.8pt;font-weight:400;color:var(--ink-3)}
+.stats{display:flex;flex-direction:column;margin-top:2px;font-size:6.9pt;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.stats b{color:var(--ink);font-weight:600}
+.uv .cst{color:var(--ink-2)}
+.uv .cst{margin-bottom:3px;font-size:8pt}
+.uv .cst b{color:var(--ink);font-weight:600}
+.uv .act-h{font-size:6.3pt;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--brand);margin-bottom:2px}
+
+.plan{display:flex;gap:6px;margin-bottom:4px}
+.plan div{flex:1;border:1px solid var(--line);border-radius:5px;padding:3px 7px}
+.plan b{font-size:11pt;margin-right:4px}
+.plan span{white-space:nowrap;font-size:7pt;color:var(--ink-2)}
+
+footer{padding-top:6px;border-top:1px solid var(--line);font-size:6.3pt;color:var(--ink-3);line-height:1.4}
+
+.tt{width:100%;border-collapse:collapse;font-size:6.9pt;font-variant-numeric:tabular-nums}
+.tt th{font-size:6.2pt;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);text-align:left;padding:2px 4px;border-bottom:1px solid var(--line)}
+.tt td{padding:2.5px 4px;border-bottom:1px solid var(--line);color:var(--ink-2)}
+.tt .r{text-align:right;white-space:nowrap}
+.wm{font-weight:700;font-size:10pt;color:var(--brand);letter-spacing:-.01em}
+.uv{grid-template-columns:2.15in 1fr;padding:4px 0;gap:12px}
+.uv .name{font-size:9pt}
+.uv .big{font-size:10.5pt;margin-top:1px}
+.body{gap:6px;padding:8px 0 6px}
+.kpi{padding:5px 10px}
+.stats{margin-top:1px}
+.pending{color:#9a6b00;font-style:italic}
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+ <div class="logos"><img class="dig" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGlkPSJMYXllcl8yIiB2aWV3Qm94PSIwIDAgNjkwLjgzIDE3My42OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiNmZmY7fS5jbHMtMntmaWxsOiMwNDUxMWQ7fS5jbHMtM3tmaWxsOiMxZDFkMWI7fTwvc3R5bGU+PC9kZWZzPjxnIGlkPSJDYWxxdWVfMSI+PHJlY3QgY2xhc3M9ImNscy0yIiB3aWR0aD0iMTczLjY5IiBoZWlnaHQ9IjE3My42OSI+PC9yZWN0PjxnPjxwYXRoIGNsYXNzPSJjbHMtMyIgZD0iTTI1Ni43NywzNi45NmMxMy42OCwwLDI1LjExLDQuOCwzNC4yOCwxNC40LDkuMTcsOS42LDEzLjc2LDIxLjQzLDEzLjc2LDM1LjQ5cy00LjU5LDI1LjktMTMuNzYsMzUuNDljLTkuMTcsOS42LTIwLjYsMTQuNC0zNC4yOCwxNC40aC0zOS42M1YzNi45NmgzOS42M1ptMCw4MC45N2M4LjY1LDAsMTUuNjgtMi44NywyMS4xLTguNjMsNS40Mi01Ljc1LDguMTMtMTMuMjMsOC4xMy0yMi40NXMtMi43MS0xNi43LTguMTMtMjIuNDVjLTUuNDItNS43NS0xMi40NS04LjYzLTIxLjEtOC42M2gtMTkuOTZ2NjIuMTVoMTkuOTZaIj48L3BhdGg+PHBhdGggY2xhc3M9ImNscy0zIiBkPSJNMzI3LjA1LDU2LjkxYy0zLjA0LDAtNS42OC0xLjEyLTcuOTEtMy4zNS0yLjI0LTIuMjMtMy4zNS00Ljg3LTMuMzUtNy45MXMxLjEyLTUuNywzLjM1LTcuOThjMi4yMy0yLjI4LDQuODctMy40Miw3LjkxLTMuNDJzNS44MiwxLjE0LDguMDUsMy40MmMyLjIzLDIuMjgsMy4zNSw0Ljk0LDMuMzUsNy45OHMtMS4xMiw1LjY4LTMuMzUsNy45MWMtMi4yMywyLjIzLTQuOTIsMy4zNS04LjA1LDMuMzVabS05LjEyLDc5LjgzVjY1LjQ3aDE4LjM5djcxLjI3aC0xOC4zOVoiPjwvcGF0aD48cGF0aCBjbGFzcz0iY2xzLTMiIGQ9Ik00MDcuNzMsNjUuNDdoMTcuOTZ2NjcuODVjMCwxMS4wMi0zLjY0LDE5LjQzLTEwLjkxLDI1LjIzLTcuMjcsNS44LTE2LjA0LDguNy0yNi4zLDguNy03LjcsMC0xNC40Ny0xLjQ4LTIwLjMxLTQuNDItNS44NC0yLjk1LTEwLjMzLTcuMjctMTMuNDctMTIuOTdsMTUuNjgtOC45OGMzLjYxLDYuNjUsOS44NCw5Ljk4LDE4LjY3LDkuOTgsNS44LDAsMTAuMzYtMS41MiwxMy42OC00LjU2LDMuMzMtMy4wNCw0Ljk5LTcuMzcsNC45OS0xMi45N3YtNy43Yy01LjQyLDcuMjItMTMuMDIsMTAuODQtMjIuODEsMTAuODRzLTE4LjUxLTMuNTQtMjUuMy0xMC42MmMtNi44LTcuMDgtMTAuMTktMTUuNy0xMC4xOS0yNS44N3MzLjQyLTE4LjY3LDEwLjI2LTI1LjhjNi44NC03LjEzLDE1LjI1LTEwLjY5LDI1LjIzLTEwLjY5czE3LjM5LDMuNjEsMjIuODEsMTAuODN2LTguODRabS0zNC4yOCw0OC41NGMzLjc1LDMuNjYsOC41Myw1LjQ5LDE0LjMzLDUuNDlzMTAuNTctMS44MywxNC4zMy01LjQ5YzMuNzUtMy42Niw1LjYzLTguMzQsNS42My0xNC4wNHMtMS44OC0xMC4yNC01LjYzLTEzLjljLTMuNzYtMy42Ni04LjUzLTUuNDktMTQuMzMtNS40OXMtMTAuNTcsMS44My0xNC4zMyw1LjQ5Yy0zLjc1LDMuNjYtNS42Myw4LjI5LTUuNjMsMTMuOXMxLjg4LDEwLjM4LDUuNjMsMTQuMDRaIj48L3BhdGg+PHBhdGggY2xhc3M9ImNscy0zIiBkPSJNNDUxLjQ5LDU2LjkxYy0zLjA0LDAtNS42OC0xLjEyLTcuOTEtMy4zNS0yLjI0LTIuMjMtMy4zNS00Ljg3LTMuMzUtNy45MXMxLjEyLTUuNywzLjM1LTcuOThjMi4yMy0yLjI4LDQuODctMy40Miw3LjkxLTMuNDJzNS44MiwxLjE0LDguMDUsMy40MmMyLjIzLDIuMjgsMy4zNSw0Ljk0LDMuMzUsNy45OHMtMS4xMiw1LjY4LTMuMzUsNy45MWMtMi4yMywyLjIzLTQuOTIsMy4zNS04LjA1LDMuMzVabS05LjEyLDc5LjgzVjY1LjQ3aDE4LjM5djcxLjI3aC0xOC4zOVoiPjwvcGF0aD48cGF0aCBjbGFzcz0iY2xzLTMiIGQ9Ik01MTguMzQsODMuMTRoLTE2LjExdjI5LjY1YzAsMi40NywuNjIsNC4yOCwxLjg1LDUuNDIsMS4yNCwxLjE0LDMuMDQsMS43OCw1LjQyLDEuOTMsMi4zNywuMTQsNS4zMiwuMTIsOC44NC0uMDd2MTYuNjhjLTEyLjY0LDEuNDItMjEuNTUsLjI0LTI2LjczLTMuNTYtNS4xOC0zLjgtNy43Ny0xMC42LTcuNzctMjAuMzh2LTI5LjY1aC0xMi40di0xNy42OGgxMi40di0xNC40bDE4LjM5LTUuNTZ2MTkuOTZoMTYuMTF2MTcuNjhaIj48L3BhdGg+PHBhdGggY2xhc3M9ImNscy0zIiBkPSJNNTgzLjM1LDY1LjQ3aDE4LjM5djcxLjI3aC0xOC4zOXYtOC40MWMtNS41MSw2Ljk0LTEzLjI2LDEwLjQxLTIzLjI0LDEwLjQxcy0xNy42NS0zLjYzLTI0LjQ1LTEwLjljLTYuOC03LjI3LTEwLjE5LTE2LjE4LTEwLjE5LTI2LjczczMuNC0xOS40NiwxMC4xOS0yNi43M2M2Ljc5LTcuMjcsMTQuOTQtMTAuOSwyNC40NS0xMC45LDkuOTgsMCwxNy43MiwzLjQ3LDIzLjI0LDEwLjQxdi04LjQxWm0tMzMuOTMsNTAuMTFjMy43MSwzLjc2LDguNDEsNS42MywxNC4xMSw1LjYzczEwLjQzLTEuODgsMTQuMTgtNS42M2MzLjc1LTMuNzUsNS42My04LjU3LDUuNjMtMTQuNDdzLTEuODgtMTAuNzEtNS42My0xNC40N2MtMy43NS0zLjc1LTguNDgtNS42My0xNC4xOC01LjYzcy0xMC40MSwxLjg4LTE0LjExLDUuNjNjLTMuNzEsMy43NS01LjU2LDguNTgtNS41NiwxNC40N3MxLjg1LDEwLjcyLDUuNTYsMTQuNDdaIj48L3BhdGg+PHBhdGggY2xhc3M9ImNscy0zIiBkPSJNNjcyLjQ0LDM2Ljk2aDE4LjM5djk5Ljc5aC0xOC4zOXYtOC40MWMtNS40Miw2Ljk0LTEzLjExLDEwLjQxLTIzLjA5LDEwLjQxcy0xNy44LTMuNjMtMjQuNTktMTAuOWMtNi44LTcuMjctMTAuMTktMTYuMTgtMTAuMTktMjYuNzNzMy40LTE5LjQ2LDEwLjE5LTI2LjczYzYuNzktNy4yNywxNC45OS0xMC45LDI0LjU5LTEwLjlzMTcuNjgsMy40NywyMy4wOSwxMC40MVYzNi45NlptLTMzLjg2LDc4LjYyYzMuNzUsMy43Niw4LjQ4LDUuNjMsMTQuMTgsNS42M3MxMC40MS0xLjg4LDE0LjExLTUuNjNjMy43MS0zLjc1LDUuNTYtOC41Nyw1LjU2LTE0LjQ3cy0xLjg1LTEwLjcxLTUuNTYtMTQuNDdjLTMuNy0zLjc1LTguNDEtNS42My0xNC4xMS01LjYzcy0xMC40MywxLjg4LTE0LjE4LDUuNjNjLTMuNzUsMy43NS01LjYzLDguNTgtNS42MywxNC40N3MxLjg4LDEwLjcyLDUuNjMsMTQuNDdaIj48L3BhdGg+PC9nPjxnPjxwb2x5Z29uIGNsYXNzPSJjbHMtMSIgcG9pbnRzPSI2MS44OSA2NC41NyA2MS44OSAzOS4wMiAxMTEuOCA2MS4yOSAxMTEuOCA4Ni44NSA2MS44OSA2NC41NyI+PC9wb2x5Z29uPjxwb2x5Z29uIGNsYXNzPSJjbHMtMSIgcG9pbnRzPSIxMTEuOCAxMTIuNCAxMTEuOCA4Ni44NSA2MS44OSAxMDkuMTIgNjEuODkgMTM0LjY3IDExMS44IDExMi40Ij48L3BvbHlnb24+PC9nPjwvZz48L3N2Zz4=" alt="Digitad"><span class="sep"></span><span class="wm">Activia USA</span></div>
+ <div class="meta"><b>OneSearch · Coverage and recommendations</b>Q2 2026 vs Q1 2026 · Activia USA · October 2026</div>
+</header>
+<div class="body">
+<div>
+<h1>Activia held OneSearch coverage roughly flat in Q2 2026 (<em>-0.4 pp</em>), but SEM clicks collapsed 59% — 83% of that decline is concentrated in HEALTH's two Probiotics sub-categories: investigate before any budget change, don't assume it's a pause signal.</h1>
+<p class="lead">2,239 keywords across 7 territories, Q2 2026 versus Q1 2026. Coverage = OneSearch clicks (SEO + SEM) divided by average monthly searches (1.46M per month).</p>
+<div class="kpis">
+ <div class="kpi"><div class="v">18.6K</div><div class="l">OneSearch clicks, Q2 2026</div><div class="s">-22% vs Q1</div></div>
+ <div class="kpi"><div class="v">13.0K</div><div class="l">SEO clicks</div><div class="s">+29% vs Q1</div></div>
+ <div class="kpi"><div class="v">5.6K</div><div class="l">SEM clicks</div><div class="s">-59% vs Q1</div></div>
+ <div class="kpi hi"><div class="v">1.3%</div><div class="l">OneSearch coverage</div><div class="s">1.6% in Q1 (-0.4 pp)</div></div>
+</div>
+</div>
+<section>
+ <h2><span class="n">01</span> Coverage of the main territories <small>who gained, who lost</small></h2>
+ <div class="two">
+ <div><table class='tt'><thead><tr><th>Territory</th><th class='r'>Coverage</th><th class='r'>Change</th><th class='r'>Clicks vs Q1</th></tr></thead><tbody><tr><td><b>PRODUCT</b></td><td class='r'>2.8% → 3.2%</td><td class='r' style='color:#2e7d32;font-weight:600'>+0.4 pp</td><td class='r'>SEO +23% · SEM -10%</td></tr><tr><td><b>BRAND</b></td><td class='r'>10.0% → 11.4%</td><td class='r' style='color:#2e7d32;font-weight:600'>+1.4 pp</td><td class='r'>SEO +26% · SEM -15%</td></tr><tr><td><b>HEALTH</b></td><td class='r'>1.7% → 0.7%</td><td class='r' style='color:#c62828;font-weight:600'>-1.1 pp</td><td class='r'>SEO +67% · SEM -77%</td></tr><tr><td><b>CONSUMER HABITS</b></td><td class='r'>16.5% → 25.4%</td><td class='r' style='color:#2e7d32;font-weight:600'>+8.9 pp</td><td class='r'>SEO +175% · SEM -22%</td></tr><tr><td><b>RECIPE</b></td><td class='r'>0.9% → 0.5%</td><td class='r' style='color:#c62828;font-weight:600'>-0.4 pp</td><td class='r'>SEM -45%</td></tr><tr><td><b>OTHER</b></td><td class='r'>0.0% → 0.0%</td><td class='r' style='color:#c62828;font-weight:600'>-0.0 pp</td><td class='r'>SEO -47% · SEM -70%</td></tr><tr><td><b>COMPETITOR</b></td><td class='r'>0.5% → 0.2%</td><td class='r' style='color:#c62828;font-weight:600'>-0.4 pp</td><td class='r'>SEO -67% (1 keyword)</td></tr></tbody></table><div class="cst" style="margin-top:4px;font-size:6.8pt;color:var(--ink-3)">4 of 7 territories lost coverage. Territory view, all keywords. COMPETITOR currently has only 1 classified keyword — not yet meaningfully built out.</div></div>
+ <div>
+ <div class="cst" style="margin-bottom:2px"><b style="color:#2e7d32">Gained coverage</b></div><ul class="pts"><li><b>CONSUMER HABITS</b> : 16.5% → 25.4% <span style='color:#2e7d32;font-weight:600'>(+8.9 pp)</span>, SEO +175% · SEM -22%.</li><li><b>Gut Health › General Wellness</b> : 32.0% → 39.8% <span style='color:#2e7d32;font-weight:600'>(+7.8 pp)</span>, SEO +226% · SEM -56%.</li><li><b>Nutrition Facts › Protein Content</b> : 17.2% → 23.5% <span style='color:#2e7d32;font-weight:600'>(+6.3 pp)</span>, SEO +53% · SEM -32%.</li></ul>
+ <div class="cst" style="margin:5px 0 2px"><b style="color:#c62828">Biggest losses</b> <span style="color:var(--ink-3);font-size:6.6pt">(sub-categories and territories, by coverage pp lost)</span></div><ul class="pts"><li><b>HEALTH › Probiotics</b> : 2.3% → 0.4% <span style='color:#c62828;font-weight:600'>(-2.0 pp)</span>, SEO +24% · SEM -91% (OneSearch clicks 6,668 → 1,061; SEM alone 6,267 → 562).</li><li><b>HEALTH › Gut Health (Improving Health)</b> : 4.3% → 2.6% <span style='color:#c62828;font-weight:600'>(-1.7 pp)</span>, SEO +90% · SEM -48%.</li><li><b>HEALTH</b> (territory overall) : 1.7% → 0.7% <span style='color:#c62828;font-weight:600'>(-1.1 pp)</span>, SEO +67% · SEM -77%.</li><li><b>Yogurt drinks</b> : 2.4% → 1.4% <span style='color:#c62828;font-weight:600'>(-0.9 pp)</span>, SEO +27% · SEM -45%.</li><li><b>HEALTH › Composition: Probiotics</b> : 1.4% → 0.7% <span style='color:#c62828;font-weight:600'>(-0.8 pp)</span>, SEO +40% · SEM -65%.</li></ul>
+ </div>
+ </div>
+</section>
+<section>
+ <h2><span class="n">02</span> One Search recommendations <small>top 15 priorities, the first 5 on product sub-categories</small></h2>
+ <div class="uv">
+ <div><div class="name">Yogurts</div><div class="big">3.1K <span class="bl">QV</span></div>
+ <div class="stats"><span>SEO <b>+45%</b> · SEM <b>-16%</b></span><span>107 kw · QS <b class="pending">pending</b></span></div></div>
+ <div><div class="cst"><b>SEO and SEM both growing coverage</b></div><ul class="pts"><li><b>Coverage up</b> 3.8% → 5.1%, SEO clicks +45%: keep investing, this sub-category is working.</li><li><b>SEM QV strong</b> (523 clicks, 3.1K QV) — largest QV driver in the territory.</li></ul></div>
+ </div><div class="uv">
+ <div><div class="name">Probiotic yogurt <span style="font-size:6.5pt;font-weight:400;color:var(--ink-3)">(merged, see note)</span></div><div class="big">1.2K <span class="bl">QV</span></div>
+ <div class="stats"><span>SEO <b>+18%</b> · SEM <b>+83%</b></span><span>150 kw · QS <b class="pending">pending</b></span></div></div>
+ <div><div class="cst"><b>Both channels gaining</b></div><ul class="pts"><li><b>Coverage up</b> 0.6% → 0.9%: SEO and SEM both improving, momentum building.</li><li><b>Note:</b> this merges two taxonomy rows ("probiotic yogurt" / "Probiotic yogurt") that differ only by case — a data-cleanup item, not a business split.</li></ul></div>
+ </div><div class="uv">
+ <div><div class="name">Activia - generic</div><div class="big">589 <span class="bl">QV</span></div>
+ <div class="stats"><span>SEO <b>-4%</b> · SEM <b>+66%</b></span><span>27 kw · QS <b class="pending">pending</b></span></div></div>
+ <div><div class="cst"><b>SEM-led, SEO slipping slightly</b></div><ul class="pts"><li><b>Coverage held</b> 10.4% → 10.1%, high-coverage branded territory: SEM growth (+66%) is absorbing a small SEO dip.</li></ul></div>
+ </div><div class="uv">
+ <div><div class="name">Probiotic drink</div><div class="big">584 <span class="bl">QV</span></div>
+ <div class="stats"><span>SEO <b>+16%</b> · SEM <b>-36%</b></span><span>19 kw · QS <b class="pending">pending</b></span></div></div>
+ <div><div class="cst"><b>SEO to re-prioritize, SEM held</b></div><ul class="pts"><li><b>Coverage roughly flat</b> 4.7% → 4.6%: SEM clicks -36%, keep the budget while coverage holds, re-check positions.</li></ul></div>
+ </div><div class="uv">
+ <div><div class="name">High fiber yogurt</div><div class="big">199 <span class="bl">QV</span></div>
+ <div class="stats"><span>SEO <b>+0%</b> · SEM <b>-18%</b></span><span>25 kw · QS <b class="pending">pending</b></span></div></div>
+ <div><div class="cst"><b>High coverage already, small decline</b></div><ul class="pts"><li><b>Coverage</b> 45.1% → 40.7%, already a strong territory: monitor, not urgent.</li></ul></div>
+ </div>
+ <div class="cst" style="margin-top:4px;font-size:7pt"><b>Priorities 6 to 15 :</b> HEALTH › Probiotics, HEALTH › Composition: Probiotics, BRAND › Brand Info (General), BRAND › Sugar Content, HEALTH › Yogurt for Gut Health, Yogurt drinks (general), HEALTH › Gut Health, HEALTH › Healthy Gut Foods, BRAND › Where to Buy, BRAND › Labels &amp; Scoring.</div>
+</section>
+<section class="two">
+ <div>
+ <h2><span class="n">03</span> Rules that frame the plan</h2>
+ <ul class="pts">
+ <li><b>HEALTH coverage is falling (-1.1 pp), driven by a 91% SEM collapse in the Probiotics sub-category</b> (plus a related 65% drop in Composition: Probiotics — together 83% of Activia's total SEM decline). Investigate the cause (budget, Quality Score, auction changes) before touching that budget — don't assume it's a safe pause.</li>
+ <li><b>SEM QV is page-level attributed, not capped at a keyword's own clicks</b> by this pipeline's current methodology — validate case-by-case before using it for any pause decision. Pause-test keyword lists have not yet been built or validated for Activia.</li>
+ <li><b>Quality Score data is pending from the Danone team</b> — not yet available for this brand; the QS fields above will populate once it's registered.</li>
+ <li><b>COMPETITOR territory has only 1 classified keyword</b> — not yet meaningfully built out, unlike ID/Silk's competitor-term coverage.</li>
+ </ul>
+ </div>
+ <div>
+ <h2><span class="n">04</span> Next steps</h2>
+ <ul class="pts">
+ <li><b>Investigate the HEALTH/Probiotics SEM collapse</b> (-91% in Probiotics, -65% in Composition: Probiotics — 83% of Activia's total SEM decline) before any budget decision there.</li>
+ <li><b>Validate SEM QV attribution</b> before building any pause-test list — see rule above.</li>
+ <li><b>Start with the 5 product sub-categories above</b>: SEO momentum in Yogurts/Probiotic yogurt is real and working, keep investing.</li>
+ <li><b>Clean up the case-duplicate taxonomy rows</b> ("probiotic yogurt" vs "Probiotic yogurt," and likely others) — a data-hygiene fix independent of the items above.</li>
+ </ul>
+ </div>
+</section>
+</div>
+<footer>Source: Activia USA OneSearch dashboard, Q2 2026 vs Q1 2026 (Search Console and Google Ads clicks, average monthly search volume, qualified visits (QV)). Coverage is OneSearch clicks divided by average monthly searches, as in the Territory Deep Dive tab. Traffic and QV are estimates. Quality Score data is pending from the Danone team and is not reflected above.</footer>
+</div>
+</body>
+</html>
